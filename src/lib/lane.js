@@ -1,3 +1,5 @@
+import { V_INDEX } from "./data.js";
+
 // DEPRECATED path: GAMA now exports display positions (compute_position);
 // set TRUE_POSITIONS in VehicleCanvas after re-export. Kept so
 // lane_shift.test still passes and old centerline data still renders.
@@ -61,17 +63,17 @@ export function assignLanes(vehicles, segIndex) {
   const out = new Map();
   if (!vehicles) return out;
   if (!segIndex || segIndex.length === 0) {
-    for (const v of vehicles) out.set(v[0], { seg: { lanes: 2, width: 7 }, dir: 1, occ: 0, laneIdx: 0 });
+    for (const v of vehicles) out.set(v[V_INDEX.ID], { seg: { lanes: 2, width: 7 }, dir: 1, occ: 0, laneIdx: 0 });
     return out;
   }
   const first = [];
   const counts = new Map();
   for (const v of vehicles) {
-    const idx = nearestSeg(v[3], v[2], segIndex);
-    const hr = ((v[5] || 0) * Math.PI) / 180;
+    const idx = nearestSeg(v[V_INDEX.LNG], v[V_INDEX.LAT], segIndex);
+    const hr = ((v[V_INDEX.HEADING] || 0) * Math.PI) / 180;
     const sg = segIndex[idx];
     const dir = (Math.cos(hr) * sg.vecE - Math.sin(hr) * sg.vecN) >= 0 ? 1 : -1;
-    first.push({ id: v[0], segIdx: idx, dir });
+    first.push({ id: v[V_INDEX.ID], segIdx: idx, dir });
     counts.set(idx, (counts.get(idx) || 0) + 1);
   }
   const occBy = new Map();

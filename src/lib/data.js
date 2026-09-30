@@ -116,43 +116,40 @@ export function poleSignal(g1, g2, simTime, axis, offsetS = 0) {
 
 /**
  * Computes exact signal states for a junction at continuous global simulation time.
- * Green/red only, mirrors GAMA CBMP phase switching (active phase green, other red).
- * Split lookup uses accumulated chunk durations: each logged entry covers
- * [start, start + g1 + g2); time past all entries wraps within the last one.
+ * In GAMA, Cycle 1 always runs 56s Phase 1, 56s Phase 2.
+ * For Cycle K >= 2, executes the green times logged in row cycle === K - 1.
  */
 export function getGamaSignal(signalsForJnc, globalSimTime, offsetS = 0) {
   const t = Math.max(0, globalSimTime + offsetS);
-  const entries = [...(signalsForJnc || [])].sort((a, b) => a.cycle - b.cycle);
-  if (entries.length === 0) {
-    const g1 = 56;
-    const tInCycle = t % GAMA_CYCLE_LEN;
-    const activePhase = tInCycle < g1 ? 0 : 1;
-    const remaining = activePhase === 0 ? g1 - tInCycle : GAMA_CYCLE_LEN - tInCycle;
-    const axis1 = activePhase === 0 ? "green" : "red";
-    const axis2 = activePhase === 0 ? "red" : "green";
-    return { axis_1: { state: axis1, secs: remaining }, axis_2: { state: axis2, secs: remaining }, activePhase, remaining, split: { g1: 56, g2: 56 }, gamaCycle: Math.floor(t / GAMA_CYCLE_LEN) + 1 };
+  const gamaCycle = Math.floor(t / GAMA_CYCLE_LEN) + 1;
+  const tInCycle = t % GAMA_CYCLE_LEN;
+
+  let split;
+  if (gamaCycle <= 1) {
+    split = { g1: 56, g2: 56 };
+  } else {
+    const entries = signalsForJnc || [];
+    const match = entries.find((e) => e.cycle === gamaCycle - 1);
+    split = match || entries[entries.length - 1] || { g1: 56, g2: 56 };
   }
-  const fallback = entries[entries.length - 1];
-  let start = 0;
-  let split = fallback;
-  let gamaCycle = fallback.cycle ?? 1;
-  for (const e of entries) {
-    const dur = (Number(e.g1) || 0) + (Number(e.g2) || 0) || GAMA_CYCLE_LEN;
-    if (t < start + dur) { split = e; gamaCycle = e.cycle; break; }
-    start += dur;
-  }
+
   const g1 = Number(split.g1) || 56;
   const g2 = Number(split.g2) || 56;
   const dur = g1 + g2 || GAMA_CYCLE_LEN;
-  let tInCycle = t - start;
-  if (tInCycle >= dur) tInCycle %= dur;
-  let axis1 = "red";
-  let axis2 = "red";
-  if (tInCycle < g1) axis1 = "green";
-  else axis2 = "green";
-  const activePhase = tInCycle < g1 ? 0 : 1;
-  const remaining = activePhase === 0 ? g1 - tInCycle : dur - tInCycle;
-  return { axis_1: { state: axis1, secs: remaining }, axis_2: { state: axis2, secs: remaining }, activePhase, remaining, split, gamaCycle };
+  const isPhase1 = tInCycle < g1;
+  const activePhase = isPhase1 ? 0 : 1;
+  const remaining = isPhase1 ? g1 - tInCycle : dur - tInCycle;
+  const axis1 = isPhase1 ? "green" : "red";
+  const axis2 = isPhase1 ? "red" : "green";
+
+  return {
+    axis_1: { state: axis1, secs: remaining },
+    axis_2: { state: axis2, secs: remaining },
+    activePhase,
+    remaining,
+    split,
+    gamaCycle,
+  };
 }
 
 /** Shortest-arc interpolation of headings (degrees). */

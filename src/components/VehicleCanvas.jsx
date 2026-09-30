@@ -73,23 +73,22 @@ function drawFrame(map, canvas, frames, maps, t, segIndex) {
   const mppE = mppEff(zoom);
   const mppL = mppLen(zoom);
   const mpp = mppAt(zoom);
-  const laneMap = assignLanes(vehicles, segIndex);
+  const laneMap = TRUE_POSITIONS ? null : assignLanes(vehicles, segIndex);
   const fb = { seg: { lanes: 2, width: 7 }, dir: 1, occ: 0, laneIdx: 0 };
   const m = 30;
   for (let pass = 0; pass < 3; pass++) {
     const type = 2 - pass;
     for (const v of vehicles) {
       if (v[V_INDEX.TYPE] !== type) continue;
-      // Container points already include the map pane offset (Map.js),
-      // so they stay correct while the pane is transformed by pan/zoom.
       const pt = map.latLngToContainerPoint([v[V_INDEX.LAT], v[V_INDEX.LNG]]);
-      const hr = ((v[V_INDEX.HEADING] || 0) * Math.PI) / 180;
-      const a = laneMap.get(v[V_INDEX.ID]) || fb;
-      const info = { type: v[V_INDEX.TYPE], id: v[V_INDEX.ID], dir: a.dir, laneIdx: a.laneIdx };
-      const shiftPx = TRUE_POSITIONS ? 0 : laneOffsetM(info, a.seg, a.occ) / mpp;
-      const perpE = -Math.sin(hr);
-      const perpN = -Math.cos(hr);
-      const sp = { x: pt.x + perpE * shiftPx, y: pt.y - perpN * shiftPx };
+      let sp = pt;
+      if (!TRUE_POSITIONS && laneMap) {
+        const hr = ((v[V_INDEX.HEADING] || 0) * Math.PI) / 180;
+        const a = laneMap.get(v[V_INDEX.ID]) || fb;
+        const info = { type: v[V_INDEX.TYPE], id: v[V_INDEX.ID], dir: a.dir, laneIdx: a.laneIdx };
+        const shiftPx = laneOffsetM(info, a.seg, a.occ) / mpp;
+        sp = { x: pt.x - Math.sin(hr) * shiftPx, y: pt.y + Math.cos(hr) * shiftPx };
+      }
       if (sp.x < -m || sp.y < -m || sp.x > w + m || sp.y > h + m) continue;
       drawVehicle(ctx, v, mppE, mppL, sp);
     }
