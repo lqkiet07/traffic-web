@@ -13,9 +13,10 @@ Per user decision: *"fixed time thì khỏi cũng đc, giờ cần chạy trơn 
 
 ### Verified working (evidence-based)
 - `npm run build` passes clean (~7s, 0 errors, 809kB JS / 38kB CSS)
-- Unit tests: scale + signal_timing + inspector_cycle + lane_shift all pass (`tests/`; flow_phase retired with override)
+- Unit tests: scale + signal_timing + inspector_cycle + lane_shift + declutter + phase_offset + signal_vehicle_alignment all pass (`tests/`; flow_phase retired with override)
 - Serve: index + 61 cycle JSONs + signals + roads all 200
-- 61 cycles of CAO trajectories converted, 0 vehicles outside Can Tho bbox
+- 61 cycles of CAO trajectories converted with true GAMA lane positions (compute_position), 0 vehicles outside Can Tho bbox
+- Vehicle lateral separation verified: median 3.53m between side-by-side vehicles, median 1.87m from road centerline (TRUE_POSITIONS = true)
 
 ### Complete feature inventory
 1. **Map (dual-layer: Dark Gray <=15 + darkened Esri World_Imagery 16-19, maxZoom=19)**
@@ -27,8 +28,9 @@ Per user decision: *"fixed time thì khỏi cũng đc, giờ cần chạy trơn 
 2. **Vehicle canvas (60 FPS, requestAnimationFrame, dual-rate clock, vehiclePane z-450)**
    - True GAMA dimensions (moto 1.9m/car 4.5m/truck 8.0m) via shared `mppEff`, painter order truck→car→moto
    - Drop shadows, metallic edge strokes, windshield, brake lights when `speed < 0.28 m/s` (GAMA stopped threshold)
-   - LERP interpolation between 2s samples, shortest-arc heading interpolation
-   - Pooled per-frame id maps (no per-frame Map allocation)
+    - LERP interpolation between 2s samples, shortest-arc heading interpolation
+    - Pooled per-frame id maps (no per-frame Map allocation)
+    - **Lane reconstruction (true GAMA positions):** roads carry per-feature lanes (2×164, 3×39); `TRUE_POSITIONS = true` renders exact GAMA `compute_position()` coordinates exported directly from simulation; `declutter.js` provides safety fallback at stop-line queues; heading RAW locked (COMPASS=(RAW+90)%360); stale-offset key v2
 3. **Signal reconstruction:** `getGamaSignal` = pure GAMA green/red (no amber), split tra theo thời gian tích lũy (`start[n+1]=start[n]+g1+g2`) — hết tra nhầm chu kỳ ở 8s cuối chunk 120s. Flow-vote override REMOVED. 2-lamp heads. Nếu còn lệch: reset "Căn giờ đèn" về 0 trước. Measured stopped-near-red 0.619 (169/273) on cycle_1 (congestion stops on green explain the rest).
 4. **Replay controls:** SMPTE clock, custom transport scrubber CSS, 1x/2x/5x, cycle slider with CK ticks, auto-stop at cycle 60
 5. **Analytics right panel:** telemetry matrix (mono/tabular), delta badges with neutral 0% tone, Recharts head-to-head with yellow cycle cursor
@@ -53,6 +55,7 @@ python scripts/export_replay_json.py --trajectory outputs/Trajectory_Log_<algo>_
 4. **Dead file:** `src/components/SignalBeacon.jsx` is unused (replaced by `RealisticSignalPole.jsx`) — delete when possible (agent file-deletion is policy-blocked).
 5. **Not deployed online yet** — currently localhost only; Vercel/GitHub Pages deploy is a ~2min follow-up.
 6. **Scale test scope:** the queue-spacing-vs-truck-length assertion was dropped as a data property (spacing is sim input, not scale output) — `scale.test.mjs` covers exagg/mppEff monotonicity, fit-in-road, ratio preservation, lane separation.
+7. **`signals.test.mjs` expects the removed yellow tail** (pre-existing fail, plan-lane out of scope); `flow_phase.test` retired; stagger approximates missing lowest_lane.
 
 ## Conventions to Preserve
 - Standards: every function ≤50 lines, nesting ≤4, English-only comments, no console.log

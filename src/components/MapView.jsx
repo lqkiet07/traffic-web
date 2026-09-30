@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, Tooltip, useMap } from "react-leaflet";
 import { loadRoads, latestCycleEntry, V_INDEX } from "../lib/data.js";
-import { mppEff, ROAD_W_M } from "../lib/scale.js";
+import { mppEff } from "../lib/scale.js";
 import VehicleCanvas from "./VehicleCanvas.jsx";
 import { JunctionLabel, SignalPoleLayer } from "./RealisticSignalPole.jsx";
 
@@ -14,11 +14,11 @@ const ROAD_ASPHALT = { color: "#1b2436", opacity: 1 };
 // on top. Width follows zoom so asphalt stays proportional to vehicles.
 // Fixed key: style updates apply without tearing down 203 segments.
 function RoadLayer({ roads, zoom }) {
-  const roadW = ROAD_W_M / mppEff(zoom);
+  const roadW = (f) => ((f?.properties?.lanes || 2) * 3.5) / mppEff(zoom);
   return (
     <>
-      <GeoJSON key="gama-roads-casing" data={roads} style={{ ...ROAD_CASING, weight: roadW * 1.4 }} />
-      <GeoJSON key="gama-roads" data={roads} style={{ ...ROAD_ASPHALT, weight: roadW }} />
+      <GeoJSON key="gama-roads-casing" data={roads} style={(f) => ({ ...ROAD_CASING, weight: roadW(f) * 1.4 })} />
+      <GeoJSON key="gama-roads" data={roads} style={(f) => ({ ...ROAD_ASPHALT, weight: roadW(f) })} />
     </>
   );
 }

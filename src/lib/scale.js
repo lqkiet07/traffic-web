@@ -3,7 +3,7 @@ export const ROAD_W_M = 7;
 export const VEH_LENS = [1.9, 4.5, 8.0];
 export const VEH_WIDS = [0.7, 1.8, 2.4];
 
-// ponytail: roads.geojson has no per-road `lanes` attr; upgrade path is re-running export_roads_geojson.py with shape properties.
+// Kept for tests/other importers; MapView now uses per-feature lanes from roads.geojson.
 export function mppAt(zoom) {
   return (156543.03 * Math.cos((10.033 * Math.PI) / 180)) / Math.pow(2, zoom);
 }
