@@ -4,6 +4,17 @@ import { usePlaybackClock } from "./usePlaybackClock.js";
 import { useReplayData } from "./useReplayData.js";
 import { useChunkHandlers, useTrajectoryLoader } from "./useTrajectoryLoader.js";
 
+// Pure playback rules (unit-tested): keep React state transitions in the hook.
+export function shouldStopOnWrap(cycle, maxCycle) {
+  return cycle >= maxCycle;
+}
+export function clampCycle(c, maxCycle) {
+  return Math.min(Math.max(1, c), maxCycle);
+}
+export function globalSimTimeFor(cycle, simTime) {
+  return (cycle - 1) * CYCLE_LEN + simTime;
+}
+
 // Playback engine: composes reference data, trajectory chunks and sim clock.
 export function useCyclePlayer() {
   const [scenario, setScenario] = useState("Medium_900");
@@ -22,7 +33,7 @@ export function useCyclePlayer() {
   const { junctions, kpi, junctionKpis, signals } = useReplayData(algo, setNotice);
   const handleWrap = useCallback(
     (overflow) => {
-      if (cycleRef.current >= maxCycle) {
+      if (shouldStopOnWrap(cycleRef.current, maxCycle)) {
         setIsPlaying(false);
         setNotice(`Đã phát hết chu kỳ ${maxCycle} (toàn bộ dữ liệu hiện có)`);
         return true;
@@ -39,13 +50,13 @@ export function useCyclePlayer() {
   useTrajectoryLoader(algo, cycle, onLoaded, onMissing);
   const gotoCycle = useCallback(
     (c) => {
-      setCycle(Math.min(Math.max(1, c), maxCycle));
+      setCycle(clampCycle(c, maxCycle));
       setSimTime(0);
       setNotice("");
     },
     [maxCycle]
   );
-  const globalSimTime = (cycle - 1) * CYCLE_LEN + simTime;
+  const globalSimTime = globalSimTimeFor(cycle, simTime);
 
   return {
     scenario, setScenario, algo, setAlgo, cycle, simTime, globalSimTime,

@@ -1,16 +1,12 @@
 // Shared data helpers: fetchers, vehicle styling, signal schedule.
 //
-// Signal schedule reconstruction: GAMA logs per-cycle green splits (g1, g2)
-// but not the live phase state. We reconstruct a deterministic schedule:
-// phase 1 green for g1 seconds, then phase 2 green for g2 seconds,
-// repeating every CYCLE_LEN (120s). Documented approximation for display.
+// Dual-clock truth: trajectory replay runs on the 120s web clock
+// (CYCLE_LEN), while GAMA KPI/phase logs run on the 112s GAMA clock
+// (GAMA_CYCLE_LEN). Every panel looks up by absolute time t via
+// getGamaSignal / kpiIndexForTime / chartCycleForTime.
 
 export const CYCLE_LEN = 120;
 export const GAMA_CYCLE_LEN = 112;
-
-// GAMA clearance per phase (Intersection.gaml: lost_time = 4s): yellow +
-// all-red during which no approach has green. Logged g1+g2 ~= 112s.
-export const LOST_PER_PHASE = 4;
 
 export const SCENARIOS = [
   { key: "Low_400", label: "Thấp · 400 vph" },
@@ -56,62 +52,6 @@ export const STOPPED_SPEED = 0.28;
 /** Sign-safe modulo: JS % keeps the sign, so wrap negatives into [0, m). */
 function mod(n, m) {
   return ((n % m) + m) % m;
-}
-
-/** Shared phase window: elapsed time t and phase-1 green length.
- * Mirrors GAMA: each phase ends with LOST_PER_PHASE clearance seconds
- * (yellow + all-red), so greens occupy CYCLE_LEN - 2*LOST, not 120s.
- * offsetS shifts the whole schedule (manual eye-alignment, Task 2).
- */
-function phaseWindow(g1, g2, simTime, offsetS = 0) {
-  const total = g1 + g2;
-  if (total <= 0) return null;
-  const clear = 2 * LOST_PER_PHASE;
-  const greenSpan = CYCLE_LEN - clear;
-  const t = mod(simTime + offsetS, CYCLE_LEN);
-  const green1 = (g1 / total) * greenSpan;
-  return { t, green1, greenSpan };
-}
-
-/** Green phase index (0 or 1) active at simTime within a cycle. */
-export function activePhase(g1, g2, simTime, offsetS = 0) {
-  const w = phaseWindow(g1, g2, simTime, offsetS);
-  if (!w) return 0;
-  return w.t < w.green1 ? 0 : 1;
-}
-
-/** Active phase + remaining green seconds (countdown) at simTime. */
-export function phaseCountdown(g1, g2, simTime, offsetS = 0) {
-  const w = phaseWindow(g1, g2, simTime, offsetS);
-  if (!w) return { phase: 0, remaining: 0 };
-  if (w.t < w.green1) return { phase: 0, remaining: w.green1 - w.t };
-  return { phase: 1, remaining: CYCLE_LEN - w.t };
-}
-
-/** Pole signal state from GAMA axis mapping (Intersection.gaml to_green/to_red):
- * phase 1 (g1) = axis_1 (NS/SN) green; phase 2 (g2) = axis_2 (EW/WE) green.
- * Each phase ends with LOST_PER_PHASE clearance (yellow tail + all-red gap)
- * during which the other axis stays red. Matches GAMA lost_time = 4s.
- * Red poles count down to their next green.
- */
-export function poleSignal(g1, g2, simTime, axis, offsetS = 0) {
-  const w = phaseWindow(g1, g2, simTime, offsetS);
-  if (!w) return { state: "red", secs: 0 };
-  const greenEnd1 = w.green1;
-  const greenEnd2 = w.greenSpan;
-  if (axis === "axis_1") {
-    if (w.t < greenEnd1) return { state: "green", secs: greenEnd1 - w.t };
-    if (w.t < greenEnd1 + LOST_PER_PHASE)
-      return { state: "yellow", secs: greenEnd1 + LOST_PER_PHASE - w.t };
-    return { state: "red", secs: CYCLE_LEN - w.t };
-  }
-  if (w.t < greenEnd1 + LOST_PER_PHASE)
-    return { state: "red", secs: greenEnd1 + LOST_PER_PHASE - w.t };
-  if (w.t < greenEnd2 + LOST_PER_PHASE)
-    return { state: "green", secs: greenEnd2 + LOST_PER_PHASE - w.t };
-  if (w.t < greenEnd2 + 2 * LOST_PER_PHASE)
-    return { state: "yellow", secs: greenEnd2 + 2 * LOST_PER_PHASE - w.t };
-  return { state: "red", secs: CYCLE_LEN - w.t };
 }
 
 /**
@@ -174,7 +114,7 @@ export function interpolateVehicles(frames, simTime, maps = null) {
   const span = Math.max(b.time - a.time, 1e-6);
   const r = Math.min(Math.max((simTime - a.time) / span, 0), 1);
 
-  const bById = maps ? maps[i + 1] : new Map(b.vehicles.map((v) => [v[V_INDEX.ID], v]));
+  const bById = maps?.[i + 1] ?? new Map(b.vehicles.map((v) => [v[V_INDEX.ID], v]));
   const out = [];
   for (const v of a.vehicles) {
     const w = bById.get(v[V_INDEX.ID]);
@@ -206,4 +146,32 @@ export function improvementPct(proposed, baseline, higherIsBetter = false) {
     ? (proposed - baseline) / Math.abs(baseline)
     : (baseline - proposed) / Math.abs(baseline);
   return Number.isFinite(d) ? d * 100 : 0;
+}
+
+export const REPLAY_ALGOS = ["cao"];
+export const REPLAY_SCENARIOS = ["Medium_900"];
+export function replayAvailable(algo, scenario) {
+  return REPLAY_ALGOS.includes(algo) && REPLAY_SCENARIOS.includes(scenario);
+}
+export function formatClock(totalSeconds) {
+  const s = Math.max(Math.floor(totalSeconds), 0);
+  const hh = String(Math.floor(s / 3600)).padStart(2, "0");
+  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
+  const ss = String(s % 60).padStart(2, "0");
+  return `${hh}:${mm}:${ss}`;
+}
+
+// Stub guard: a real GAMA cycle always has 2+ sample frames.
+export function isStubChunk(frames) {
+  return !frames || frames.length < 2;
+}
+
+// 112s-clock lookups: KPI/phase logs run on GAMA_CYCLE_LEN, not the 120s web clock.
+export function kpiIndexForTime(t, len) {
+  if (!len || len <= 0) return 0;
+  return Math.min(Math.max(Math.floor(Math.max(0, t) / GAMA_CYCLE_LEN), 0), len - 1);
+}
+export function chartCycleForTime(t, len) {
+  if (!len || len <= 0) return 1;
+  return Math.min(Math.max(Math.floor(Math.max(0, t) / GAMA_CYCLE_LEN) + 1, 1), len);
 }

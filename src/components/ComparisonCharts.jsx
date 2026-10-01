@@ -1,4 +1,5 @@
 import { memo, useState } from "react";
+import { chartCycleForTime } from "../lib/data.js";
 import {
   CartesianGrid,
   Legend,
@@ -54,7 +55,7 @@ function MetricTabs({ metric, setMetric }) {
 
 // Head-to-head chart over 60 cycles with a time cursor synced to replay.
 // Memoized: only re-renders when cycle/scenario changes, not every frame.
-const ComparisonCharts = memo(function ComparisonCharts({ kpi, scenario, cycle }) {
+const ComparisonCharts = memo(function ComparisonCharts({ kpi, scenario, globalSimTime = 0 }) {
   const [metric, setMetric] = useState("queue");
   const data = kpi?.[scenario];
   const meta = METRICS.find((m) => m.key === metric);
@@ -67,7 +68,7 @@ const ComparisonCharts = memo(function ComparisonCharts({ kpi, scenario, cycle }
     <div className="rounded-lg border border-[#1e293b] bg-[#0f172a] p-3">
       <div className="mb-2 flex items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
-          Đối đầu · 60 chu kỳ
+          Đối đầu · {data.cycles.length} chu kỳ
         </span>
         <MetricTabs metric={metric} setMetric={setMetric} />
       </div>
@@ -82,7 +83,7 @@ const ComparisonCharts = memo(function ComparisonCharts({ kpi, scenario, cycle }
               labelStyle={{ color: "#e2e8f0" }}
             />
             <Legend wrapperStyle={{ fontSize: 12 }} />
-            <ReferenceLine x={cycle} stroke="#facc15" strokeWidth={1.5} label={{ value: `CK ${cycle}`, fill: "#facc15", fontSize: 11, position: "top" }} />
+            <ReferenceLine x={chartCycleForTime(globalSimTime, data.cycles.length)} stroke="#facc15" strokeWidth={1.5} label={{ value: `CK ${chartCycleForTime(globalSimTime, data.cycles.length)}`, fill: "#facc15", fontSize: 11, position: "top" }} />
             <Line type="monotone" dataKey="CAO" stroke="#10b981" strokeWidth={2.5} dot={false} name="CAO-CBMP" />
             <Line type="monotone" dataKey="Baseline" stroke="#6366f1" strokeWidth={2} dot={false} name="Đếm xe" />
           </LineChart>

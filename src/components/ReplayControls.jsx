@@ -1,15 +1,7 @@
 import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
-import { CYCLE_LEN } from "../lib/data.js";
+import { CYCLE_LEN, formatClock } from "../lib/data.js";
 
 const SPEEDS = [1, 2, 5];
-
-function fmtClock(totalSeconds) {
-  const s = Math.max(Math.floor(totalSeconds), 0);
-  const hh = String(Math.floor(s / 3600)).padStart(2, "0");
-  const mm = String(Math.floor((s % 3600) / 60)).padStart(2, "0");
-  const ss = String(s % 60).padStart(2, "0");
-  return `${hh}:${mm}:${ss}`;
-}
 
 function iconBtn(title, onClick, children, highlight = false) {
   return (
@@ -66,7 +58,7 @@ function TimeReadout({ player }) {
         {"  ·  "}t {Math.round(simTime)}s/{CYCLE_LEN}s
       </div>
       <div>
-        {fmtClock(globalSimTime)} / 02:00:00{"  ·  "}{vehicleCount} xe
+        {formatClock(globalSimTime)} / {formatClock(maxCycle * CYCLE_LEN)}{"  ·  "}{vehicleCount} xe
       </div>
     </div>
   );

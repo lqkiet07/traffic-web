@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { loadCycle } from "../lib/data.js";
+import { isStubChunk, loadCycle } from "../lib/data.js";
 
 // Stable chunk event handlers: success fills frames, missing clamps
 // playback to the last available cycle.
@@ -56,7 +56,13 @@ export function useTrajectoryLoader(algo, cycle, onLoaded, onMissing) {
     const cached = cacheRef.current[key];
     const apply = (payload) => {
       if (cancelled) return;
-      onLoaded(payload.frames || []);
+      const f = payload.frames || [];
+      // Stub cycle (single frame) has no motion: clamp like a missing chunk.
+      if (isStubChunk(f)) {
+        onMissing(cycle);
+        return;
+      }
+      onLoaded(f);
       prefetch(cacheRef.current, TRAJECTORY_ALGO, cycle + 1);
     };
     if (cached) {

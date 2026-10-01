@@ -4,18 +4,12 @@ import {
   STOPPED_SPEED,
   V_INDEX,
   interpolateVehicles,
-  loadRoads,
 } from "../lib/data.js";
-import { mppAt, mppEff, mppLen, VEH_LENS, VEH_WIDS } from "../lib/scale.js";
-import { laneOffsetM, buildSegIndex, assignLanes } from "../lib/lane.js";
+import { mppEff, mppLen, VEH_LENS, VEH_WIDS } from "../lib/scale.js";
 import { declutter } from "../lib/declutter.js";
 
 const VEH_COLORS = ["#f59e0b", "#38bdf8", "#ec4899"];
 const VEH_EDGES = ["#92610a", "#1d5f8a", "#8a2c55"];
-
-// Set true after re-export from display-position CSVs (Task 3);
-// until then centerline data needs lane guessing.
-const TRUE_POSITIONS = true;
 
 function drawVehicle(ctx, v, mppE, mppL, pt) {
   const t = v[V_INDEX.TYPE];
@@ -59,7 +53,7 @@ function drawVehicle(ctx, v, mppE, mppL, pt) {
   ctx.restore();
 }
 
-function drawFrame(map, canvas, frames, maps, t, segIndex) {
+function drawFrame(map, canvas, frames, maps, t) {
   const ctx = canvas.getContext("2d");
   const w = map.getContainer().clientWidth;
   const h = map.getContainer().clientHeight;
@@ -72,32 +66,19 @@ function drawFrame(map, canvas, frames, maps, t, segIndex) {
   const zoom = map.getZoom();
   const mppE = mppEff(zoom);
   const mppL = mppLen(zoom);
-  const mpp = mppAt(zoom);
-  const laneMap = TRUE_POSITIONS ? null : assignLanes(vehicles, segIndex);
-  const fb = { seg: { lanes: 2, width: 7 }, dir: 1, occ: 0, laneIdx: 0 };
   const m = 30;
   for (let pass = 0; pass < 3; pass++) {
     const type = 2 - pass;
     for (const v of vehicles) {
       if (v[V_INDEX.TYPE] !== type) continue;
       const pt = map.latLngToContainerPoint([v[V_INDEX.LAT], v[V_INDEX.LNG]]);
-      let sp = pt;
-      if (!TRUE_POSITIONS && laneMap) {
-        const hr = ((v[V_INDEX.HEADING] || 0) * Math.PI) / 180;
-        const a = laneMap.get(v[V_INDEX.ID]) || fb;
-        const info = { type: v[V_INDEX.TYPE], id: v[V_INDEX.ID], dir: a.dir, laneIdx: a.laneIdx };
-        const shiftPx = laneOffsetM(info, a.seg, a.occ) / mpp;
-        sp = { x: pt.x - Math.sin(hr) * shiftPx, y: pt.y + Math.cos(hr) * shiftPx };
-      }
-      if (sp.x < -m || sp.y < -m || sp.x > w + m || sp.y > h + m) continue;
-      drawVehicle(ctx, v, mppE, mppL, sp);
+      if (pt.x < -m || pt.y < -m || pt.x > w + m || pt.y > h + m) continue;
+      drawVehicle(ctx, v, mppE, mppL, pt);
     }
   }
   ctx.globalAlpha = 1;
   return vehicles.length;
 }
-
-let segCache = null;
 
 function useCanvasLifecycle(map, dataRef, timeRef, onCount) {
   useEffect(() => {
@@ -125,10 +106,13 @@ function useCanvasLifecycle(map, dataRef, timeRef, onCount) {
     let raf = 0;
     let lastCount = -1;
     const loop = () => {
-      const d = dataRef.current;
-      const n = drawFrame(map, canvas, d.frames, d.maps, timeRef.current, segCache);
-      if (n !== lastCount) { lastCount = n; onCount?.(n); }
-      raf = requestAnimationFrame(loop);
+      try {
+        const d = dataRef.current;
+        const n = drawFrame(map, canvas, d.frames, d.maps, timeRef.current);
+        if (n !== lastCount) { lastCount = n; onCount?.(n); }
+      } finally {
+        raf = requestAnimationFrame(loop);
+      }
     };
     raf = requestAnimationFrame(loop);
     return () => {
@@ -149,12 +133,6 @@ export default function VehicleCanvas({ frames, timeRef, onCount }) {
       (f) => new Map(f.vehicles.map((v) => [v[V_INDEX.ID], v]))
     );
   }, [frames]);
-
-  useEffect(() => {
-    let live = true;
-    loadRoads().then((r) => { if (live) segCache = buildSegIndex(r); }).catch(() => {});
-    return () => { live = false; };
-  }, []);
 
   useCanvasLifecycle(map, dataRef, timeRef, onCount);
 

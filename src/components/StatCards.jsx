@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { improvementPct } from "../lib/data.js";
+import { improvementPct, kpiIndexForTime } from "../lib/data.js";
 
 function badgeTone(value) {
   if (value === 0) return "bg-slate-700/50 text-slate-300";
@@ -55,9 +55,9 @@ function TelemetryCell({ row }) {
 }
 
 // Unified telemetry matrix: CAO value + delta vs baseline per row.
-const StatCards = memo(function StatCards({ kpi, scenario, cycle }) {
+const StatCards = memo(function StatCards({ kpi, scenario, globalSimTime = 0 }) {
   const data = kpi?.[scenario];
-  const idx = Math.min(Math.max(cycle - 1, 0), (data?.cycles.length || 1) - 1);
+  const idx = kpiIndexForTime(globalSimTime, data?.cycles.length || 0);
   if (!data) {
     return <div className="text-[13px] text-slate-500">Đang tải KPI…</div>;
   }

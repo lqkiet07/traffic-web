@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { GeoJSON, MapContainer, TileLayer, Tooltip, useMap } from "react-leaflet";
-import { loadRoads, latestCycleEntry, V_INDEX } from "../lib/data.js";
+import { loadRoads, latestCycleEntry, getGamaSignal, V_INDEX } from "../lib/data.js";
 import { mppEff } from "../lib/scale.js";
 import VehicleCanvas from "./VehicleCanvas.jsx";
 import { JunctionLabel, SignalPoleLayer } from "./RealisticSignalPole.jsx";
@@ -105,10 +105,12 @@ function JunctionLayer({ junctions, signals, localKpis, cycle, globalSimTime = 0
     map.flyTo([j.lat, j.lng], z, { duration: 0.6 });
     onSelect(code);
   };
+  // KPI logs run on the 112s GAMA clock, same as lamps/badges — never the 120s web cycle.
+  const gamaCycle = getGamaSignal([], globalSimTime, offsetS).gamaCycle;
   return (
     <>
       {junctions.map((j) => {
-        const kpiEntry = latestCycleEntry(localKpis[j.code], cycle);
+        const kpiEntry = latestCycleEntry(localKpis[j.code], gamaCycle);
         return (
           <JunctionLabel
             key={j.code}

@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { GAMA_CYCLE_LEN, getGamaSignal, poleSignal, activePhase, phaseCountdown } from "../src/lib/data.js";
+import { GAMA_CYCLE_LEN, getGamaSignal } from "../src/lib/data.js";
 
 assert.strictEqual(GAMA_CYCLE_LEN, 112, "GAMA_CYCLE_LEN must be 112");
 
@@ -40,10 +40,5 @@ assert.strictEqual(s4.gamaCycle, 2);
 assert.strictEqual(s4.activePhase, 1);
 assert.strictEqual(s4.axis_1.state, "red");
 assert.strictEqual(s4.axis_2.state, "green");
-
-// Backward compatibility check
-assert.strictEqual(typeof poleSignal, "function");
-assert.strictEqual(typeof activePhase, "function");
-assert.strictEqual(typeof phaseCountdown, "function");
 
 console.log("[signals.test] all assertions passed");
