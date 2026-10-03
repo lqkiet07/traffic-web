@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef } from "react";
-import { isStubChunk, loadCycle } from "../lib/data.js";
+import { isStubChunk, loadCycle, loadCycleLegacy } from "../lib/data.js";
 
 // Stable chunk event handlers: success fills frames, missing clamps
 // playback to the last available cycle.
@@ -28,10 +28,10 @@ export function useChunkHandlers(setFrames, setMaxCycle, setCycle, setSimTime, n
   return { onLoaded, onMissing };
 }
 
-function prefetch(cache, algo, cycle) {
-  const key = `${algo}:${cycle}`;
+function prefetch(cache, algo, scenario, cycle) {
+  const key = `${algo}:${scenario}:${cycle}`;
   if (!cache[key]) {
-    loadCycle(algo, cycle)
+    loadCycle(algo, scenario, cycle)
       .then((p) => {
         cache[key] = p;
       })
@@ -39,20 +39,14 @@ function prefetch(cache, algo, cycle) {
   }
 }
 
-// Only CAO-CBMP has trajectory runs on disk. The algo toggle only
-// switches KPI comparison lines — never the 3D vehicle layer — so the
-// missing-baseline 404 can never clamp maxCycle down to 1.
-const TRAJECTORY_ALGO = "cao";
-
 // Per-cycle trajectory chunk with memory cache + next-cycle prefetch.
 // Calls onMissing(cycle) when the chunk file does not exist.
-export function useTrajectoryLoader(algo, cycle, onLoaded, onMissing) {
+export function useTrajectoryLoader(algo, scenario, cycle, onLoaded, onMissing) {
   const cacheRef = useRef({});
 
   useEffect(() => {
-    void algo;
     let cancelled = false;
-    const key = `${TRAJECTORY_ALGO}:${cycle}`;
+    const key = `${algo}:${scenario}:${cycle}`;
     const cached = cacheRef.current[key];
     const apply = (payload) => {
       if (cancelled) return;
@@ -63,7 +57,7 @@ export function useTrajectoryLoader(algo, cycle, onLoaded, onMissing) {
         return;
       }
       onLoaded(f);
-      prefetch(cacheRef.current, TRAJECTORY_ALGO, cycle + 1);
+      prefetch(cacheRef.current, algo, scenario, cycle + 1);
     };
     if (cached) {
       apply(cached);
@@ -71,16 +65,23 @@ export function useTrajectoryLoader(algo, cycle, onLoaded, onMissing) {
         cancelled = true;
       };
     }
-    loadCycle(TRAJECTORY_ALGO, cycle)
+    loadCycle(algo, scenario, cycle)
       .then((payload) => {
         cacheRef.current[key] = payload;
         apply(payload);
       })
       .catch(() => {
-        if (!cancelled) onMissing(cycle);
+        loadCycleLegacy(algo, cycle)
+          .then((payload) => {
+            cacheRef.current[key] = payload;
+            apply(payload);
+          })
+          .catch(() => {
+            if (!cancelled) onMissing(cycle);
+          });
       });
     return () => {
       cancelled = true;
     };
-  }, [algo, cycle, onLoaded, onMissing]);
+  }, [algo, scenario, cycle, onLoaded, onMissing]);
 }

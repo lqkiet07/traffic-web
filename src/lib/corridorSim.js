@@ -10,6 +10,7 @@ import {
   AVAILABLE_GREEN,
   C_SATURATION,
   VEHICLE_AREAS,
+  estimateOccludedCount,
 } from "./cbmp.js";
 
 export const VEHICLE_SPECS = {
@@ -19,12 +20,12 @@ export const VEHICLE_SPECS = {
 };
 
 const APPROACH_CONFIGS = {
-  west: { node: 1, dir: "east", x: 0, y: 160, stopLine: 220 },
-  corridor: { node: 2, dir: "east", x: 280, y: 160, stopLine: 540 },
-  north1: { node: 1, dir: "south", x: 240, y: 0, stopLine: 140 },
-  south1: { node: 1, dir: "north", x: 240, y: 320, stopLine: 180 },
-  north2: { node: 2, dir: "south", x: 560, y: 0, stopLine: 140 },
-  south2: { node: 2, dir: "north", x: 560, y: 320, stopLine: 180 },
+  west: { node: 1, dir: "east", x: 0, y: 170, stopLine: 220 },
+  corridor: { node: 2, dir: "east", x: 280, y: 170, stopLine: 540 },
+  north1: { node: 1, dir: "south", x: 230, y: 0, stopLine: 140 },
+  south1: { node: 1, dir: "north", x: 250, y: 300, stopLine: 180 },
+  north2: { node: 2, dir: "south", x: 550, y: 0, stopLine: 140 },
+  south2: { node: 2, dir: "north", x: 570, y: 300, stopLine: 180 },
 };
 
 export function createCorridorSim(options = {}) {
@@ -37,6 +38,7 @@ export function createCorridorSim(options = {}) {
     g1: 56,
     g2: 56,
     timeRemaining: 56,
+    isYellow: false,
   };
   const node2 = {
     id: 2,
@@ -47,6 +49,7 @@ export function createCorridorSim(options = {}) {
     g1: 56,
     g2: 56,
     timeRemaining: 56,
+    isYellow: false,
   };
   const nodes = [node1, node2];
   nodes.node1 = node1;
@@ -59,6 +62,8 @@ export function createCorridorSim(options = {}) {
     throughput: 0,
     time: 0,
     nextVehicleId: 1,
+    autoSpawn: options.autoSpawn ?? false,
+    spawnTimer: 0,
   };
 }
 
@@ -66,12 +71,15 @@ export function resetCorridorSim(sim) {
   sim.vehicles = [];
   sim.throughput = 0;
   sim.time = 0;
+  sim.stepper = null;
+  sim.spawnTimer = 0;
   for (const node of [sim.nodes.node1, sim.nodes.node2]) {
     node.phase = 1;
     node.timer = 0;
     node.g1 = 56;
     node.g2 = 56;
     node.timeRemaining = 56;
+    node.isYellow = false;
   }
   return sim;
 }
@@ -79,9 +87,15 @@ export function resetCorridorSim(sim) {
 function countApproach(sim, approach) {
   const counts = { moto: 0, car: 0, truck: 0 };
   for (const v of sim.vehicles) {
-    let currentApproach = v.approach;
-    if (v.approach === "west" && v.x >= 240 && v.x < 560) {
-      currentApproach = "corridor";
+    // Count only vehicles still upstream of their stop line
+    let currentApproach = null;
+    if (v.direction === "east") {
+      if (v.x < 220) currentApproach = "west";
+      else if (v.x >= 240 && v.x < 540) currentApproach = "corridor";
+    } else if (v.direction === "south") {
+      if (v.y < 140) currentApproach = v.node === 2 ? "north2" : "north1";
+    } else if (v.direction === "north") {
+      if (v.y > 180) currentApproach = v.node === 2 ? "south2" : "south1";
     }
     if (currentApproach === approach) {
       counts[v.type] = (counts[v.type] || 0) + 1;
@@ -150,6 +164,10 @@ export function getCorridorTelemetry(sim) {
     },
     throughput: sim.throughput,
     totalVehicles: sim.vehicles.length,
+    n1P1Count: totalVehicles(n1P1),
+    n1P2Count: totalVehicles(n1P2),
+    corridorCount: totalVehicles(corridor),
+    n2P2Count: totalVehicles(n2P2),
   };
 }
 
@@ -170,9 +188,7 @@ export function getAlgorithmStepData(sim, nodeIndex = 1) {
   const isNode1 = node.id === 1;
 
   const p1Counts = isNode1 ? countApproach(sim, "west") : countApproach(sim, "corridor");
-  const p2Counts = isNode1
-    ? combineCounts(countApproach(sim, "north1"), countApproach(sim, "south1"))
-    : combineCounts(countApproach(sim, "north2"), countApproach(sim, "south2"));
+  const p2Counts = isNode1 ? combineCounts(countApproach(sim, "north1"), countApproach(sim, "south1")) : combineCounts(countApproach(sim, "north2"), countApproach(sim, "south2"));
   const outCounts = isNode1 ? countApproach(sim, "corridor") : { moto: 0, car: 0, truck: 0 };
 
   const p1Area = computeArea(p1Counts);
@@ -182,6 +198,8 @@ export function getAlgorithmStepData(sim, nodeIndex = 1) {
   const phiIn1 = computeOccupancy(p1Counts, DEFAULT_ZONE_AREA);
   const phiIn2 = computeOccupancy(p2Counts, DEFAULT_ZONE_AREA);
   const phiOut = isNode1 ? computeOccupancy(outCounts, DEFAULT_ZONE_AREA) : 0;
+  const occlusionP1 = estimateOccludedCount(p1Counts, (p1Counts?.moto ?? 0) > 5 ? 0.4 : 0.1);
+  const occlusionP2 = estimateOccludedCount(p2Counts, (p2Counts?.moto ?? 0) > 5 ? 0.4 : 0.1);
 
   const turnRatio = 0.70;
   const backPressureDeduction = turnRatio * phiOut;
@@ -196,8 +214,8 @@ export function getAlgorithmStepData(sim, nodeIndex = 1) {
   const activeCounts = node.phase === 1 ? p1Counts : p2Counts;
 
   return {
-    nodeId: node.id,
-    step1: { p1Counts, p2Counts, outCounts, p1Area, p2Area, outArea, phiIn1, phiIn2, phiOut },
+    nodeId: node.id, isNode1, isCorridorReceiver: !isNode1, approachName: isNode1 ? "Nhánh Tây (Nút 1)" : "Hành lang Nối (Nút 1-2)", outflowName: isNode1 ? "Hành lang Nối (Hạ lưu)" : "Thoát Mạng Lưới",
+    step1: { p1Counts, p2Counts, outCounts, p1Area, p2Area, outArea, phiIn1, phiIn2, phiOut, occlusionP1, occlusionP2 },
     step2: { w1, w2, turnRatio, backPressureDeduction },
     step3: { gamma1, gamma2, totalGamma, cSat: C_SATURATION },
     step4: {
@@ -286,6 +304,8 @@ function updateSignals(sim, dt) {
         node.timeRemaining = node.g1;
       }
     }
+    // Display-only yellow hint for renderers, timing unchanged
+    node.isYellow = node.timeRemaining <= 3 && node.timeRemaining > 0;
   }
 }
 
@@ -303,12 +323,14 @@ function getLeadingDistance(v, sim) {
   let minGap = Infinity;
   for (const other of sim.vehicles) {
     if (other === v || other.direction !== v.direction) continue;
+    // Narrow lane allows staggered moto swarm to overlap longitudinally
+    const lateralThresh = v.type === "moto" && other.type === "moto" ? 7 : 18;
     let gap = Infinity;
-    if (v.direction === "east" && Math.abs(other.y - v.y) < 20 && other.x > v.x) {
+    if (v.direction === "east" && Math.abs(other.y - v.y) < lateralThresh && other.x > v.x) {
       gap = other.x - v.x - (other.length / 2 + v.length / 2);
-    } else if (v.direction === "south" && Math.abs(other.x - v.x) < 20 && other.y > v.y) {
+    } else if (v.direction === "south" && Math.abs(other.x - v.x) < lateralThresh && other.y > v.y) {
       gap = other.y - v.y - (other.length / 2 + v.length / 2);
-    } else if (v.direction === "north" && Math.abs(other.x - v.x) < 20 && other.y < v.y) {
+    } else if (v.direction === "north" && Math.abs(other.x - v.x) < lateralThresh && other.y < v.y) {
       gap = v.y - other.y - (other.length / 2 + v.length / 2);
     }
     if (gap >= 0 && gap < minGap) minGap = gap;
@@ -349,6 +371,20 @@ function computeVehicleMotion(sim, v, dt) {
   }
 }
 
+const SPAWN_INTERVAL = 3.5;
+const INGRESS_APPROACHES = ["west", "north1", "south1", "north2", "south2"];
+const INGRESS_TYPES = ["moto", "moto", "moto", "moto", "moto", "moto", "moto", "moto", "car", "truck"];
+function tickTrafficGenerator(sim, dt) {
+  if (!sim.autoSpawn || sim.stepper?.active) return;
+  sim.spawnTimer = (sim.spawnTimer || 0) + dt;
+  if (sim.spawnTimer >= SPAWN_INTERVAL) {
+    sim.spawnTimer = 0;
+    const app = INGRESS_APPROACHES[Math.floor(Math.random() * INGRESS_APPROACHES.length)];
+    const type = INGRESS_TYPES[Math.floor(Math.random() * INGRESS_TYPES.length)];
+    spawnVehicle(sim, { approach: app, type });
+  }
+}
+
 function updateVehicles(sim, dt) {
   const remainingVehicles = [];
   for (const v of sim.vehicles) {
@@ -372,6 +408,7 @@ export function updateCorridorSim(sim, dt) {
   sim.time += dt;
   updateSignals(sim, dt);
   updateVehicles(sim, dt);
+  tickTrafficGenerator(sim, dt);
   // Track motion budget and latch into freeze when exhausted
   if (stepper?.active && stepper.subPhase === "motion") {
     stepper.motionElapsed += dt;

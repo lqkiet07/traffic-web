@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import CorridorCanvas from "./CorridorCanvas.jsx";
+import Corridor3DCanvas from "./Corridor3DCanvas.jsx";
 import LabTransportBar from "./LabTransportBar.jsx";
 import LabAnalysisPanel from "./LabAnalysisPanel.jsx";
 import {
@@ -28,31 +29,41 @@ function spawnBatchVehicles(sim, approach, type, count) {
 }
 
 function applyPresetVehicles(sim, key) {
+  const targetKey = (!key || key === "custom") ? "paradox" : key;
   resetCorridorSim(sim);
-  if (key === "paradox") {
-    // West trucks spread along approach for paradox demo
+  if (targetKey === "paradox") {
+    // West trucks use EW lane y170 to separate from corridor flow
     const westX = [30, 75, 120, 165];
-    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "truck", x: westX[i] });
-    // North1 motos queue in 2 lanes to avoid overlap
-    for (let i = 0; i < 12; i++) spawnVehicle(sim, {
+    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "truck", x: westX[i], y: 170 });
+    // North1 motos use staggered lane around x231 for gap filling
+    for (let i = 0; i < 18; i++) spawnVehicle(sim, {
       approach: "north1",
       type: "moto",
-      x: i % 2 === 0 ? 233 : 247,
-      y: 125 - Math.floor(i / 2) * 14,
+      x: 231 + ((i % 3) - 1) * 4,
+      y: 130 - Math.floor(i / 3) * 11,
     });
-    for (let i = 0; i < 6; i++) spawnVehicle(sim, { approach: "south1", type: "moto", y: 195 + i * 20 });
-  } else if (key === "corridor_jam") {
-    for (let i = 0; i < 6; i++) spawnVehicle(sim, { approach: "corridor", type: "truck", x: 500 - i * 42 });
-    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 36 });
-  } else if (key === "balanced") {
-    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 32 });
-    for (let i = 0; i < 8; i++) spawnVehicle(sim, { approach: "west", type: "moto", x: 65 - i * 8 });
-    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "corridor", type: "car", x: 480 - i * 40 });
+    // South1 motos use staggered lane around x250 for cross occlusion
+    for (let i = 0; i < 6; i++) spawnVehicle(sim, {
+      approach: "south1",
+      type: "moto",
+      x: 250 + ((i % 2) - 0.5) * 6,
+      y: 195 + i * 14,
+    });
+  } else if (targetKey === "corridor_jam") {
+    // Corridor trucks use EW lane y170 to show link saturation
+    for (let i = 0; i < 6; i++) spawnVehicle(sim, { approach: "corridor", type: "truck", x: 500 - i * 42, y: 170 });
+    // West cars use EW lane y170 as competing inflow queue
+    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 36, y: 170 });
+  } else if (targetKey === "balanced") {
+    // Balanced EW flows share lane y170 for consistent rendering
+    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 32, y: 170 });
+    for (let i = 0; i < 8; i++) spawnVehicle(sim, { approach: "west", type: "moto", x: 65 - i * 8, y: 170 });
+    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "corridor", type: "car", x: 480 - i * 40, y: 170 });
     // North1 motos queue in 2 lanes to avoid overlap
     for (let i = 0; i < 6; i++) spawnVehicle(sim, {
       approach: "north1",
       type: "moto",
-      x: i % 2 === 0 ? 233 : 247,
+      x: i % 2 === 0 ? 227 : 237,
       y: 125 - Math.floor(i / 2) * 14,
     });
   }
@@ -77,12 +88,15 @@ function stepSimForward(sim, seconds) {
 }
 
 function seekSim(sim, activeScenario, targetSec) {
+  // Lightweight seek: set clock and derive signal state, no resim
   const target = Math.max(0, Math.min(120, targetSec));
-  if (activeScenario && activeScenario !== "custom") {
-    applyPresetVehicles(sim, activeScenario);
-    stepSimForward(sim, target);
-  } else {
-    sim.time = target;
+  sim.time = target;
+  const nodes = [sim.nodes.node1, sim.nodes.node2];
+  for (const node of nodes) {
+    const inPhase1 = target < node.g1;
+    node.phase = inPhase1 ? 1 : 2;
+    node.timeRemaining = inPhase1 ? node.g1 - target : Math.max(0, 112 - target);
+    node.isYellow = node.timeRemaining <= 3 && node.timeRemaining > 0;
   }
 }
 
@@ -135,13 +149,26 @@ function clampStep(step) {
   return Math.max(1, Math.min(5, step));
 }
 
+function clampNode(node) {
+  // Restrict node selector to dual-node HUD (1 or 2)
+  return node === 2 ? 2 : 1;
+}
+
+// Mirror of STEPPER_MOTION_DURATIONS in corridorSim.js (kept local: sim lib does not export it)
+const STEP_DURATIONS = { 1: 1.5, 2: 1.5, 3: 0, 4: 0.8, 5: 2.5 };
+
 function useSubPhase() {
   // Track motion vs freeze for transport button state
-  const [subPhase, setSubPhase] = useState("freeze");
+  const [subPhase, setSubPhaseState] = useState("freeze");
+  const durationRef = useRef(1.5);
+  const setSubPhase = (phase, duration) => {
+    if (duration !== undefined && duration !== null) durationRef.current = duration;
+    setSubPhaseState(phase);
+  };
   useEffect(() => {
     if (subPhase !== "motion") return;
-    // Motion 1.5s then latch to freeze for reading
-    const t = setTimeout(() => setSubPhase("freeze"), 1500);
+    // Per-step motion window, clamped to stay tappable on 0s steps
+    const t = setTimeout(() => setSubPhaseState("freeze"), Math.max(200, (durationRef.current || 1.5) * 1000));
     return () => clearTimeout(t);
   }, [subPhase]);
   return [subPhase, setSubPhase];
@@ -176,31 +203,19 @@ function buildNextStep(simRef, activeScenario, stepRef, setStep) {
   };
 }
 
-function useStepper(simRef, setTelemetry, setIsPlaying, activeScenario) {
-  const [simMode, setSimMode] = useState("continuous");
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isAutoStepping, setIsAutoStepping] = useState(false);
-  const [subPhase, setSubPhase] = useSubPhase();
-  const stepRef = useRef(currentStep);
-  stepRef.current = currentStep;
-  const setStep = (step) => {
-    // Advance sim and sync telemetry plus phase for UI
-    const next = clampStep(step);
-    advanceSimStep(simRef.current, next);
-    setSubPhase(simRef.current?.stepper?.subPhase ?? "freeze");
-    setCurrentStep(next);
-    setTelemetry(getCorridorTelemetry(simRef.current));
-  };
-  const prevStep = () => setStep(stepRef.current - 1);
-  const nextStep = buildNextStep(simRef, activeScenario, stepRef, setStep);
-  const handleReset = () => {
-    // Return vehicles to spawn then restart at step 1
-    applyPresetVehicles(simRef.current, activeScenario || "paradox");
-    setStep(1);
-  };
-  const toggleSimMode = () => {
-    // Enter stepper paused at step 1, exit back to play
-    if (simMode === "continuous") {
+function createSimModeToggler({ simRef, activeScenario, simMode, setSimMode, setIsPlaying, setIsAutoStepping, setStep }) {
+  return (mode) => {
+    // Same-mode click: stepper restarts at step 1, continuous is a no-op
+    if (mode === simMode) {
+      if (simMode === "stepper") {
+        applyPresetVehicles(simRef.current, activeScenario || "paradox");
+        setStep(1);
+      }
+      return;
+    }
+    // Prefer explicit mode, else toggle (backward compat)
+    const next = mode || (simMode === "continuous" ? "stepper" : "continuous");
+    if (next === "stepper") {
       setSimMode("stepper");
       setIsPlaying(false);
       applyPresetVehicles(simRef.current, activeScenario || "paradox");
@@ -209,20 +224,68 @@ function useStepper(simRef, setTelemetry, setIsPlaying, activeScenario) {
       setSimMode("continuous");
       setIsAutoStepping(false);
       setIsPlaying(true);
+      if (simRef.current) {
+        simRef.current.stepper = null;
+        simRef.current.spawnTimer = 0;
+      }
     }
   };
+}
+
+function useStepper(simRef, setTelemetry, setIsPlaying, activeScenario) {
+  const [simMode, setSimMode] = useState("continuous");
+  const [currentStep, setCurrentStep] = useState(1);
+  const [selectedNode, setSelectedNodeState] = useState(1);
+  const [isAutoStepping, setIsAutoStepping] = useState(false);
+  const [subPhase, setSubPhase] = useSubPhase();
+  const setSelectedNode = (node) => setSelectedNodeState(clampNode(node));
+  const stepRef = useRef(currentStep);
+  stepRef.current = currentStep;
+  const setStep = (step) => {
+    const next = clampStep(step);
+    // Restore spawn layout when navigating back so vehicles reappear
+    if (next < stepRef.current) resetToSpawn(simRef, activeScenario);
+    advanceSimStep(simRef.current, next);
+    const dur = simRef.current?.stepper?.motionDuration ?? STEP_DURATIONS[next] ?? 1.5;
+    setSubPhase(simRef.current?.stepper?.subPhase ?? "freeze", dur);
+    setCurrentStep(next);
+    setTelemetry(getCorridorTelemetry(simRef.current));
+  };
+  const prevStep = () => setStep(stepRef.current - 1);
+  const nextStep = buildNextStep(simRef, activeScenario, stepRef, setStep);
+  const handleStepperReset = () => {
+    // Stepper-only reset: restore spawns then restart at step 1
+    applyPresetVehicles(simRef.current, activeScenario || "paradox");
+    setStep(1);
+  };
+  const handleContinuousReset = () => {
+    // Continuous reset: clear stepper state so the 60fps loop resumes
+    applyPresetVehicles(simRef.current, activeScenario || "paradox");
+    simRef.current.time = 0;
+    simRef.current.stepper = null;
+    simRef.current.spawnTimer = 0;
+    setIsPlaying(true);
+    setTelemetry(getCorridorTelemetry(simRef.current));
+  };
+  const handleResetFor = (mode) => {
+    if (mode === "stepper") handleStepperReset();
+    else handleContinuousReset();
+  };
+  const toggleSimMode = createSimModeToggler({ simRef, activeScenario, simMode, setSimMode, setIsPlaying, setIsAutoStepping, setStep });
   useAutoStepping(isAutoStepping, simMode, nextStep);
   return {
     simMode, currentStep, subPhase, isAutoStepping, toggleSimMode,
-    setStep, prevStep, nextStep, handleReset,
+    setStep, prevStep, nextStep,
+    selectedNode, setSelectedNode,
+    handleReset: handleStepperReset, handleStepperReset, handleContinuousReset, handleResetFor,
     toggleAutoStep: () => setIsAutoStepping((p) => !p),
-    stepData: getAlgorithmStepData(simRef.current, currentStep),
+    stepData: getAlgorithmStepData(simRef.current, selectedNode),
   };
 }
 
 function useLabSim() {
   const simRef = useRef(null);
-  if (!simRef.current) simRef.current = createCorridorSim({ algo: "cao" });
+  if (!simRef.current) simRef.current = createCorridorSim({ algo: "cao", autoSpawn: true });
 
   const [isPlaying, setIsPlaying] = useState(true);
   const [simSpeed, setSimSpeed] = useState(1);
@@ -256,37 +319,162 @@ function useLabSim() {
   };
 }
 
+function CameraPresetBar({ cameraPreset, onPreset, camBtn }) {
+  // Preset list keeps bar data-driven for short render logic
+  const presets = [
+    { key: "overview", label: "Toàn cảnh" },
+    { key: "junction1", label: "Nút 1" },
+    { key: "node2", label: "Nút 2" },
+    { key: "corridor", label: "Hành lang" },
+    { key: "chase", label: "Bám xe" },
+    { key: "free", label: "Xoay 360" },
+  ];
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {presets.map((p) => (
+        <button key={p.key} type="button" className={camBtn(cameraPreset === p.key)} onClick={() => onPreset(p.key)}>
+          {p.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
+function MouseHintChip({ cameraPreset }) {
+  // Floating glass badge over viewport — pointer-events-none to avoid blocking orbit
+  return (
+    <div className="absolute bottom-2 left-2 right-2 pointer-events-none flex items-center justify-between text-[11px] text-slate-400 px-3 py-1 bg-slate-950/80 backdrop-blur-sm rounded-lg border border-slate-800/80">
+      <span>Chuột trái: Xoay 360° · Chuột phải: Lia góc nhìn · Cuộn: Zoom vào con trỏ · Nhấp đúp: Lấy nét</span>
+      <span className="font-mono text-cyan-300">Camera: {cameraPreset}</span>
+    </div>
+  );
+}
+
+function LabCanvasView({ lab, view3D, cameraPreset, onCameraPresetChange }) {
+  // Split canvas switch to keep parent function short
+  if (view3D) {
+    return (
+      <>
+        <Corridor3DCanvas
+          simRef={lab.simRef}
+          isPlaying={lab.isPlaying}
+          simSpeed={lab.simSpeed}
+          selectedType={lab.selectedType}
+          onSpawn={lab.handleCanvasSpawn}
+          onTelemetry={lab.setTelemetry}
+          simMode={lab.simMode}
+          currentStep={lab.currentStep}
+          subPhase={lab.subPhase}
+          stepData={lab.stepData}
+          cameraPreset={cameraPreset}
+          onCameraPreset={onCameraPresetChange}
+        />
+        <MouseHintChip cameraPreset={cameraPreset} />
+      </>
+    );
+  }
+  return (
+    <CorridorCanvas
+      simRef={lab.simRef}
+      isPlaying={lab.isPlaying}
+      simSpeed={lab.simSpeed}
+      selectedType={lab.selectedType}
+      onSpawn={lab.handleCanvasSpawn}
+      onTelemetry={lab.setTelemetry}
+      simMode={lab.simMode}
+      currentStep={lab.currentStep}
+      subPhase={lab.subPhase}
+      stepData={lab.stepData}
+    />
+  );
+}
+
+function CorridorCoordinationBar({ telemetry, selectedNode, onSelectNode }) {
+  // Corridor pressure drives jam tags and backpressure readout
+  const phi = Number(telemetry?.phiCorridor ?? 0);
+  const jam = phi >= 0.7;
+  const pct = `${Math.round(phi * 100)}%`;
+  const n1 = telemetry?.node1Green?.g1 ?? 56;
+  const n2 = telemetry?.node2Green?.g1 ?? 56;
+  const cut = Math.max(0, Math.round((phi - 0.7) * 100));
+  const chip = (active) =>
+    active
+      ? "flex items-center gap-2 px-2 py-1 rounded-md border border-emerald-500/40 bg-emerald-500/10 text-xs"
+      : "flex items-center gap-2 px-2 py-1 rounded-md border border-[#1e293b] bg-slate-900/60 text-xs";
+  return (
+    <div className="w-full flex flex-wrap items-center gap-2 px-3 py-1.5 border-b border-[#1e293b] bg-slate-950/60 text-xs text-slate-300">
+      <button type="button" className={chip(selectedNode === 1)} onClick={() => onSelectNode?.(1)}>
+        <span className="font-medium">NUT 1</span>
+        <span className="font-mono text-emerald-300">{n1}s</span>
+        {jam ? <span className="text-amber-300">BI BOP GIAM</span> : null}
+      </button>
+      <span className="font-mono text-slate-500">{"-->"}</span>
+      <div className="flex items-center gap-2 px-2 py-1 rounded-md border border-[#1e293b] bg-slate-900/60">
+        <span className="font-medium">HANH LANG</span>
+        <span className="font-mono text-sky-300">{pct}</span>
+        {jam ? <span className="font-mono text-rose-300">-{cut}% BACKPRESSURE</span> : null}
+      </div>
+      <span className="font-mono text-slate-500">{"-->"}</span>
+      <button type="button" className={chip(selectedNode === 2)} onClick={() => onSelectNode?.(2)}>
+        <span className="font-medium">NUT 2</span>
+        <span className="font-mono text-emerald-300">{n2}s</span>
+        {jam ? <span className="text-sky-300">BUNG TOI DA</span> : null}
+      </button>
+    </div>
+  );
+}
+
 function LabCanvasBox({ lab, vLabel }) {
+  const [view3D, setView3D] = useState(true);
+  const [cameraPreset, setCameraPreset] = useState("overview");
   const hintText = lab.simMode === "stepper"
     ? `Chế độ từng bước: Quan sát thuật toán CAO-CBMP phân tích mặt đường • Đang ở Bước [${lab.currentStep}/5]`
     : `Click trực tiếp lên nhánh đường để thả xe (${vLabel})`;
-
+  const viewBtn = (active) =>
+    active
+      ? "px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-medium"
+      : "px-2 py-0.5 rounded-md bg-transparent text-slate-400 border border-[#1e293b] hover:text-slate-200";
+  const camBtn = (active) =>
+    active
+      ? "px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/40 font-medium"
+      : "px-2 py-0.5 rounded-md bg-transparent text-slate-400 border border-[#1e293b] hover:text-slate-200";
   return (
-    <div className="relative flex-1 rounded-xl border border-[#1e293b] bg-[#090d16] p-2 flex flex-col justify-center items-center overflow-hidden">
-      <div className="w-full flex items-center justify-between text-xs text-slate-400 px-2 py-1 mb-1">
-        <span>{hintText}</span>
-        <span className="text-emerald-400 font-mono text-[11px]">Hành lang 2 ngã tư Cần Thơ</span>
+    <div className="relative flex-1 min-h-[440px] rounded-xl border border-[#1e293b] bg-[#090d16] flex flex-col overflow-hidden">
+      <div className="w-full flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-[#1e293b] bg-slate-900/60 text-xs">
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-1">
+            <button type="button" className={viewBtn(!view3D)} onClick={() => setView3D(false)}>
+              2D
+            </button>
+            <button type="button" className={viewBtn(view3D)} onClick={() => setView3D(true)}>
+              3D
+            </button>
+          </div>
+          {view3D && (
+            <CameraPresetBar cameraPreset={cameraPreset} onPreset={setCameraPreset} camBtn={camBtn} />
+          )}
+        </div>
+        <span className="text-emerald-400 font-mono text-[11px]">{hintText}</span>
       </div>
-      <CorridorCanvas
-        simRef={lab.simRef}
-        isPlaying={lab.isPlaying}
-        simSpeed={lab.simSpeed}
-        selectedType={lab.selectedType}
-        onSpawn={lab.handleCanvasSpawn}
-        onTelemetry={lab.setTelemetry}
-        simMode={lab.simMode}
-        currentStep={lab.currentStep}
-        subPhase={lab.subPhase}
-        stepData={lab.stepData}
-      />
+      <CorridorCoordinationBar telemetry={lab.telemetry} selectedNode={lab.selectedNode} onSelectNode={lab.setSelectedNode} />
+      <div className="relative flex-1 w-full h-full min-h-[340px] overflow-hidden bg-[#090d16]">
+        <LabCanvasView lab={lab} view3D={view3D} cameraPreset={cameraPreset} onCameraPresetChange={setCameraPreset} />
+      </div>
     </div>
   );
 }
 
 function handleBarStep(lab, step) {
-  // Đầu button returns vehicles to spawn before step 1
-  if (step === 1 && lab.simMode === "stepper" && lab.handleReset) lab.handleReset();
+  // Step-1 button restores spawn positions before analysis
+  const resetFn = lab.handleStepperReset || lab.handleReset;
+  if (step === 1 && lab.simMode === "stepper" && resetFn) resetFn();
   else lab.setStep(step);
+}
+
+function resolveBarReset(lab) {
+  // Transport reset follows active mode: stepper restarts steps, continuous resumes loop
+  if (lab.simMode === "stepper") return (lab.handleStepperReset || lab.handleReset)?.();
+  return (lab.handleContinuousReset || lab.handleReset)?.();
 }
 
 function LabControlBar({ lab }) {
@@ -296,12 +484,13 @@ function LabControlBar({ lab }) {
       onTogglePlay={() => lab.setIsPlaying((p) => !p)}
       simSpeed={lab.simSpeed}
       onSetSpeed={lab.setSimSpeed}
-      onReset={lab.handleClear}
+      onReset={() => resolveBarReset(lab)}
       onStepBack={lab.handleStepBack}
       onStepForward={lab.handleStepForward}
       simTime={lab.simRef.current?.time ?? 0}
       vehicleCount={lab.telemetry.totalVehicles}
       onSeek={lab.handleSeek}
+      onPause={() => lab.setIsPlaying(false)}
       simMode={lab.simMode}
       currentStep={lab.currentStep}
       subPhase={lab.subPhase}
@@ -333,6 +522,14 @@ function LabSidePanel({ lab }) {
         currentStep={lab.currentStep}
         subPhase={lab.subPhase}
         stepData={lab.stepData}
+        onSetStep={lab.setStep}
+        onPrevStep={lab.prevStep}
+        onNextStep={lab.nextStep}
+        isAutoStepping={lab.isAutoStepping}
+        onToggleAutoStep={lab.toggleAutoStep}
+        onReset={() => resolveBarReset(lab)}
+        selectedNode={lab.selectedNode}
+        onSelectNode={lab.setSelectedNode}
       />
     </section>
   );

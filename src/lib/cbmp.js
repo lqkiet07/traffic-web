@@ -49,10 +49,26 @@ export function allocateBaselineGreen(countsP1, countsP2) {
   return { g1, g2 };
 }
 
+// Estimate visible vs occluded vehicles under inter-vehicle occlusion.
+export function estimateOccludedCount(counts, occlusionRate = 0.4) {
+  const moto = counts?.moto ?? 0;
+  const car = counts?.car ?? 0;
+  const truck = counts?.truck ?? 0;
+  const rawCount = moto + car + truck;
+  if (rawCount === 0) {
+    return { rawCount: 0, visibleCount: 0, visibleMotos: 0, occludedMotos: 0, lossPercentage: 0 };
+  }
+  const visibleMotos = Math.max(0, Math.round(moto * (1 - occlusionRate)));
+  const occludedMotos = moto - visibleMotos;
+  const visibleCount = visibleMotos + car + truck;
+  const lossPercentage = Math.round((occludedMotos / rawCount) * 100);
+  return { rawCount, visibleCount, visibleMotos, occludedMotos, lossPercentage };
+}
+
 // Demo scenarios for the Algorithm Lab sandbox.
 export const PRESETS = {
   paradox: {
-    desc: "Pha 1 ít xe lớn (4 xe = 51 m²) đối đầu Pha 2 đông xe máy (20 xe = 30 m²). CAO ưu tiên diện tích thực tế (Pha 1 thắng) trong khi Baseline đếm số lượng sẽ thiên vị Pha 2.",
+    desc: "Bầy xe máy ken dày ở Pha 2 (20 xe = 30 m²) bị góc quay camera nghiêng che khuất lẫn nhau (occlusion). Bounding Box truyền thống chỉ đếm được ~12 xe (hụt 40%), dẫn đến Baseline cắt đèn sớm gây ùn ứ. CAO đo đúng 100% diện tích mặt đường bị chiếm dụng.",
     p1: { moto: 0, car: 2, truck: 2 },
     p2: { moto: 20, car: 0, truck: 0 },
   },

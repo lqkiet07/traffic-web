@@ -8,3 +8,11 @@ Thumbs.db
 .env.*
 *.pem
 *.key
+
+# Test runner and MCP artifacts
+.playwright-mcp/
+
+# Ephemeral screenshots and design references
+*.png
+preview-*.html
+*.pdf

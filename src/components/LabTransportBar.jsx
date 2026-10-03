@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 import { formatClock } from "../lib/data.js";
 
@@ -82,16 +83,42 @@ export function TimeReadout({ simTime = 0, vehicleCount = 0 }) {
   );
 }
 
-export function CycleScrubber({ simTime = 0, onSeek }) {
+export function CycleScrubber({ simTime = 0, onSeek, onPause }) {
+  // Keep local drag value to avoid per-pixel seeks, commit once on release
+  const [dragSec, setDragSec] = useState(null);
   const currentSec = Math.min(120, Math.max(0, Math.round((simTime || 0) % 120)));
+  const shownSec = dragSec ?? currentSec;
+  const handlePointerDown = (e) => {
+    // Pause playback on scrub start so seek lands on a frozen clock
+    onPause?.();
+    try {
+      e.target.setPointerCapture(e.pointerId);
+    } catch {
+      // Pointer capture unsupported, drag state still tracks value
+    }
+    setDragSec(Number(e.target.value));
+  };
+  const handlePointerUp = (e) => {
+    const val = dragSec ?? Number(e.target.value);
+    onSeek?.(val);
+    setDragSec(null);
+  };
   return (
     <div>
       <input
         type="range"
         min={0}
         max={120}
-        value={currentSec}
-        onChange={(e) => onSeek?.(Number(e.target.value))}
+        value={shownSec}
+        onChange={(e) => setDragSec(Number(e.target.value))}
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onKeyUp={(e) => {
+          if (e.key === "Enter") {
+            onSeek?.(dragSec ?? currentSec);
+            setDragSec(null);
+          }
+        }}
         className="transport-scrubber mt-3"
         aria-label="Thời gian chu kỳ"
       />
@@ -141,9 +168,7 @@ export function ModeToggle({ simMode = "continuous", onToggleMode }) {
       </button>
       <button
         type="button"
-        onClick={() => {
-          if (!isStepper) onToggleMode?.("stepper");
-        }}
+        onClick={() => onToggleMode?.("stepper")}
         className={`rounded-md px-3 py-1 text-xs transition-colors ${
           isStepper
             ? "bg-cyan-500 font-semibold text-slate-950"
@@ -167,11 +192,11 @@ function StepperMotionWait() {
     <button
       type="button"
       disabled
-      className="flex cursor-wait items-center gap-2 rounded-md border border-sky-500/40 bg-sky-500/10 px-3 py-1.5 text-xs font-medium text-sky-300"
-      title="Dang di chuyen"
+      className="flex cursor-wait items-center gap-2 rounded-md border border-cyan-500/40 bg-cyan-500/15 px-3 py-1.5 text-xs font-semibold text-cyan-300 shadow-sm"
+      title="Xe đang nổ máy di chuyển vào vị trí..."
     >
-      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-sky-400/40 border-t-sky-300" />
-      {"Dang di chuyen..."}
+      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-cyan-400/40 border-t-cyan-300" />
+      <span>Xe đang di chuyển...</span>
     </button>
   );
 }
@@ -181,10 +206,11 @@ function StepperNextButton({ onNextStep }) {
     <button
       type="button"
       onClick={onNextStep}
-      className="rounded-md bg-cyan-500 px-3 py-1.5 text-xs font-bold text-slate-950 shadow-sm transition-colors hover:bg-cyan-400"
-      title="Sang bước tiếp theo"
+      className="flex items-center gap-1.5 rounded-md bg-cyan-400 px-3.5 py-1.5 text-xs font-bold text-slate-950 shadow-md transition-all hover:bg-cyan-300 active:scale-95"
+      title="Sang bước tiếp theo của thuật toán"
     >
-      {"Bước tiếp theo >|"}
+      <span>Bước tiếp theo</span>
+      <span className="font-mono text-sm">&gt;|</span>
     </button>
   );
 }
@@ -279,6 +305,7 @@ export function ContinuousControls({
   onStepForward,
   simTime = 0,
   onSeek,
+  onPause,
 }) {
   return (
     <div className="flex flex-col gap-2.5">
@@ -291,7 +318,7 @@ export function ContinuousControls({
         onStepBack={onStepBack}
         onStepForward={onStepForward}
       />
-      <CycleScrubber simTime={simTime} onSeek={onSeek} />
+      <CycleScrubber simTime={simTime} onSeek={onSeek} onPause={onPause} />
     </div>
   );
 }
@@ -302,13 +329,6 @@ export default function LabTransportBar(props) {
     onToggleMode,
     simTime = 0,
     vehicleCount = 0,
-    currentStep = 1,
-    onSetStep,
-    onPrevStep,
-    onNextStep,
-    isAutoStepping = false,
-    onToggleAutoStep,
-    subPhase = "freeze",
   } = props;
 
   return (
@@ -319,17 +339,9 @@ export default function LabTransportBar(props) {
       </div>
 
       {simMode === "stepper" ? (
-        <div className="flex flex-col gap-2">
-          <StepperControls
-            currentStep={currentStep}
-            onSetStep={onSetStep}
-            onPrevStep={onPrevStep}
-            onNextStep={onNextStep}
-            isAutoStepping={isAutoStepping}
-            onToggleAutoStep={onToggleAutoStep}
-            subPhase={subPhase}
-          />
-          <StepperBreadcrumbs currentStep={currentStep} onSetStep={onSetStep} />
+        <div className="flex items-center justify-between px-2 py-1 text-xs text-slate-400 bg-slate-900/60 rounded-lg border border-slate-800/80">
+          <span>🔍 Chế độ từng bước đang hoạt động</span>
+          <span className="text-cyan-400 font-mono text-[11px]">Điều hướng & xem phân tích ở cột bên phải 👉</span>
         </div>
       ) : (
         <ContinuousControls {...props} />

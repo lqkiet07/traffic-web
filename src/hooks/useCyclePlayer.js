@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { CYCLE_LEN } from "../lib/data.js";
 import { usePlaybackClock } from "./usePlaybackClock.js";
 import { useReplayData } from "./useReplayData.js";
@@ -30,7 +30,7 @@ export function useCyclePlayer() {
   cycleRef.current = cycle;
   const handleCount = useCallback((n) => setVehicleCount(n), []);
 
-  const { junctions, kpi, junctionKpis, signals } = useReplayData(algo, setNotice);
+  const { junctions, kpi, junctionKpis, signals } = useReplayData(algo, scenario, setNotice);
   const handleWrap = useCallback(
     (overflow) => {
       if (shouldStopOnWrap(cycleRef.current, maxCycle)) {
@@ -47,7 +47,13 @@ export function useCyclePlayer() {
   const { onLoaded, onMissing } = useChunkHandlers(
     setFrames, setMaxCycle, setCycle, setSimTime, setNotice
   );
-  useTrajectoryLoader(algo, cycle, onLoaded, onMissing);
+  useTrajectoryLoader(algo, scenario, cycle, onLoaded, onMissing);
+  useEffect(() => {
+    setCycle(1);
+    setSimTime(0);
+    setMaxCycle(60);
+    setNotice("");
+  }, [algo, scenario]);
   const gotoCycle = useCallback(
     (c) => {
       setCycle(clampCycle(c, maxCycle));

@@ -83,11 +83,20 @@ function drawRoads(ctx) {
 }
 
 function getApproachCounts(vehicles) {
+  // Count only vehicles still upstream of stop lines (mirrors countApproach)
   const counts = { west: 0, corridor: 0, north1: 0, south1: 0, north2: 0, south2: 0 };
   for (const v of vehicles) {
-    let app = v.approach;
-    if (app === "west" && v.x >= 240 && v.x < 560) app = "corridor";
-    if (counts[app] !== undefined) counts[app]++;
+    // Derive upstream approach from position and direction
+    let app = null;
+    if (v.direction === "east") {
+      if (v.x < 220) app = "west";
+      else if (v.x >= 240 && v.x < 540) app = "corridor";
+    } else if (v.direction === "south" && v.y < 140) {
+      app = v.node === 2 ? "north2" : "north1";
+    } else if (v.direction === "north" && v.y > 180) {
+      app = v.node === 2 ? "south2" : "south1";
+    }
+    if (app && counts[app] !== undefined) counts[app]++;
   }
   return counts;
 }
@@ -566,9 +575,16 @@ function handleCanvasClick(e, canvasRef, simRef, selectedType, ripplesRef, onSpa
   if (!canvas || !sim) return;
   const rect = canvas.getBoundingClientRect();
   if (!rect.width || !rect.height) return;
-
-  const x = (e.clientX - rect.left) * (800 / rect.width);
-  const y = (e.clientY - rect.top) * (320 / rect.height);
+  const scale = Math.min(rect.width / 800, rect.height / 320);
+  const dispW = 800 * scale;
+  const dispH = 320 * scale;
+  const offsetX = (rect.width - dispW) / 2;
+  const offsetY = (rect.height - dispH) / 2;
+  const px = e.clientX - rect.left - offsetX;
+  const py = e.clientY - rect.top - offsetY;
+  if (px < 0 || py < 0 || px > dispW || py > dispH) return;
+  const x = px / scale;
+  const y = py / scale;
   const approach = getApproachAt(x, y);
   if (!approach) return;
 
@@ -610,7 +626,7 @@ export default function CorridorCanvas({
       width={800}
       height={320}
       onClick={(e) => handleCanvasClick(e, canvasRef, simRef, selectedType, ripplesRef, onSpawn, onTelemetry)}
-      className="w-full h-auto max-h-[380px] rounded-xl border border-[#1e293b] shadow-2xl block cursor-crosshair"
+      className="w-full h-full object-contain block cursor-crosshair"
     />
   );
 }

@@ -9,12 +9,12 @@ const VEHICLE_TYPES = [
 const PRESET_OPTIONS = [
   {
     key: "paradox",
-    label: "Nghịch lý xe tải",
+    label: "Nghịch lý xe máy che khuất",
     activeClass: "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500",
   },
   {
     key: "corridor_jam",
-    label: "Kẹt dội ngược hạ lưu",
+    label: "Kẹt dội ngược liên nút",
     activeClass: "bg-amber-500/20 text-amber-300 ring-1 ring-amber-500",
   },
   {
@@ -238,7 +238,7 @@ function WhyBoxMessage({ algo, isBackpressure, phiCorridor, n1P1, n1P2, activeSc
     return (
       <p>
         <strong className="text-indigo-400">Chế độ Baseline (Đếm xe): </strong>
-        Hệ thống phân bổ pha đèn dựa trên số đầu xe thuần túy (mỗi xe trọng số 1.0) bất kể kích thước thực tế (xe tải 18 m² bị coi như xe máy 1.5 m²). Thuật toán không nhận biết áp lực dội ngược từ đoạn nối hạ lưu, dẫn đến nguy cơ tắc nghẽn dây chuyền.
+        Hệ thống phân bổ pha đèn dựa trên số đầu xe thuần túy (mỗi xe trọng số 1.0) bất kể kích thước thực tế (xe tải 18 m² bị coi như xe máy 1.5 m²). Camera Bbox mù hoàn toàn với xe máy bị che khuất nên đếm thiếu, cắt xanh sớm gây ùn ứ. Thuật toán không nhận biết áp lực dội ngược từ đoạn nối hạ lưu, dẫn đến nguy cơ tắc nghẽn dây chuyền.
       </p>
     );
   }
@@ -253,8 +253,8 @@ function WhyBoxMessage({ algo, isBackpressure, phiCorridor, n1P1, n1P2, activeSc
   if (activeScenario === "paradox") {
     return (
       <p>
-        <strong className="text-emerald-400">Nghịch lý xe tải (Truck Paradox): </strong>
-        Nhánh Tây chỉ có 4 xe tải nhưng chiếm tới 72 m² diện tích đường, vượt trội so với 18 xe máy (27 m²) ở hướng cắt. CAO-CBMP ưu tiên cấp <strong className="text-emerald-400">{n1P1}s</strong> xanh giải phóng nhánh xe tải, trong khi thuật toán đếm xe sẽ mắc sai lầm ưu tiên số lượng xe máy.
+        <strong className="text-emerald-400">Nghịch lý xe máy che khuất (Occlusion Paradox): </strong>
+        Bầy xe máy ken dày ở Pha 2 bị góc camera nghiêng che khuất lẫn nhau nên Bbox đếm thiếu 35-50%, Baseline cắt xanh sớm gây ùn ứ cần lấp khoảng trống. CAO-CBMP đo đúng diện tích chiếm dụng (φ) miễn nhiễm che khuất, cấp <strong className="text-emerald-400">{n1P1}s</strong> / {n1P2}s để giải phóng đúng nhu cầu thực tế.
       </p>
     );
   }
@@ -290,29 +290,100 @@ export function LabWhyBox({ algo, telemetry, activeScenario }) {
   );
 }
 
-export function Step1Math({ data }) {
-  const moto = data?.p1Counts?.moto || 0;
-  const car = data?.p1Counts?.car || 0;
-  const truck = data?.p1Counts?.truck || 0;
-  const area = (data?.p1Area || 0).toFixed(1);
-  const phiIn = (data?.phiIn1 || 0).toFixed(2);
-
+export function PhaseCard({ title, badge, lines, areaLabel, areaValue, phiLabel, phiValue, tone }) {
+  const isAmber = tone === "amber";
+  const wrapTone = isAmber ? "border-amber-500/30" : "border-sky-500/30";
+  const headTone = isAmber ? "text-amber-300" : "text-sky-300";
+  const badgeTone = isAmber ? "bg-amber-500/20 text-amber-300" : "bg-sky-500/20 text-sky-300";
+  const areaTone = isAmber ? "text-amber-400" : "text-sky-400";
   return (
-    <div className="space-y-2">
-      <div className="rounded-lg bg-slate-950/60 p-2.5 font-mono text-[11px]">
-        <div className="text-slate-400">Tổng footprint vùng chờ Pha 1:</div>
-        <div className="mt-1 text-cyan-300">
-          A₁ = ({moto} × 1.5) + ({car} × 7.5) + ({truck} × 18.0) = {area} m²
-        </div>
+    <div className={`rounded-xl border ${wrapTone} bg-slate-950/70 p-3 font-mono`}>
+      <div className={`flex items-center justify-between text-xs ${headTone} font-semibold mb-1.5`}>
+        <span>{title}</span>
+        <span className={`text-[10px] px-1.5 py-0.5 rounded ${badgeTone}`}>{badge}</span>
       </div>
-      <div className="rounded-lg bg-slate-950/60 p-2.5 font-mono text-[11px]">
-        <div className="text-slate-400">Hệ số chiếm dụng không gian (Occupancy Ratio):</div>
-        <div className="mt-1 text-cyan-300">
-          φ_in = min(1.0, {area} / 150) = {phiIn}
-        </div>
+      <div className="text-xs text-slate-400">{lines && lines.length ? lines.join(" ") : "0 xe"}</div>
+      <div className={`mt-1.5 text-base font-bold ${areaTone}`}>
+        {areaLabel} = {areaValue} m²
       </div>
-      <div className="text-[11px] text-slate-400">
-        Tính toán chiếm dụng theo footprint thực tế khắc phục triệt để thiên kiến đếm đầu xe.
+      <div className="mt-1 text-xs text-cyan-300">
+        {phiLabel} = <strong className="text-cyan-400">{phiValue}</strong>
+      </div>
+    </div>
+  );
+}
+
+export function ParadoxNote({ p1Area }) {
+  return (
+    <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-2.5 text-xs text-slate-300 leading-relaxed">
+      <strong className="text-amber-400">💡 Nghịch lý che khuất (Occlusion Paradox): </strong>
+      Xe máy chiếm 85-90% dòng xe tại VN, ken dày và che khuất lẫn nhau dưới góc camera nghiêng nên Bbox truyền thống đếm thiếu 35-50% xe. YOLOv8 segmentation đo trực tiếp diện tích chiếm dụng (φ) nên miễn nhiễm che khuất — Nhánh Tây ({p1Area} m²) vẫn được ưu tiên đúng.
+    </div>
+  );
+}
+
+export function Step1Math({ data }) {
+  const p1 = data?.p1Counts;
+  const p2 = data?.p2Counts;
+  const p1Moto = p1?.moto || 0;
+  const p1Car = p1?.car || 0;
+  const p1Truck = p1?.truck || 0;
+  const p1Area = (data?.p1Area || 0).toFixed(1);
+  const phiIn1 = (data?.phiIn1 || 0).toFixed(2);
+  const p2Moto = p2?.moto || 0;
+  const p2Car = p2?.car || 0;
+  const p2Truck = p2?.truck || 0;
+  const p2Area = (data?.p2Area || 0).toFixed(1);
+  const phiIn2 = (data?.phiIn2 || 0).toFixed(2);
+  const p1Lines = [];
+  if (p1Truck > 0) p1Lines.push(`${p1Truck} Xe Tải`);
+  if (p1Car > 0) p1Lines.push(`${p1Car} Ô Tô`);
+  if (p1Moto > 0) p1Lines.push(`${p1Moto} Xe Máy`);
+  const p2Lines = [];
+  if (p2Moto > 0) p2Lines.push(`${p2Moto} Xe Máy`);
+  if (p2Car > 0) p2Lines.push(`${p2Car} Ô Tô`);
+  if (p2Truck > 0) p2Lines.push(`${p2Truck} Xe Tải`);
+  // Node-aware titles: prefer upstream approach name, fallback legacy copy
+  const p1Title = data?.approachName ? `Pha 1 · ${data.approachName}` : "Pha 1 · Nhánh Tây";
+  const p2Title = "Pha 2 · Nhánh Bắc & Nam";
+  const outflowHint = data?.outflowName ? `Hạ lưu: ${data.outflowName}` : null;
+  return (
+    <div className="space-y-3">
+      {outflowHint ? (
+        <div className="font-mono text-[11px] text-slate-500">{outflowHint}</div>
+      ) : null}
+      <div className="flex flex-col gap-2.5">
+        <PhaseCard title={p1Title} badge="Nhánh xe tải" lines={p1Lines} areaLabel="A₁" areaValue={p1Area} phiLabel={`φ_in1 = min(1.0, ${p1Area}/150)`} phiValue={phiIn1} tone="amber" />
+        <PhaseCard title={p2Title} badge="Nhánh xe máy" lines={p2Lines} areaLabel="A₂" areaValue={p2Area} phiLabel={`φ_in2 = min(1.0, ${p2Area}/150)`} phiValue={phiIn2} tone="sky" />
+      </div>
+      {data?.occlusionP2?.occludedMotos > 0 ? (
+        <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950/50 p-2 font-mono text-[11px]">
+          <span className="rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
+            Camera Bbox ước tính: ~{data?.occlusionP2?.visibleCount} xe (Hụt {data?.occlusionP2?.lossPercentage}%)
+          </span>
+          <span className="rounded-md bg-emerald-500/15 px-2 py-1 font-bold tabular-nums text-emerald-300">
+            Thực tế chiếm dụng (CAO): φ = {phiIn2} (Đúng 100%)
+          </span>
+        </div>
+      ) : null}
+      <ParadoxNote p1Area={p1Area} />
+    </div>
+  );
+}
+
+function BackpressureCauseEffect() {
+  // Cause-effect comparison when backpressure is active
+  return (
+    <div className="grid grid-cols-2 gap-2 font-mono text-[11px] leading-relaxed">
+      <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5">
+        <div className="font-bold text-rose-300">Hệ quả lên Nút 1 (Thượng lưu)</div>
+        <div className="mt-1 text-slate-300">{"Xanh bị bóp: 56s -> 10s"}</div>
+        <div className="mt-1 text-slate-400">Ngăn xe dồn thêm vào điểm nghẽn</div>
+      </div>
+      <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
+        <div className="font-bold text-emerald-300">Phản ứng của Nút 2 (Hạ lưu)</div>
+        <div className="mt-1 text-slate-300">{"Xanh tăng vọt: 56s -> 102s"}</div>
+        <div className="mt-1 text-slate-400">Mở tối đa để xả kẹt cho hành lang</div>
       </div>
     </div>
   );
@@ -324,23 +395,42 @@ export function Step2Math({ data, step1 }) {
   const phiOut = phiOutVal.toFixed(2);
   const w1 = (data?.w1 || 0).toFixed(2);
   const isBackpressure = phiOutVal >= 0.7;
+  // Node 2 is corridor receiver: no downstream link, drains to network
+  const isReceiver = data?.isCorridorReceiver === true;
+  const outflowName = data?.outflowName || "Hành lang Nút 1-2";
 
   return (
-    <div className="space-y-2">
-      <div className="rounded-lg bg-slate-950/60 p-2.5 font-mono text-[11px]">
-        <div className="text-slate-400">Khấu trừ áp lực dội ngược:</div>
-        <div className="mt-1 text-slate-300">w₁ = max(0, φ_in - 0.70·φ_out)</div>
-        <div className="mt-1 text-cyan-300">
+    <div className="space-y-3">
+      {isReceiver ? <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-2.5 text-xs text-cyan-200">Nút 2 xả hành lang ra mạng lưới — không bị dội ngược ({outflowName})</div> : null}
+      <div className="flex flex-col gap-2.5 font-mono">
+        <div className="rounded-xl border border-cyan-500/30 bg-slate-950/70 p-3">
+          <div className="text-xs text-slate-400">Áp lực hướng vào (Nhánh Tây):</div>
+          <div className="mt-1 text-base font-bold text-cyan-400">φ_in = {phiIn}</div>
+        </div>
+        <div className={`rounded-xl border p-3 ${isBackpressure ? "border-rose-500/40 bg-rose-500/10 text-rose-300" : "border-emerald-500/30 bg-slate-950/70 text-emerald-400"}`}>
+          <div className="text-xs text-slate-400">Áp lực hạ lưu ({outflowName}):</div>
+          <div className="mt-1 text-base font-bold">φ_out = {phiOut}</div>
+        </div>
+      </div>
+
+      <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 font-mono text-xs">
+        <div className="text-slate-400">Công thức khấu trừ áp lực dội ngược (Downstream Back-Pressure):</div>
+        <div className="mt-1 text-slate-300 text-sm">w₁ = max(0, φ_in - 0.70 × φ_out)</div>
+        <div className="mt-1.5 text-base font-bold text-cyan-300">
           w₁ = max(0, {phiIn} - 0.70 × {phiOut}) = {w1}
         </div>
       </div>
+
       {isBackpressure ? (
-        <div className="rounded-lg border border-rose-500/40 bg-rose-500/15 p-2.5 text-[11px] font-semibold text-rose-300">
-          Cơ chế dội ngược kích hoạt: Hạ lưu kẹt làm giảm áp suất ưu tiên!
+        <div className="space-y-2.5">
+          <div className="rounded-lg border border-rose-500/40 bg-rose-500/15 p-2.5 text-xs font-semibold text-rose-300">
+            ⚠️ Cơ chế dội ngược kích hoạt: Hành lang nối Nút 1-2 bị nghẽn (φ_out ≥ 0.70). Thuật toán tự động cắt giảm thời gian xanh cấp cho Nút 1 để tránh dồn xe vào điểm nghẽn!
+          </div>
+          <BackpressureCauseEffect />
         </div>
       ) : (
-        <div className="text-[11px] text-slate-400">
-          Hạ lưu thông thoáng (φ_out &lt; 0.70), không phát sinh áp lực dội ngược cản trở.
+        <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5 text-xs text-emerald-300">
+          ✅ Hạ lưu thông thoáng (φ_out &lt; 0.70): Không phát sinh áp lực dội ngược, xe được giải phóng tối đa qua hành lang.
         </div>
       )}
     </div>
@@ -348,28 +438,43 @@ export function Step2Math({ data, step1 }) {
 }
 
 export function Step3Math({ data, step2 }) {
-  const w1 = (data?.w1 ?? step2?.w1 ?? (data?.gamma1 != null ? data.gamma1 / 2.5 : 0)).toFixed(2);
-  const w2 = (data?.w2 ?? step2?.w2 ?? (data?.gamma2 != null ? data.gamma2 / 2.5 : 0)).toFixed(2);
+  const w1 = Number(data?.w1 ?? step2?.w1 ?? (data?.gamma1 != null ? data.gamma1 / 2.5 : 0)).toFixed(2);
+  const w2 = Number(data?.w2 ?? step2?.w2 ?? (data?.gamma2 != null ? data.gamma2 / 2.5 : 0)).toFixed(2);
   const gamma1 = (data?.gamma1 || 0).toFixed(2);
   const gamma2 = (data?.gamma2 || 0).toFixed(2);
   const g1Num = Number(gamma1);
   const g2Num = Number(gamma2);
   const total = g1Num + g2Num;
-  const ratio = total > 0 ? ((g1Num / total) * 100).toFixed(0) : "50";
+  const ratio1 = total > 0 ? Math.round((g1Num / total) * 100) : 50;
 
   return (
-    <div className="space-y-2">
-      <div className="rounded-lg bg-slate-950/60 p-2.5 font-mono text-[11px]">
-        <div className="text-slate-400">Áp suất bão hòa (Saturation Pressure):</div>
-        <div className="mt-1 text-slate-300">γ = 2.5 × w</div>
-        <div className="mt-1 text-cyan-300">
-          γ₁ = 2.5 × {w1} = {gamma1} vs γ₂ = 2.5 × {w2} = {gamma2}
+    <div className="space-y-3">
+      <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 font-mono text-xs">
+        <div className="text-slate-400">Áp suất bão hòa (Hệ số bão hòa C_sat = 2.5):</div>
+        <div className="mt-1 text-slate-300 text-sm">γ = 2.5 × w</div>
+        <div className="mt-2 flex flex-col gap-2.5">
+          <div className="rounded-lg bg-slate-900 p-2.5 border border-emerald-500/30">
+            <span className="text-slate-400 text-xs">Pha 1 (Nhánh Tây):</span>
+            <div className="text-base font-bold text-emerald-400">γ₁ = 2.5 × {w1} = {gamma1}</div>
+          </div>
+          <div className="rounded-lg bg-slate-900 p-2.5 border border-slate-700">
+            <span className="text-slate-400 text-xs">Pha 2 (Nhánh Bắc/Nam):</span>
+            <div className="text-base font-bold text-slate-300">γ₂ = 2.5 × {w2} = {gamma2}</div>
+          </div>
         </div>
       </div>
-      <div className="rounded-lg bg-slate-950/60 p-2.5 text-[11px]">
-        <div className="text-slate-400">So sánh tỷ lệ áp suất:</div>
-        <div className="mt-1 font-mono text-emerald-400">
-          Pha 1 chiếm {ratio}% tổng áp lực giao lộ ({gamma1} vs {gamma2})
+
+      <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs">
+        <div className="flex justify-between items-center mb-1 text-slate-400 font-mono">
+          <span>Tỷ lệ áp lực cạnh tranh:</span>
+          <span className="text-emerald-400 font-bold">{ratio1}% vs {100 - ratio1}%</span>
+        </div>
+        <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-800">
+          <div className="bg-emerald-500 transition-all duration-300" style={{ width: `${ratio1}%` }} title={`Pha 1: ${ratio1}%`} />
+          <div className="bg-slate-600 transition-all duration-300" style={{ width: `${100 - ratio1}%` }} title={`Pha 2: ${100 - ratio1}%`} />
+        </div>
+        <div className="mt-2 text-slate-400 leading-relaxed">
+          Pha 1 chiếm <strong className="text-emerald-400">{ratio1}%</strong> tổng áp lực toàn giao lộ ({gamma1} trên tổng {(total).toFixed(2)}), do đó sẽ được ưu tiên nhận phần lớn thời lượng đèn xanh khả dụng.
         </div>
       </div>
     </div>
@@ -382,18 +487,37 @@ export function Step4Math({ data }) {
   const total = data?.totalCycle ?? 120;
   const lost = data?.lostTime ?? 8;
   const greenSum = total - lost;
+  const p1Pct = greenSum > 0 ? Math.round((g1 / greenSum) * 100) : 50;
 
   return (
-    <div className="space-y-2">
-      <div className="rounded-lg bg-slate-950/60 p-2.5 font-mono text-[11px]">
-        <div className="text-slate-400">Công thức phân bổ thời lượng xanh:</div>
-        <div className="mt-1 text-slate-300">g₁ = 10 + 92 × (γ₁ / γ_total)</div>
-        <div className="mt-1 text-cyan-300">
-          P1: {g1}s | P2: {g2}s (Tổng {greenSum}s + {lost}s mất mát = {total}s)
-        </div>
+    <div className="space-y-3">
+      <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 font-mono text-xs">
+        <div className="text-slate-400">Công thức phân bổ thời lượng đèn xanh (Chu kỳ C = 120s, L = 8s):</div>
+        <div className="mt-1 text-slate-300 text-sm">g₁ = g_min + (C - L - 2·g_min) × (γ₁ / γ_total)</div>
+        <div className="mt-1 text-cyan-300 text-xs">g₁ = 10 + 92 × (γ₁ / γ_total) = {g1}s</div>
       </div>
-      <div className="text-[11px] text-slate-400">
-        Mỗi pha nhận tối thiểu 10s bảo đảm an toàn, 92s còn lại phân bổ theo tỷ lệ áp suất γ.
+
+      <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs">
+        <div className="text-slate-400 mb-2">Phân bổ thời lượng chu kỳ 120s:</div>
+        <div className="grid grid-cols-3 gap-2 text-center font-mono mb-2.5">
+          <div className="p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30">
+            <div className="text-[11px] text-emerald-300">Pha 1 (Xanh)</div>
+            <div className="text-lg font-bold text-emerald-400">{g1}s</div>
+          </div>
+          <div className="p-2 rounded-lg bg-cyan-500/15 border border-cyan-500/30">
+            <div className="text-[11px] text-cyan-300">Pha 2 (Xanh)</div>
+            <div className="text-lg font-bold text-cyan-400">{g2}s</div>
+          </div>
+          <div className="p-2 rounded-lg bg-slate-800 border border-slate-700">
+            <div className="text-[11px] text-slate-400">Mất mát (Vàng+Đỏ)</div>
+            <div className="text-lg font-bold text-slate-300">{lost}s</div>
+          </div>
+        </div>
+        <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-800">
+          <div className="bg-emerald-500 transition-all duration-300" style={{ width: `${(g1 / total) * 100}%` }} title={`Pha 1: ${g1}s`} />
+          <div className="bg-cyan-500 transition-all duration-300" style={{ width: `${(g2 / total) * 100}%` }} title={`Pha 2: ${g2}s`} />
+          <div className="bg-slate-600 transition-all duration-300" style={{ width: `${(lost / total) * 100}%` }} title={`Mất mát: ${lost}s`} />
+        </div>
       </div>
     </div>
   );
@@ -405,12 +529,24 @@ export function Step5Math({ data }) {
   const phase = data?.activePhase ?? 1;
 
   return (
-    <div className="space-y-2">
-      <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5 font-mono text-[11px] text-emerald-300">
-        Pha {phase} Bật Xanh ({green}s) — Giải phóng {queue} xe trên nhánh.
+    <div className="space-y-3">
+      <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 font-mono">
+        <div className="flex items-center justify-between mb-2">
+          <span className="text-sm font-bold text-emerald-300">Kích Hoạt Pha {phase} Xanh ({green}s)</span>
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+        </div>
+        <div className="text-xs text-slate-300 leading-relaxed">
+          Đèn tín hiệu giao lộ chính thức mở xanh cho <strong className="text-emerald-400">Pha {phase}</strong> trong <strong className="text-emerald-400">{green} giây</strong>.
+        </div>
+        <div className="mt-3 p-3 rounded-lg bg-slate-950/70 border border-emerald-500/20 text-xs">
+          <span className="text-slate-400">Giải phóng hàng chờ: </span>
+          <strong className="text-emerald-400 text-sm font-bold">{queue} xe</strong>
+          <span className="text-slate-400"> trên nhánh tiếp cận thoát qua giao lộ nhịp nhàng.</span>
+        </div>
       </div>
-      <div className="text-[11px] text-slate-400">
-        Đèn tín hiệu kích hoạt thời lượng xanh đã phân bổ, tối đa hóa thông lượng thoát giao lộ.
+
+      <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-2.5 text-xs text-slate-400 leading-relaxed">
+        Chu trình tính toán 5 bước kết thúc. Bấm <strong className="text-cyan-400">Bước tiếp theo &gt;|</strong> để nạp đợt xe mới hoặc chuyển sang <strong className="text-emerald-400">Thời gian thực 60fps</strong> để xem xe lưu thông tự động liên tục.
       </div>
     </div>
   );
@@ -424,9 +560,18 @@ const STEP_TITLES = {
   5: "Kích hoạt pha & Giải phóng dòng xe (Execution)",
 };
 
+const STEPPER_STEPS = [
+  "1. Quét ROI",
+  "2. Trừ hạ lưu",
+  "3. Áp suất γ",
+  "4. Cấp giây",
+  "5. Giải phóng",
+];
+
 function StepMathContent({ currentStep, stepData }) {
-  if (currentStep === 1) return <Step1Math data={stepData?.step1} />;
-  if (currentStep === 2) return <Step2Math data={stepData?.step2} step1={stepData?.step1} />;
+  // Enrich step payloads with node metadata, fallback safe for legacy callers
+  if (currentStep === 1) return <Step1Math data={{ ...stepData?.step1, approachName: stepData?.approachName, outflowName: stepData?.outflowName }} />;
+  if (currentStep === 2) return <Step2Math data={{ ...stepData?.step2, isCorridorReceiver: stepData?.isCorridorReceiver, outflowName: stepData?.outflowName }} step1={stepData?.step1} />;
   if (currentStep === 3) {
     return (
       <Step3Math
@@ -444,20 +589,100 @@ function StepMathContent({ currentStep, stepData }) {
   return null;
 }
 
-export function LiveMathBox({ currentStep = 1, stepData = null, algo = "cao" }) {
-  const stepTitle = STEP_TITLES[currentStep] || `Bước ${currentStep}`;
-
+export function StepTabs({ currentStep, onSetStep }) {
   return (
-    <div className="rounded-xl border border-cyan-500/30 bg-slate-900/90 p-3 text-xs leading-relaxed text-slate-300 shadow-xl">
-      <div className="mb-2.5 flex items-center justify-between border-b border-cyan-500/20 pb-2">
-        <div className="inline-flex items-center gap-2 rounded-lg border border-cyan-400/40 bg-cyan-500/15 px-2.5 py-1 font-mono text-xs font-semibold text-cyan-200 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-          <span className="h-1.5 w-1.5 rounded-full bg-cyan-400" />
-          <span>Bước {currentStep}/5: {stepTitle}</span>
-        </div>
-        <span className="rounded bg-slate-800 px-2 py-0.5 font-mono text-[10px] text-slate-400">
-          {algo === "baseline" ? "Baseline" : "CAO-CBMP"}
-        </span>
+    <div className="mb-2.5 flex flex-wrap gap-1.5 border-b border-slate-800 pb-2.5">
+      {STEPPER_STEPS.map((label, idx) => {
+        const s = idx + 1;
+        const isActive = s === currentStep;
+        return (
+          <button key={s} type="button" onClick={() => onSetStep?.(s)} className={`rounded-md px-2.5 py-1 font-mono text-xs transition-all ${isActive ? "border border-cyan-400 bg-cyan-400 font-bold text-slate-950 shadow-[0_0_10px_rgba(34,211,238,0.4)]" : "border border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700 hover:text-slate-200"}`}>
+            {label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+export function StepNav({ currentStep, subPhase, onReset, onPrevStep, onNextStep, isAutoStepping, onToggleAutoStep }) {
+  const isMotion = subPhase === "motion";
+  return (
+    <div className="mb-2.5 flex flex-wrap gap-1.5 border-b border-cyan-500/20 pb-2.5">
+      <button type="button" onClick={onReset} className="rounded-md border border-slate-800 bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800" title="Quay về Bước 1 & Nạp lại xe xuất phát">↺ Đầu</button>
+      <button type="button" onClick={onPrevStep} disabled={currentStep <= 1} className="rounded-md border border-slate-800 bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40" title="Lùi về bước trước">|&lt; Lùi</button>
+      {isMotion ? (
+        <button type="button" disabled className="flex cursor-wait items-center gap-1.5 rounded-md border border-cyan-500/40 bg-cyan-500/15 px-3 py-1 text-xs font-semibold text-cyan-300">
+          <span className="h-3 w-3 animate-spin rounded-full border-2 border-cyan-400/40 border-t-cyan-300" />
+          <span>Đang di chuyển...</span>
+        </button>
+      ) : (
+        <button type="button" onClick={onNextStep} className="flex items-center gap-1 rounded-md bg-cyan-400 px-3 py-1 text-xs font-bold text-slate-950 shadow-md transition-all hover:bg-cyan-300 active:scale-95" title="Sang bước tiếp theo">
+          <span>Bước tiếp theo</span>
+          <span className="font-mono text-sm">&gt;|</span>
+        </button>
+      )}
+      <button type="button" onClick={onToggleAutoStep} className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${isAutoStepping ? "border-amber-400/50 bg-amber-500/20 text-amber-300 font-semibold animate-pulse" : "border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800"}`} title={isAutoStepping ? "Dừng tự động chuyển bước" : "Tự động chuyển bước sau 3s"}>{isAutoStepping ? "⏸ Dừng" : "▶ Tự động (3s)"}</button>
+    </div>
+  );
+}
+
+export function StepBadge({ currentStep, algo }) {
+  const stepTitle = STEP_TITLES[currentStep] || `Bước ${currentStep}`;
+  return (
+    <div className="mb-3">
+      <div className="inline-flex items-center gap-2 rounded-lg border border-cyan-400/40 bg-cyan-500/15 px-2.5 py-1 font-mono text-xs font-semibold text-cyan-200 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
+        <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
+        <span>Bước {currentStep}/5: {stepTitle} · {algo === "baseline" ? "Baseline" : "CAO-CBMP"}</span>
       </div>
+    </div>
+  );
+}
+
+export function NodeSelectorBar({ selectedNode = 1, onSelectNode }) {
+  // Dual-node toggle: upstream Node 1 vs downstream Node 2
+  const base = "flex-1 rounded-md px-2.5 py-1.5 font-medium transition";
+  const n1Tone = selectedNode === 1
+    ? "bg-emerald-500 font-semibold text-slate-950"
+    : "text-slate-400 hover:text-slate-200";
+  const n2Tone = selectedNode === 2
+    ? "bg-cyan-500 font-semibold text-slate-950"
+    : "text-slate-400 hover:text-slate-200";
+  return (
+    <div className="mb-2.5 flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-950/60 p-1 text-xs">
+      <button type="button" onClick={() => onSelectNode?.(1)} className={`${base} ${n1Tone}`}>
+        Nút 1 Thượng lưu
+      </button>
+      <button type="button" onClick={() => onSelectNode?.(2)} className={`${base} ${n2Tone}`}>
+        Nút 2 Hạ lưu
+      </button>
+    </div>
+  );
+}
+
+export function LiveMathBox({
+  currentStep = 1,
+  stepData = null,
+  algo = "cao",
+  subPhase = "freeze",
+  onSetStep,
+  onPrevStep,
+  onNextStep,
+  isAutoStepping = false,
+  onToggleAutoStep,
+  onReset,
+  selectedNode = 1,
+  onSelectNode,
+}) {
+  return (
+    <div className="rounded-xl border border-cyan-500/30 bg-slate-900/90 p-3.5 text-xs leading-relaxed text-slate-300 shadow-xl">
+      <NodeSelectorBar selectedNode={selectedNode} onSelectNode={onSelectNode} />
+      {/* Layer 1: step tabs */}
+      <StepTabs currentStep={currentStep} onSetStep={onSetStep} />
+      {/* Layer 2: nav row */}
+      <StepNav currentStep={currentStep} subPhase={subPhase} onReset={onReset} onPrevStep={onPrevStep} onNextStep={onNextStep} isAutoStepping={isAutoStepping} onToggleAutoStep={onToggleAutoStep} />
+      {/* Layer 3: step title badge */}
+      <StepBadge currentStep={currentStep} algo={algo} />
       <StepMathContent currentStep={currentStep} stepData={stepData} />
     </div>
   );
@@ -476,17 +701,35 @@ export default function LabAnalysisPanel({
   simMode = "continuous",
   currentStep = 1,
   stepData = null,
+  subPhase = "freeze",
+  onSetStep,
+  onPrevStep,
+  onNextStep,
+  isAutoStepping = false,
+  onToggleAutoStep,
+  onReset,
+  selectedNode = 1,
+  onSelectNode,
 }) {
   const isStepper = simMode === "stepper";
 
   return (
-    <section className="flex flex-col gap-3 lg:col-span-4 lg:overflow-auto">
+    <div className="flex flex-col gap-3">
       <LabStatCards telemetry={telemetry} />
       {isStepper ? (
         <LiveMathBox
           currentStep={currentStep}
           stepData={stepData}
           algo={algo}
+          subPhase={subPhase}
+          onSetStep={onSetStep}
+          onPrevStep={onPrevStep}
+          onNextStep={onNextStep}
+          isAutoStepping={isAutoStepping}
+          onToggleAutoStep={onToggleAutoStep}
+          onReset={onReset}
+          selectedNode={selectedNode}
+          onSelectNode={onSelectNode}
         />
       ) : null}
       <LabPresetBar
@@ -495,12 +738,28 @@ export default function LabAnalysisPanel({
         activeScenario={activeScenario}
         onSelectPreset={onSelectPreset}
       />
-      <LabSpawnerDock
-        selectedType={selectedType}
-        onSelectType={onSelectType}
-        onBatchSpawn={onBatchSpawn}
-        onClear={onClear}
-      />
+      {isStepper ? (
+        <details className="group rounded-xl border border-slate-800/80 bg-slate-900/40 p-2.5 text-xs text-slate-400">
+          <summary className="cursor-pointer select-none font-medium text-slate-400 transition-colors hover:text-slate-200">
+            ➕ Thêm xe thủ công (Tùy chọn)
+          </summary>
+          <div className="mt-2.5">
+            <LabSpawnerDock
+              selectedType={selectedType}
+              onSelectType={onSelectType}
+              onBatchSpawn={onBatchSpawn}
+              onClear={onClear}
+            />
+          </div>
+        </details>
+      ) : (
+        <LabSpawnerDock
+          selectedType={selectedType}
+          onSelectType={onSelectType}
+          onBatchSpawn={onBatchSpawn}
+          onClear={onClear}
+        />
+      )}
       {!isStepper ? (
         <LabWhyBox
           algo={algo}
@@ -508,6 +767,6 @@ export default function LabAnalysisPanel({
           activeScenario={activeScenario}
         />
       ) : null}
-    </section>
+    </div>
   );
 }

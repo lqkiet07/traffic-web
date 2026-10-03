@@ -269,4 +269,42 @@ import { allocateCbmpGreen } from "../src/lib/cbmp.js";
   assert.strictEqual(leadTruck.x, frozenLeadX, "lead truck holds position during freeze");
 }
 
+// Test 8: stepper stays pinned to Node 1 across steps 1..5 (paradox preset)
+{
+  const sim = createCorridorSim();
+  const westX = [30, 75, 120, 165];
+  for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "truck", x: westX[i] });
+  for (let i = 0; i < 12; i++) {
+    spawnVehicle(sim, {
+      approach: "north1",
+      type: "moto",
+      x: i % 2 === 0 ? 233 : 247,
+      y: 125 - Math.floor(i / 2) * 14,
+    });
+  }
+  for (let step = 1; step <= 5; step++) {
+    advanceSimStep(sim, step);
+    const data = getAlgorithmStepData(sim, 1);
+    assert.strictEqual(data.nodeId, 1, `step ${step} should stay on Node 1`);
+    assert.strictEqual(data.step1.p1Counts.truck, 4, `step ${step} p1 truck count`);
+    assert.strictEqual(data.step1.p1Area, 72, `step ${step} p1Area`);
+    assert.ok(Math.abs(data.step2.w1 - 0.48) < 1e-9, `step ${step} w1 approx 0.48`);
+  }
+}
+
+// Test 9: Node-2 corridor receiver role metadata (Dual-Node HUD Task 1)
+{
+  const sim = createCorridorSim();
+  for (let i = 0; i < 4; i++) {
+    spawnVehicle(sim, { node: 2, approach: "corridor", type: "truck", x: 400 + i * 30 });
+  }
+  const data = getAlgorithmStepData(sim, 2);
+  assert.strictEqual(data.nodeId, 2);
+  assert.strictEqual(data.isCorridorReceiver, true);
+  assert.strictEqual(data.step1.p1Counts.truck, 4);
+  assert.ok(data.step1.phiIn1 > 0.4, `phiIn1 (${data.step1.phiIn1}) should exceed 0.4`);
+  assert.strictEqual(data.step1.phiOut, 0);
+  assert.ok(data.step4.g1 > 56, `g1 (${data.step4.g1}) should exceed 56`);
+}
+
 console.log("[algorithm_stepper.test] all assertions passed");

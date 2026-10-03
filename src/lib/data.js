@@ -23,11 +23,18 @@ async function fetchJson(path) {
 export const loadJunctions = () => fetchJson("/data/junctions.json");
 export const loadKpi = () => fetchJson("/data/kpi_summary.json");
 export const loadJunctionKpis = () => fetchJson("/data/junction_kpis.json");
-export const loadSignals = (algo) => fetchJson(`/data/signals_${algo}.json`);
+export const loadSignals = (algo, scenario) => {
+  if (!scenario) return fetchJson(`/data/signals_${algo}.json`);
+  return fetchJson(`/data/signals_${algo}_${scenario}.json`).catch(() => fetchJson(`/data/signals_${algo}.json`));
+};
 export const loadRoads = () => fetchJson("/data/roads.geojson");
 export const loadPoles = () => fetchJson("/data/signals_poles.json");
-export const loadCycle = (algo, cycle) =>
-  fetchJson(`/data/trajectories/${algo}/cycle_${cycle}.json`);
+export const loadCycle = (algo, scenario, cycle) => {
+  if (cycle == null) return fetchJson(`/data/trajectories/${algo}/${scenario}/cycle_1.json`);
+  if (scenario == null) return fetchJson(`/data/trajectories/${algo}/cycle_${cycle}.json`);
+  return fetchJson(`/data/trajectories/${algo}/${scenario}/cycle_${cycle}.json`);
+};
+export const loadCycleLegacy = (algo, cycle) => fetchJson(`/data/trajectories/${algo}/cycle_${cycle}.json`);
 
 // Latest log entry at or before the current cycle (fallback: last entry).
 export function latestCycleEntry(entries, cycle) {
@@ -148,8 +155,8 @@ export function improvementPct(proposed, baseline, higherIsBetter = false) {
   return Number.isFinite(d) ? d * 100 : 0;
 }
 
-export const REPLAY_ALGOS = ["cao"];
-export const REPLAY_SCENARIOS = ["Medium_900"];
+export const REPLAY_ALGOS = ["cao", "baseline"];
+export const REPLAY_SCENARIOS = ["Low_400", "Medium_900", "High_1400"];
 export function replayAvailable(algo, scenario) {
   return REPLAY_ALGOS.includes(algo) && REPLAY_SCENARIOS.includes(scenario);
 }

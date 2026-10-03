@@ -8,7 +8,7 @@ import {
 
 // Reference datasets: junctions, network KPI, per-junction KPI (once)
 // plus per-algorithm signal green splits.
-export function useReplayData(algo, onError) {
+export function useReplayData(algo, scenario, onError) {
   const [junctions, setJunctions] = useState([]);
   const [kpi, setKpi] = useState(null);
   const [junctionKpis, setJunctionKpis] = useState({});
@@ -21,17 +21,18 @@ export function useReplayData(algo, onError) {
   }, [onError]);
 
   useEffect(() => {
-    loadSignals(algo)
+    loadSignals(algo, scenario)
       .then(setSignals)
       .catch(() => {
         // Keep the CAO schedule instead of wiping to {} so the 32
         // poles never vanish when baseline signal data is missing.
+        // Fallback 2 tầng: scoped (algo+scenario) → legacy algo → cao+scenario.
         if (algo !== "cao") {
-          loadSignals("cao").then(setSignals).catch(() => {});
+          loadSignals("cao", scenario).then(setSignals).catch(() => {});
           onError("Chưa có dữ liệu đèn cho baseline — đang hiển thị theo CAO");
         }
       });
-  }, [algo, onError]);
+  }, [algo, scenario, onError]);
 
   return { junctions, kpi, junctionKpis, signals };
 }

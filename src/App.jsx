@@ -108,7 +108,7 @@ export default function App() {
       )}
       {!replayAvailable(player.algo, player.scenario) && (
         <div className="border-b border-sky-500/30 bg-sky-500/10 px-4 py-1.5 text-xs text-sky-200">
-          Replay xe/đèn: CAO · Medium_900 (dữ liệu hiện có) — đổi kịch bản/thuật toán chỉ đổi số tổng + đường chart.
+          {`Chưa có dữ liệu replay cho tổ hợp ${player.algo} · ${player.scenario} — đang hiển thị KPI tổng hợp.`}
         </div>
       )}
       <main className="grid flex-1 grid-cols-1 gap-3 overflow-auto p-3 lg:grid-cols-12 lg:overflow-hidden">
