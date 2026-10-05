@@ -589,51 +589,72 @@ function StepMathContent({ currentStep, stepData }) {
   return null;
 }
 
-export function StepTabs({ currentStep, onSetStep }) {
+function StepCrumb({ s, label, currentStep, onSetStep }) {
+  if (s === currentStep) {
+    return (
+      <button key={s} type="button" onClick={() => onSetStep?.(s)} className="rounded-md border border-emerald-400 bg-emerald-500 px-2.5 py-1 font-mono text-xs font-bold text-slate-950 transition">
+        {label}
+      </button>
+    );
+  }
+  if (s < currentStep) {
+    return (
+      <button key={s} type="button" onClick={() => onSetStep?.(s)} className="rounded-md border border-[#1e293b] bg-slate-800/80 px-2.5 py-1 font-mono text-xs text-slate-300 transition hover:bg-slate-700">
+        {label}
+      </button>
+    );
+  }
   return (
-    <div className="mb-2.5 flex flex-wrap gap-1.5 border-b border-slate-800 pb-2.5">
-      {STEPPER_STEPS.map((label, idx) => {
-        const s = idx + 1;
-        const isActive = s === currentStep;
-        return (
-          <button key={s} type="button" onClick={() => onSetStep?.(s)} className={`rounded-md px-2.5 py-1 font-mono text-xs transition-all ${isActive ? "border border-cyan-400 bg-cyan-400 font-bold text-slate-950 shadow-[0_0_10px_rgba(34,211,238,0.4)]" : "border border-slate-800 bg-slate-950/60 text-slate-400 hover:border-slate-700 hover:text-slate-200"}`}>
-            {label}
-          </button>
-        );
-      })}
-    </div>
+    <button key={s} type="button" onClick={() => onSetStep?.(s)} className="rounded-md border border-[#1e293b] bg-transparent px-2.5 py-1 font-mono text-xs text-slate-500 transition hover:text-slate-400">
+      {label}
+    </button>
   );
 }
 
-export function StepNav({ currentStep, subPhase, onReset, onPrevStep, onNextStep, isAutoStepping, onToggleAutoStep }) {
-  const isMotion = subPhase === "motion";
+function StepperAction({ subPhase, onNextStep }) {
+  if (subPhase === "motion") {
+    return (
+      <button type="button" disabled className="flex cursor-wait items-center gap-1.5 rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1 text-xs font-semibold text-emerald-300" title="Xe đang di chuyển vào vị trí, vui lòng chờ">
+        <span className="h-3 w-3 animate-spin rounded-full border-2 border-emerald-400/40 border-t-emerald-300" />
+        <span>Đang di chuyển...</span>
+      </button>
+    );
+  }
   return (
-    <div className="mb-2.5 flex flex-wrap gap-1.5 border-b border-cyan-500/20 pb-2.5">
-      <button type="button" onClick={onReset} className="rounded-md border border-slate-800 bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800" title="Quay về Bước 1 & Nạp lại xe xuất phát">↺ Đầu</button>
-      <button type="button" onClick={onPrevStep} disabled={currentStep <= 1} className="rounded-md border border-slate-800 bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40" title="Lùi về bước trước">|&lt; Lùi</button>
-      {isMotion ? (
-        <button type="button" disabled className="flex cursor-wait items-center gap-1.5 rounded-md border border-cyan-500/40 bg-cyan-500/15 px-3 py-1 text-xs font-semibold text-cyan-300">
-          <span className="h-3 w-3 animate-spin rounded-full border-2 border-cyan-400/40 border-t-cyan-300" />
-          <span>Đang di chuyển...</span>
-        </button>
-      ) : (
-        <button type="button" onClick={onNextStep} className="flex items-center gap-1 rounded-md bg-cyan-400 px-3 py-1 text-xs font-bold text-slate-950 shadow-md transition-all hover:bg-cyan-300 active:scale-95" title="Sang bước tiếp theo">
-          <span>Bước tiếp theo</span>
-          <span className="font-mono text-sm">&gt;|</span>
-        </button>
-      )}
-      <button type="button" onClick={onToggleAutoStep} className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${isAutoStepping ? "border-amber-400/50 bg-amber-500/20 text-amber-300 font-semibold animate-pulse" : "border-slate-800 bg-slate-950 text-slate-300 hover:bg-slate-800"}`} title={isAutoStepping ? "Dừng tự động chuyển bước" : "Tự động chuyển bước sau 3s"}>{isAutoStepping ? "⏸ Dừng" : "▶ Tự động (3s)"}</button>
-    </div>
+    <button type="button" onClick={onNextStep} className="flex items-center gap-1 rounded-md bg-emerald-500 px-3 py-1 text-xs font-bold text-slate-950 transition hover:bg-emerald-400 active:scale-95" title="Sang bước tiếp theo">
+      <span>Bước tiếp theo</span>
+      <span className="font-mono text-sm">&gt;|</span>
+    </button>
   );
 }
 
-export function StepBadge({ currentStep, algo }) {
+export function UnifiedStepHeader({
+  currentStep = 1,
+  algo = "cao",
+  subPhase = "freeze",
+  onSetStep,
+  onPrevStep,
+  onNextStep,
+  isAutoStepping = false,
+  onToggleAutoStep,
+  onReset,
+  selectedNode = 1,
+  onSelectNode,
+}) {
   const stepTitle = STEP_TITLES[currentStep] || `Bước ${currentStep}`;
+  const autoTitle = isAutoStepping ? "Dừng tự động chuyển bước" : "Tự động chuyển bước sau 3s";
   return (
-    <div className="mb-3">
-      <div className="inline-flex items-center gap-2 rounded-lg border border-cyan-400/40 bg-cyan-500/15 px-2.5 py-1 font-mono text-xs font-semibold text-cyan-200 shadow-[0_0_10px_rgba(6,182,212,0.3)]">
-        <span className="h-1.5 w-1.5 rounded-full bg-cyan-400 animate-pulse" />
-        <span>Bước {currentStep}/5: {stepTitle} · {algo === "baseline" ? "Baseline" : "CAO-CBMP"}</span>
+    <div className="mb-3 border-b border-[#1e293b] pb-2.5">
+      <NodeSelectorBar selectedNode={selectedNode} onSelectNode={onSelectNode} />
+      <div className="flex flex-wrap items-center gap-1.5">
+        <button type="button" onClick={onReset} className="rounded-md border border-[#1e293b] bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800" title="Quay về Bước 1 & Nạp lại xe xuất phát">↺ Đầu</button>
+        <button type="button" onClick={onPrevStep} disabled={currentStep <= 1} className="rounded-md border border-[#1e293b] bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40" title="Lùi về bước trước">|&lt; Lùi</button>
+        {STEPPER_STEPS.map((label, idx) => (
+          <StepCrumb key={idx + 1} s={idx + 1} label={label} currentStep={currentStep} onSetStep={onSetStep} />
+        ))}
+        <StepperAction subPhase={subPhase} onNextStep={onNextStep} />
+        <button type="button" onClick={onToggleAutoStep} className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${isAutoStepping ? "border-amber-400/50 bg-amber-500/20 text-amber-300 font-semibold animate-pulse" : "border-[#1e293b] bg-slate-950 text-slate-300 hover:bg-slate-800"}`} title={autoTitle}>{isAutoStepping ? "⏸ Dừng" : "▶ Tự động (3s)"}</button>
+        <span className="font-mono text-[11px] text-slate-500">Bước {currentStep}/5: {stepTitle} · {algo === "baseline" ? "Baseline" : "CAO-CBMP"}</span>
       </div>
     </div>
   );
@@ -649,7 +670,7 @@ export function NodeSelectorBar({ selectedNode = 1, onSelectNode }) {
     ? "bg-cyan-500 font-semibold text-slate-950"
     : "text-slate-400 hover:text-slate-200";
   return (
-    <div className="mb-2.5 flex items-center gap-1 rounded-lg border border-slate-800 bg-slate-950/60 p-1 text-xs">
+    <div className="mb-2.5 flex items-center gap-1 rounded-lg border border-[#1e293b] bg-slate-950/60 p-1 text-xs">
       <button type="button" onClick={() => onSelectNode?.(1)} className={`${base} ${n1Tone}`}>
         Nút 1 Thượng lưu
       </button>
@@ -675,14 +696,20 @@ export function LiveMathBox({
   onSelectNode,
 }) {
   return (
-    <div className="rounded-xl border border-cyan-500/30 bg-slate-900/90 p-3.5 text-xs leading-relaxed text-slate-300 shadow-xl">
-      <NodeSelectorBar selectedNode={selectedNode} onSelectNode={onSelectNode} />
-      {/* Layer 1: step tabs */}
-      <StepTabs currentStep={currentStep} onSetStep={onSetStep} />
-      {/* Layer 2: nav row */}
-      <StepNav currentStep={currentStep} subPhase={subPhase} onReset={onReset} onPrevStep={onPrevStep} onNextStep={onNextStep} isAutoStepping={isAutoStepping} onToggleAutoStep={onToggleAutoStep} />
-      {/* Layer 3: step title badge */}
-      <StepBadge currentStep={currentStep} algo={algo} />
+    <div className="rounded-xl border border-[#1e293b] bg-slate-900/90 p-3.5 text-xs leading-relaxed text-slate-300 shadow-xl">
+      <UnifiedStepHeader
+        currentStep={currentStep}
+        algo={algo}
+        subPhase={subPhase}
+        onSetStep={onSetStep}
+        onPrevStep={onPrevStep}
+        onNextStep={onNextStep}
+        isAutoStepping={isAutoStepping}
+        onToggleAutoStep={onToggleAutoStep}
+        onReset={onReset}
+        selectedNode={selectedNode}
+        onSelectNode={onSelectNode}
+      />
       <StepMathContent currentStep={currentStep} stepData={stepData} />
     </div>
   );

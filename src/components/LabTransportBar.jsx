@@ -192,10 +192,10 @@ function StepperMotionWait() {
     <button
       type="button"
       disabled
-      className="flex cursor-wait items-center gap-2 rounded-md border border-cyan-500/40 bg-cyan-500/15 px-3 py-1.5 text-xs font-semibold text-cyan-300 shadow-sm"
+      className="flex cursor-wait items-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 shadow-sm"
       title="Xe đang nổ máy di chuyển vào vị trí..."
     >
-      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-cyan-400/40 border-t-cyan-300" />
+      <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-emerald-400/40 border-t-emerald-300" />
       <span>Xe đang di chuyển...</span>
     </button>
   );
@@ -206,7 +206,7 @@ function StepperNextButton({ onNextStep }) {
     <button
       type="button"
       onClick={onNextStep}
-      className="flex items-center gap-1.5 rounded-md bg-cyan-400 px-3.5 py-1.5 text-xs font-bold text-slate-950 shadow-md transition-all hover:bg-cyan-300 active:scale-95"
+      className="flex items-center gap-1.5 rounded-md bg-emerald-500 px-3.5 py-1.5 text-xs font-bold text-slate-950 shadow-md transition-all hover:bg-emerald-400 active:scale-95"
       title="Sang bước tiếp theo của thuật toán"
     >
       <span>Bước tiếp theo</span>
@@ -275,10 +275,10 @@ export function StepperBreadcrumbs({ currentStep = 1, onSetStep }) {
         const isPast = stepNum < currentStep;
 
         const stateClass = isActive
-          ? "border-cyan-400 bg-cyan-500 text-slate-950 font-bold shadow-[0_0_10px_rgba(6,182,212,0.4)]"
+          ? "border-emerald-400 bg-emerald-500 text-slate-950 font-bold"
           : isPast
-            ? "border-slate-700 bg-slate-800/80 text-slate-300 hover:bg-slate-700"
-            : "border-[#1e293b] bg-transparent text-slate-500 hover:border-slate-700 hover:text-slate-400";
+            ? "border-[#1e293b] bg-slate-800/80 text-slate-300 hover:bg-slate-700"
+            : "border-[#1e293b] bg-transparent text-slate-500 hover:text-slate-400";
 
         return (
           <button
