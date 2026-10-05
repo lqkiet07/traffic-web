@@ -1,6 +1,11 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import {
+  disposeThreeScene,
+  formatApproachSummary,
+  getStepOverlayPositions,
+} from "../lib/corridor3dScene.js";
+import {
   getCorridorTelemetry,
   spawnVehicle,
   updateCorridorSim,
@@ -251,6 +256,20 @@ function createTruckMesh() {
   return group;
 }
 
+// Release a detached object graph. disposeThreeScene cannot be reused here: it
+// relies on scene.traverse, and a departed vehicle is already orphaned from it.
+function disposeObject(obj) {
+  if (!obj) return;
+  obj.geometry?.dispose?.();
+  const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+  for (const mat of materials) {
+    if (!mat) continue;
+    mat.map?.dispose?.();
+    mat.dispose?.();
+  }
+  for (const child of obj.children ?? []) disposeObject(child);
+}
+
 // Sync 3D meshes with sim vehicles, prune departed ids.
 function syncVehicles(scene, meshMap, sim) {
   if (!scene || !meshMap || !sim?.vehicles) return;
@@ -277,6 +296,9 @@ function syncVehicles(scene, meshMap, sim) {
   for (const [id, mesh] of Array.from(meshMap)) {
     if (seen.has(id)) continue;
     scene.remove(mesh);
+    // Dispose now: meshMap.delete drops the last reference, so nothing can
+    // reach these geometries afterwards.
+    disposeObject(mesh);
     meshMap.delete(id);
   }
 }
@@ -418,74 +440,72 @@ function paintBoard(board, input, defaultColor = "#10b981") {
   tex.needsUpdate = true;
 }
 
-// West summary from step1 counts/area/phi, fallback to live telemetry.
-// In continuous mode prefer live telemetry so boards track the sim.
-function formatWestSummary(stepData, sim, simMode) {
-  if (simMode === "continuous" && sim) {
-    const t = getCorridorTelemetry(sim);
-    const pct = Math.round((t.phiNode1P1 ?? 0) * 100);
-    return {
-      title: "Nhánh Tây (Nút 1)",
-      metric: `φ_in: ${(t.phiNode1P1 ?? 0).toFixed(2)} (${pct}%) · ${t.n1P1Count ?? 0} xe`,
-      color: "#38bdf8",
-    };
-  }
-  const s1 = stepData?.step1;
-  if (s1) {
-    const trucks = s1.p1Counts?.truck ?? 0;
-    const area = s1.p1Area ?? 0;
-    const pct = Math.round((s1.phiIn1 ?? 0) * 100);
-    return {
-      title: "Nhánh Tây · Pha 1",
-      metric: `${trucks} Xe Tải · ${area.toFixed(0)} m² (${pct}%)`,
-      color: "#fbbf24",
-    };
-  }
-  if (sim) {
-    const t = getCorridorTelemetry(sim);
-    const pct = Math.round((t.phiNode1P1 ?? 0) * 100);
-    return {
-      title: "Nhánh Tây (Nút 1)",
-      metric: `φ_in: ${(t.phiNode1P1 ?? 0).toFixed(2)} (${pct}%) · ${t.n1P1Count ?? 0} xe`,
-      color: "#38bdf8",
-    };
-  }
-  return { title: "Nhánh Tây", metric: "--", color: "#64748b" };
+// Board base names per node: node 1 phase 1 arrives on the West arterial while
+// node 2 phase 1 arrives on the corridor link, so the inflow board is renamed.
+const HUD_BOARD_NAMES = {
+  1: { inflow: "Nhánh Tây", cross: "Nhánh Bắc" },
+  2: { inflow: "Hành lang Nối", cross: "Nhánh Bắc Nút 2" },
+};
+
+function boardNames(nodeId) {
+  return HUD_BOARD_NAMES[nodeId === 2 ? 2 : 1];
 }
 
-// North summary (motos) from step1 p2, fallback to telemetry.
-// In continuous mode prefer live telemetry so boards track the sim.
-function formatNorthSummary(stepData, sim, simMode) {
-  if (simMode === "continuous" && sim) {
-    const t = getCorridorTelemetry(sim);
-    const pct = Math.round((t.phiNode1P2 ?? 0) * 100);
-    return {
-      title: "Nhánh Bắc (Nút 1)",
-      metric: `φ: ${(t.phiNode1P2 ?? 0).toFixed(2)} (${pct}%) · ${t.n1P2Count ?? 0} xe`,
-      color: "#38bdf8",
-    };
-  }
+// Live telemetry carries only zone occupancy plus a total per phase, so the
+// continuous boards keep the phi readout instead of a per-type breakdown.
+function formatLiveSummary({ baseTitle, nodeId, phi, count, color, label }) {
+  const value = phi ?? 0;
+  return {
+    title: `${baseTitle} (Nút ${nodeId})`,
+    metric: `${label}: ${value.toFixed(2)} (${Math.round(value * 100)}%) · ${count ?? 0} xe`,
+    color,
+  };
+}
+
+// Node 1 phase-1 board; node 2 reads the same slot from its own step data,
+// which is already scoped to the selected node by getAlgorithmStepData.
+// Continuous mode prefers live telemetry so the board tracks the sim.
+function formatWestSummary(stepData, sim, simMode, nodeId = 1) {
+  const names = boardNames(nodeId);
   const s1 = stepData?.step1;
-  if (s1) {
-    const motos = s1.p2Counts?.moto ?? 0;
-    const area = s1.p2Area ?? 0;
-    const pct = Math.round((s1.phiIn2 ?? 0) * 100);
-    return {
-      title: "Nhánh Bắc · Pha 2",
-      metric: `${motos} Xe Máy · ${area.toFixed(0)} m² (${pct}%)`,
-      color: "#38bdf8",
-    };
-  }
-  if (sim) {
+  if (simMode === "continuous" || !s1) {
+    if (!sim) return { title: names.inflow, metric: "--", color: "#64748b" };
     const t = getCorridorTelemetry(sim);
-    const pct = Math.round((t.phiNode1P2 ?? 0) * 100);
-    return {
-      title: "Nhánh Bắc (Nút 1)",
-      metric: `φ: ${(t.phiNode1P2 ?? 0).toFixed(2)} (${pct}%) · ${t.n1P2Count ?? 0} xe`,
-      color: "#38bdf8",
-    };
+    // Node 2 phase 1 is fed by the corridor link, so phiCorridor is its inflow.
+    const live = nodeId === 2
+      ? { phi: t.phiCorridor, count: t.corridorCount }
+      : { phi: t.phiNode1P1, count: t.n1P1Count };
+    return formatLiveSummary({ baseTitle: names.inflow, nodeId, color: "#38bdf8", label: "φ_in", ...live });
   }
-  return { title: "Nhánh Bắc", metric: "--", color: "#64748b" };
+  return formatApproachSummary({
+    title: `${names.inflow} · Pha 1`,
+    counts: s1.p1Counts,
+    area: s1.p1Area,
+    phi: s1.phiIn1,
+    color: "#fbbf24",
+  });
+}
+
+// Phase-2 cross-street board; both nodes combine their north and south legs.
+// Continuous mode prefers live telemetry so the board tracks the sim.
+function formatNorthSummary(stepData, sim, simMode, nodeId = 1) {
+  const names = boardNames(nodeId);
+  const s1 = stepData?.step1;
+  if (simMode === "continuous" || !s1) {
+    if (!sim) return { title: names.cross, metric: "--", color: "#64748b" };
+    const t = getCorridorTelemetry(sim);
+    const live = nodeId === 2
+      ? { phi: t.phiNode2P2, count: t.n2P2Count }
+      : { phi: t.phiNode1P2, count: t.n1P2Count };
+    return formatLiveSummary({ baseTitle: names.cross, nodeId, color: "#38bdf8", label: "φ", ...live });
+  }
+  return formatApproachSummary({
+    title: `${names.cross} · Pha 2`,
+    counts: s1.p2Counts,
+    area: s1.p2Area,
+    phi: s1.phiIn2,
+    color: "#38bdf8",
+  });
 }
 
 // Two curbside HUD boards; west kept in frame at junction1 camera.
@@ -501,10 +521,10 @@ function buildHudBoards(scene) {
 
 // Repaint HUD only when step/telemetry data changes (never per frame).
 // Continuous mode repaints live telemetry; stepper mode prefers step data.
-function refreshHudBoards(hud, stepData, sim, simMode) {
+function refreshHudBoards(hud, stepData, sim, simMode, nodeId = 1) {
   if (!hud) return;
-  paintBoard(hud.west, formatWestSummary(stepData, sim, simMode));
-  paintBoard(hud.north, formatNorthSummary(stepData, sim, simMode));
+  paintBoard(hud.west, formatWestSummary(stepData, sim, simMode, nodeId));
+  paintBoard(hud.north, formatNorthSummary(stepData, sim, simMode, nodeId));
 }
 
 // Step1: cyan translucent planes over west + north approaches.
@@ -516,12 +536,13 @@ function buildStep1Overlay(scene) {
     m.rotation.x = -Math.PI / 2;
     m.position.set(px, 0.18, pz);
     group.add(m);
+    return m;
   };
-  mkPlane(12, 4, -28, 0);
-  mkPlane(4, 10, -16, -8);
+  const planeArterial = mkPlane(12, 4, -28, 0);
+  const planeCross = mkPlane(4, 10, -16, -8);
   group.visible = false;
   scene.add(group);
-  return { group, mat };
+  return { group, mat, planeArterial, planeCross };
 }
 
 // Step2: red arrow above corridor pointing west + small red board.
@@ -580,18 +601,39 @@ function buildStep5Overlay(scene) {
   const group = new THREE.Group();
   const mat = new THREE.MeshStandardMaterial({ color: "#10b981", emissive: "#10b981" });
   mat.emissiveIntensity = 0.7;
+  const releaseBoxes = [];
   for (let i = 0; i < 3; i++) {
     const box = new THREE.Mesh(new THREE.BoxGeometry(1.4, 0.3, 0.6), mat);
     box.position.set(-19 + i * 2, 0.5, 0);
     group.add(box);
+    releaseBoxes.push(box);
   }
-  const head = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.4, 10), mat);
-  head.rotation.z = -Math.PI / 2;
-  head.position.set(-11.8, 0.5, 0);
-  group.add(head);
+  const releaseHead = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1.4, 10), mat);
+  releaseHead.rotation.z = -Math.PI / 2;
+  releaseHead.position.set(-11.8, 0.5, 0);
+  group.add(releaseHead);
   group.visible = false;
   scene.add(group);
-  return { group };
+  return { group, releaseBoxes, releaseHead };
+}
+
+// Translate the existing overlay meshes onto the selected node. Cheaper than
+// rebuilding the overlay rig, which would churn geometries every node switch.
+function positionOverlaysForNode(rig, nodeId) {
+  const p = getStepOverlayPositions(nodeId);
+  rig.s1.planeArterial.position.x = p.inflowPlaneX;
+  rig.s1.planeCross.position.x = p.baseX;
+  rig.s1.planeCross.position.z = p.inflowCrossZ;
+  rig.s3.b1.position.x = p.gammaBar1X;
+  rig.s3.b2.position.x = p.gammaBar2X;
+  rig.s4.board.sprite.position.x = p.phaseBoardX;
+  rig.s5.releaseBoxes.forEach((box, i) => {
+    box.position.x = p.releaseStartX + i * 2;
+  });
+  rig.s5.releaseHead.position.x = p.releaseHeadX;
+  rig.hud.west.sprite.position.x = p.baseX - 5;
+  rig.hud.north.sprite.position.x = p.baseX;
+  rig.hud.north.sprite.position.z = p.inflowCrossZ - 4;
 }
 
 // Assemble HUD plus all step groups into one rig object.
@@ -602,7 +644,8 @@ function createOverlayRig(scene) {
   const s3 = buildStep3Overlay(scene);
   const s4 = buildStep4Overlay(scene);
   const s5 = buildStep5Overlay(scene);
-  return { hud, s1, s2, s3, s4, s5 };
+  // lastNode null forces the first overlay pass to anchor the rig.
+  return { hud, s1, s2, s3, s4, s5, lastNode: null };
 }
 
 // Refresh data-driven overlay sizes/texts on data change only.
@@ -895,12 +938,36 @@ function initThreeScene(container) {
   return { renderer, scene, camera };
 }
 
+// Overlay pass factory: owns the repaint bookkeeping so the render loop stays
+// short. Node switches reposition the meshes and repaint the boards, otherwise
+// textures are only redrawn when the underlying data object actually changes.
+function createOverlayPass(rig) {
+  let lastData = null;
+  let lastNode = null;
+  return (frame) => {
+    const { sim, mode, step, data, subPhase, nodeId, frameCount, time } = frame;
+    if (rig.lastNode !== nodeId) {
+      rig.lastNode = nodeId;
+      positionOverlaysForNode(rig, nodeId);
+    }
+    if (data !== lastData || nodeId !== lastNode) {
+      lastData = data;
+      lastNode = nodeId;
+      refreshHudBoards(rig.hud, data, sim, mode, nodeId);
+      refreshOverlayData(rig, data);
+    } else if (sim && frameCount % 60 === 0 && (!data || mode === "continuous")) {
+      refreshHudBoards(rig.hud, data, sim, mode, nodeId);
+    }
+    updateStepOverlays(rig, step, data, mode, subPhase, time);
+  };
+}
+
 // Advance sim, sync vehicles/signals, emit throttled telemetry.
-function startRenderLoop(ctx, simRef, playRef, speedRef, telemetryRef, vehicleMeshes, signalState, presetRef, cameraRig, overlayRig, modeRef, stepRef, dataRef, subRef) {
+function startRenderLoop(ctx, simRef, playRef, speedRef, telemetryRef, vehicleMeshes, signalState, presetRef, cameraRig, overlayRig, modeRef, stepRef, dataRef, subRef, nodeRef) {
   let lastTime = performance.now();
   let frameCount = 0;
   let animId = 0;
-  let lastData = null;
+  const overlayPass = createOverlayPass(overlayRig);
   const render = (now) => {
     const dt = Math.min((now - lastTime) / 1000, 0.1);
     lastTime = now;
@@ -914,16 +981,16 @@ function startRenderLoop(ctx, simRef, playRef, speedRef, telemetryRef, vehicleMe
       updateSignals(signalState, sim);
     }
     if (overlayRig) {
-      const curData = dataRef?.current ?? null;
-      const curMode = modeRef?.current ?? "continuous";
-      if (curData !== lastData) {
-        lastData = curData;
-        refreshHudBoards(overlayRig.hud, curData, sim, curMode);
-        refreshOverlayData(overlayRig, curData);
-      } else if (sim && frameCount % 60 === 0 && (!curData || curMode === "continuous")) {
-        refreshHudBoards(overlayRig.hud, curData, sim, curMode);
-      }
-      updateStepOverlays(overlayRig, stepRef?.current ?? 1, curData, modeRef?.current ?? "continuous", subRef?.current ?? "freeze", now / 1000);
+      overlayPass({
+        sim,
+        mode: modeRef?.current ?? "continuous",
+        step: stepRef?.current ?? 1,
+        data: dataRef?.current ?? null,
+        subPhase: subRef?.current ?? "freeze",
+        nodeId: nodeRef?.current ?? 1,
+        frameCount,
+        time: now / 1000,
+      });
     }
     const presetName = presetRef?.current ?? "overview";
     if (!shouldHoldCamera(cameraRig, presetName)) {
@@ -973,8 +1040,24 @@ function handleWorldClick(e, ctx, simRef, typeRef, spawnRef, telemetryRef, camer
   telemetryRef.current?.(getCorridorTelemetry(sim));
 }
 
+// Keep the renderer in step with the container box; returns observer for teardown.
+function observeResize(container, ctx) {
+  const ro = new ResizeObserver((entries) => {
+    for (const entry of entries) {
+      const { width, height } = entry.contentRect;
+      if (width <= 0 || height <= 0) continue;
+      if (!ctx?.renderer || !ctx?.camera) continue;
+      ctx.renderer.setSize(width, height);
+      ctx.camera.aspect = width / height;
+      ctx.camera.updateProjectionMatrix();
+    }
+  });
+  ro.observe(container);
+  return ro;
+}
+
 // Hook owning renderer lifecycle, loop and click wiring.
-function useThreeLoop(containerRef, simRef, isPlaying, simSpeed, onTelemetry, selectedType, onSpawn, presetRef, modeRef, stepRef, dataRef, subRef, onUserOrbit) {
+function useThreeLoop(containerRef, simRef, isPlaying, simSpeed, onTelemetry, selectedType, onSpawn, presetRef, modeRef, stepRef, dataRef, subRef, selectedNode, onUserOrbit) {
   const playRef = useRef(isPlaying);
   playRef.current = isPlaying;
   const speedRef = useRef(simSpeed);
@@ -987,6 +1070,8 @@ function useThreeLoop(containerRef, simRef, isPlaying, simSpeed, onTelemetry, se
   spawnRef.current = onSpawn;
   const userOrbitRef = useRef(onUserOrbit);
   userOrbitRef.current = onUserOrbit;
+  const nodeRef = useRef(selectedNode);
+  nodeRef.current = selectedNode;
   useEffect(() => {
     const container = containerRef.current;
     const ctx = initThreeScene(container);
@@ -998,24 +1083,16 @@ function useThreeLoop(containerRef, simRef, isPlaying, simSpeed, onTelemetry, se
     const detachOrbit = attachOrbit(ctx.renderer.domElement, ctx.camera, cameraRig, () => userOrbitRef.current?.());
     const onClick = (e) => handleWorldClick(e, ctx, simRef, typeRef, spawnRef, telemetryRef, cameraRig);
     ctx.renderer.domElement.addEventListener("click", onClick);
-    const stopLoop = startRenderLoop(ctx, simRef, playRef, speedRef, telemetryRef, vehicleMeshes, signalState, presetRef, cameraRig, overlayRig, modeRef, stepRef, dataRef, subRef);
-    const ro = new ResizeObserver((entries) => {
-      for (const entry of entries) {
-        const { width, height } = entry.contentRect;
-        if (width > 0 && height > 0 && ctx?.renderer && ctx?.camera) {
-          ctx.renderer.setSize(width, height);
-          ctx.camera.aspect = width / height;
-          ctx.camera.updateProjectionMatrix();
-        }
-      }
-    });
-    ro.observe(container);
+    const stopLoop = startRenderLoop(ctx, simRef, playRef, speedRef, telemetryRef, vehicleMeshes, signalState, presetRef, cameraRig, overlayRig, modeRef, stepRef, dataRef, subRef, nodeRef);
+    const ro = observeResize(container, ctx);
     return () => {
       ro.disconnect();
       ctx.renderer.domElement.removeEventListener("click", onClick);
       detachOrbit();
       stopLoop();
       vehicleMeshes.clear();
+      // Free geometries, materials and canvas textures before the context goes.
+      disposeThreeScene(ctx.scene);
       ctx.renderer.dispose();
       if (container.contains(ctx.renderer.domElement)) container.removeChild(ctx.renderer.domElement);
     };
@@ -1028,6 +1105,7 @@ export default function Corridor3DCanvas({
   isPlaying = false,
   simSpeed = 1,
   selectedType = "car",
+  selectedNode = 1,
   onSpawn,
   onTelemetry,
   simMode = "continuous",
@@ -1053,6 +1131,6 @@ export default function Corridor3DCanvas({
   onPresetRef.current = onCameraPreset;
   const orbitRef = useRef(null);
   if (!orbitRef.current) orbitRef.current = () => onPresetRef.current?.("free");
-  useThreeLoop(containerRef, simRef, isPlaying, simSpeed, onTelemetry, selectedType, onSpawn, presetRef, modeRef, stepRef, dataRef, subRef, orbitRef.current);
+  useThreeLoop(containerRef, simRef, isPlaying, simSpeed, onTelemetry, selectedType, onSpawn, presetRef, modeRef, stepRef, dataRef, subRef, selectedNode, orbitRef.current);
   return <div ref={containerRef} className="w-full h-full relative" />;
 }
