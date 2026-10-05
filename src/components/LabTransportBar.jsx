@@ -3,7 +3,7 @@ import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 import { formatClock } from "../lib/data.js";
 
 const SPEEDS = [1, 2, 5];
-const TICKS = ["0s", "30s", "60s", "90s", "120s"];
+const TICKS = ["0s", "28s", "56s", "84s", "112s"];
 const LEGEND_ITEMS = [
   { label: "Xe máy", color: "#f59e0b", shape: "rounded-sm h-2.5 w-4" },
   { label: "Ô tô", color: "#38bdf8", shape: "rounded-sm h-2.5 w-4" },
@@ -70,14 +70,15 @@ export function PlaybackButtons({
 }
 
 export function TimeReadout({ simTime = 0, vehicleCount = 0 }) {
-  const currentSec = Math.round((simTime || 0) % 120);
+  const cycleNum = Math.floor((simTime || 0) / 112) + 1;
+  const currentSec = Math.round((simTime || 0) % 112);
   return (
     <div className="ml-auto text-right font-mono text-xs tabular-nums text-slate-400">
       <div>
-        CK <span className="font-bold text-slate-100">1</span> · t {currentSec}s/120s
+        CK <span className="font-bold text-slate-100">{cycleNum}</span> · t {currentSec}s/112s
       </div>
       <div>
-        {formatClock(simTime || 0)} / 00:02:00 · {vehicleCount} xe
+        {formatClock(simTime || 0)} · {vehicleCount} xe
       </div>
     </div>
   );
@@ -86,7 +87,7 @@ export function TimeReadout({ simTime = 0, vehicleCount = 0 }) {
 export function CycleScrubber({ simTime = 0, onSeek, onPause }) {
   // Keep local drag value to avoid per-pixel seeks, commit once on release
   const [dragSec, setDragSec] = useState(null);
-  const currentSec = Math.min(120, Math.max(0, Math.round((simTime || 0) % 120)));
+  const currentSec = Math.min(112, Math.max(0, Math.round((simTime || 0) % 112)));
   const shownSec = dragSec ?? currentSec;
   const handlePointerDown = (e) => {
     // Pause playback on scrub start so seek lands on a frozen clock
@@ -108,7 +109,7 @@ export function CycleScrubber({ simTime = 0, onSeek, onPause }) {
       <input
         type="range"
         min={0}
-        max={120}
+        max={112}
         value={shownSec}
         onChange={(e) => setDragSec(Number(e.target.value))}
         onPointerDown={handlePointerDown}

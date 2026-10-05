@@ -89,7 +89,7 @@ function stepSimForward(sim, seconds) {
 
 function seekSim(sim, activeScenario, targetSec) {
   // Lightweight seek: set clock and derive signal state, no resim
-  const target = Math.max(0, Math.min(120, targetSec));
+  const target = Math.max(0, Math.min(112, targetSec));
   sim.time = target;
   const nodes = [sim.nodes.node1, sim.nodes.node2];
   for (const node of nodes) {
@@ -405,21 +405,21 @@ function CorridorCoordinationBar({ telemetry, selectedNode, onSelectNode }) {
   return (
     <div className="w-full flex flex-wrap items-center gap-2 px-3 py-1.5 border-b border-[#1e293b] bg-slate-950/60 text-xs text-slate-300">
       <button type="button" className={chip(selectedNode === 1)} onClick={() => onSelectNode?.(1)}>
-        <span className="font-medium">NUT 1</span>
+        <span className="font-medium">NÚT 1</span>
         <span className="font-mono text-emerald-300">{n1}s</span>
-        {jam ? <span className="text-amber-300">BI BOP GIAM</span> : null}
+        {jam ? <span className="text-amber-300">BỊ BÓP GIẢM</span> : null}
       </button>
       <span className="font-mono text-slate-500">{"-->"}</span>
       <div className="flex items-center gap-2 px-2 py-1 rounded-md border border-[#1e293b] bg-slate-900/60">
-        <span className="font-medium">HANH LANG</span>
+        <span className="font-medium">HÀNH LANG NỐI</span>
         <span className="font-mono text-sky-300">{pct}</span>
-        {jam ? <span className="font-mono text-rose-300">-{cut}% BACKPRESSURE</span> : null}
+        {jam ? <span className="font-mono text-rose-300">-{cut}% ÁP LỰC DỘI</span> : null}
       </div>
       <span className="font-mono text-slate-500">{"-->"}</span>
       <button type="button" className={chip(selectedNode === 2)} onClick={() => onSelectNode?.(2)}>
-        <span className="font-medium">NUT 2</span>
+        <span className="font-medium">NÚT 2</span>
         <span className="font-mono text-emerald-300">{n2}s</span>
-        {jam ? <span className="text-sky-300">BUNG TOI DA</span> : null}
+        {jam ? <span className="text-sky-300">MỞ TỐI ĐA</span> : null}
       </button>
     </div>
   );
