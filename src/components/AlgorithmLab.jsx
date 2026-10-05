@@ -75,6 +75,8 @@ function applyPresetVehicles(sim, key) {
   recalculateNode(sim, 2);
   sim.nodes.node1.timeRemaining = sim.nodes.node1.g1;
   sim.nodes.node2.timeRemaining = sim.nodes.node2.g1;
+  sim.initialVehicles = sim.vehicles.map((v) => ({ ...v }));
+  sim.initialThroughput = sim.throughput ?? 0;
 }
 
 function syncSimState(sim, setTelemetry) {
@@ -93,7 +95,13 @@ function stepSimForward(sim, seconds) {
 
 function createLabActions(simRef, activeScenario, { setTelemetry, setActiveScenario, setAlgo }) {
   const sync = () => syncSimState(simRef.current, setTelemetry);
-  const onCustom = () => { setActiveScenario("custom"); sync(); };
+  const onCustom = () => {
+    const sim = simRef.current;
+    sim.initialVehicles = sim.vehicles.map((v) => ({ ...v }));
+    sim.initialThroughput = sim.throughput ?? 0;
+    setActiveScenario("custom");
+    sync();
+  };
   return {
     handlePreset: (key) => {
       applyPresetVehicles(simRef.current, key);
@@ -294,6 +302,17 @@ function useLabSim() {
   const stepper = useStepper(simRef, setTelemetry, setIsPlaying, activeScenario);
   const actions = createLabActions(simRef, activeScenario, { setTelemetry, setActiveScenario, setAlgo });
 
+  const wasPlayingRef = useRef(false);
+  const handleSeekStart = () => {
+    wasPlayingRef.current = isPlaying;
+    setIsPlaying(false);
+  };
+  const handleSeekEnd = () => {
+    if (wasPlayingRef.current) {
+      setIsPlaying(true);
+    }
+  };
+
   return {
     simRef,
     isPlaying,
@@ -306,6 +325,8 @@ function useLabSim() {
     activeScenario,
     telemetry,
     setTelemetry,
+    handleSeekStart,
+    handleSeekEnd,
     ...stepper,
     ...actions,
   };
@@ -484,7 +505,8 @@ function LabControlBar({ lab }) {
       simTime={lab.simRef.current?.time ?? 0}
       vehicleCount={lab.telemetry.totalVehicles}
       onSeek={lab.handleSeek}
-      onPause={() => lab.setIsPlaying(false)}
+      onSeekStart={lab.handleSeekStart}
+      onSeekEnd={lab.handleSeekEnd}
       simMode={lab.simMode}
       currentStep={lab.currentStep}
       subPhase={lab.subPhase}

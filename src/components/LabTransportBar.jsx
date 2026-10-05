@@ -83,7 +83,7 @@ export function TimeReadout({ simTime = 0, vehicleCount = 0 }) {
   );
 }
 
-export function CycleScrubber({ simTime = 0, onSeek, onPause }) {
+export function CycleScrubber({ simTime = 0, onSeek, onSeekStart, onSeekEnd }) {
   const currentSec = Math.min(112, Math.max(0, Math.round((simTime || 0) % 112)));
   return (
     <div>
@@ -93,7 +93,8 @@ export function CycleScrubber({ simTime = 0, onSeek, onPause }) {
         max={112}
         value={currentSec}
         onChange={(e) => onSeek?.(Number(e.target.value))}
-        onPointerDown={() => onPause?.()}
+        onPointerDown={() => onSeekStart?.()}
+        onPointerUp={() => onSeekEnd?.()}
         className="transport-scrubber mt-2"
         aria-label="Thời gian chu kỳ"
       />
@@ -280,7 +281,8 @@ export function ContinuousControls({
   onStepForward,
   simTime = 0,
   onSeek,
-  onPause,
+  onSeekStart,
+  onSeekEnd,
 }) {
   return (
     <div className="flex flex-col gap-2.5">
@@ -293,7 +295,7 @@ export function ContinuousControls({
         onStepBack={onStepBack}
         onStepForward={onStepForward}
       />
-      <CycleScrubber simTime={simTime} onSeek={onSeek} onPause={onPause} />
+      <CycleScrubber simTime={simTime} onSeek={onSeek} onSeekStart={onSeekStart} onSeekEnd={onSeekEnd} />
     </div>
   );
 }
