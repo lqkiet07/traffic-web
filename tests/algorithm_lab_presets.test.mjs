@@ -10,9 +10,8 @@ import {
 function applyPreset(sim, key) {
   resetCorridorSim(sim);
   if (key === "paradox") {
-    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "truck", x: 170 - i * 50 });
-    for (let i = 0; i < 12; i++) spawnVehicle(sim, { approach: "north1", type: "moto", y: 125 - i * 10 });
-    for (let i = 0; i < 6; i++) spawnVehicle(sim, { approach: "south1", type: "moto", y: 195 + i * 20 });
+    for (let i = 0; i < 26; i++) spawnVehicle(sim, { approach: "west", type: "moto", x: 205 - Math.floor(i / 3) * 16 });
+    for (let i = 0; i < 18; i++) spawnVehicle(sim, { approach: "north1", type: "moto", y: 125 - i * 6 });
   } else if (key === "corridor_jam") {
     for (let i = 0; i < 6; i++) spawnVehicle(sim, { approach: "corridor", type: "truck", x: 500 - i * 42 });
     for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 36 });
@@ -26,7 +25,9 @@ function applyPreset(sim, key) {
   recalculateNode(sim, 2);
 }
 
-// Check paradox scenario: CAO favors area of 4 trucks over count of 18 motos
+// Check paradox scenario: motorcycle swarm occlusion — CAO full-area green vs baseline Bbox-cut green.
+// Both live timing (recalculateNode) and stepper (step4) source baseline from
+// camera Bbox visible counts, so the occlusion contrast holds at node level.
 {
   const simCao = createCorridorSim({ algo: "cao" });
   applyPreset(simCao, "paradox");

@@ -122,7 +122,15 @@ export function recalculateNode(sim, target) {
     : combineCounts(countApproach(sim, "north2"), countApproach(sim, "south2"));
 
   if (sim.algo === "baseline") {
-    const allocation = allocateBaselineGreen(p1Counts, p2Counts);
+    // Mirror getAlgorithmStepData: CCTV baseline sees camera Bbox visible
+    // counts, not ground-truth sim counts, so live timing shows the same
+    // occlusion cutoff as the stepper (26-moto swarm -> 13 visible).
+    const occ1 = estimateOccludedCount(p1Counts, (p1Counts?.moto ?? 0) >= 20 ? 0.5 : (p1Counts?.moto ?? 0) > 5 ? 0.4 : 0.1);
+    const occ2 = estimateOccludedCount(p2Counts, (p2Counts?.moto ?? 0) >= 20 ? 0.5 : (p2Counts?.moto ?? 0) > 5 ? 0.4 : 0.1);
+    const allocation = allocateBaselineGreen(
+      { ...p1Counts, moto: occ1.visibleMotos },
+      { ...p2Counts, moto: occ2.visibleMotos },
+    );
     node.g1 = allocation.g1;
     node.g2 = allocation.g2;
     return;
