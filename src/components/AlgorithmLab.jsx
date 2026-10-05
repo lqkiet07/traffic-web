@@ -343,7 +343,7 @@ function CameraPresetBar({ cameraPreset, onPreset, camBtn }) {
 function MouseHintChip({ cameraPreset }) {
   // Floating glass badge over viewport — pointer-events-none to avoid blocking orbit
   return (
-    <div className="absolute bottom-2 left-2 right-2 pointer-events-none flex items-center justify-between text-[11px] text-slate-400 px-3 py-1 bg-slate-950/80 backdrop-blur-sm rounded-lg border border-slate-800/80">
+    <div className="absolute bottom-2 left-2 right-2 pointer-events-none flex items-center justify-between text-[11px] text-slate-400 px-3 py-1 bg-slate-950/80 backdrop-blur-sm rounded-lg border border-[#1e293b]">
       <span>Chuột trái: Xoay 360° · Chuột phải: Lia góc nhìn · Cuộn: Zoom vào con trỏ · Nhấp đúp: Lấy nét</span>
       <span className="font-mono text-cyan-300">Camera: {cameraPreset}</span>
     </div>

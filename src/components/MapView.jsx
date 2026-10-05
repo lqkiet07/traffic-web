@@ -148,7 +148,7 @@ export default function MapView(props) {
   const paneRef = usePaneRef();
 
   return (
-    <div className="relative h-full w-full overflow-hidden rounded-xl border border-slate-800">
+    <div className="relative h-full w-full overflow-hidden rounded-xl border border-[#1e293b]">
       <MapContainer
         ref={paneRef}
         center={CENTER}
