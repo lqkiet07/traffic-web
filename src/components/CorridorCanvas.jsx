@@ -497,14 +497,12 @@ function drawMotionBanner(ctx, sim) {
   const dur = sim?.stepper?.motionDuration ?? 0;
   const elapsed = sim?.stepper?.motionElapsed ?? 0;
   const remain = Math.max(0, dur - elapsed).toFixed(1);
-  const msg = `Dang di chuyen vao vi tri (${remain}s)...`;
+  const msg = `Đang di chuyển vào vị trí (${remain}s)...`;
   drawFloatingTag(ctx, 400, 30, msg, "#38bdf8");
 }
 
 function drawFreezeOverlays(ctx, sim, currentStep, stepData, nodeId = 1) {
   // Full math overlays shown only when frozen
-  const baseX = nodeId === 2 ? 560 : 240;
-  void baseX;
   if (currentStep === 1) drawStep1Overlays(ctx, sim, stepData, nodeId);
   else if (currentStep === 2) drawStep2Overlays(ctx, sim, stepData, nodeId);
   else if (currentStep === 3) drawStep3Overlays(ctx, sim, stepData, nodeId);
