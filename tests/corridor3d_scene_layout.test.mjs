@@ -26,6 +26,8 @@ import { getNodeBaseX, getStepOverlayPositions } from "../src/lib/corridor3dScen
   assert.strictEqual(p.phaseBoardX, 16);
   assert.strictEqual(p.releaseStartX, 13);
   assert.strictEqual(p.releaseHeadX, 20.2);
+  // The cross-street scan plane keeps the same Z on both nodes.
+  assert.strictEqual(p.inflowCrossZ, -8);
 }
 
 // Unknown node ids fall back to Node 1 rather than producing NaN positions.

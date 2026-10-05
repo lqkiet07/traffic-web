@@ -37,7 +37,7 @@ export function getStepOverlayPositions(nodeId) {
   const baseX = getNodeBaseX(nodeId);
   return {
     baseX,
-    inflowPlaneX: nodeId === 2 ? 4 : -28,
+    inflowPlaneX: baseX - 12,
     inflowCrossZ: -8,
     gammaBar1X: baseX - 0.6,
     gammaBar2X: baseX + 0.6,
@@ -47,29 +47,26 @@ export function getStepOverlayPositions(nodeId) {
   };
 }
 
-function disposeMaterial(material, disposeTexture) {
-  if (!material) return;
-  if (Array.isArray(material)) {
-    for (const entry of material) disposeMaterial(entry, disposeTexture);
-    return;
-  }
-  disposeTexture(material.map);
-  disposeTexture(material.emissiveMap);
-  disposeTexture(material.normalMap);
-  material.dispose?.();
-}
-
 // Release GPU resources for every mesh so toggling 2D/3D does not leak VRAM.
+// A single Set dedupes geometries, materials and textures because one material
+// (e.g. the shared step-1 plane material) or one texture can back many meshes.
 export function disposeThreeScene(scene) {
   if (typeof scene?.traverse !== "function") return;
   const seen = new Set();
-  const disposeTexture = (tex) => {
-    if (!tex || seen.has(tex)) return;
-    seen.add(tex);
-    tex.dispose?.();
+  const once = (disposable) => {
+    if (!disposable || seen.has(disposable)) return;
+    seen.add(disposable);
+    disposable.dispose?.();
   };
   scene.traverse((obj) => {
-    obj.geometry?.dispose?.();
-    disposeMaterial(obj.material, disposeTexture);
+    once(obj.geometry);
+    const materials = Array.isArray(obj.material) ? obj.material : [obj.material];
+    for (const mat of materials) {
+      if (!mat) continue;
+      once(mat.map);
+      once(mat.emissiveMap);
+      once(mat.normalMap);
+      once(mat);
+    }
   });
 }
