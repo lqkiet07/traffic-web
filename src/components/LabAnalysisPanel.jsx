@@ -350,15 +350,28 @@ export function Step1Math({ data }) {
   const p1Title = data?.approachName ? `Pha 1 · ${data.approachName}` : "Pha 1 · Nhánh Tây";
   const p2Title = "Pha 2 · Nhánh Bắc & Nam";
   const outflowHint = data?.outflowName ? `Hạ lưu: ${data.outflowName}` : null;
+  const p1Badge = p1Truck > 0 ? "Nhánh xe tải" : p1Moto >= 10 ? "Bầy xe máy ken đặc" : "Nhánh hỗn hợp";
+  const p2Badge = p2Truck > 0 ? "Nhánh xe tải" : p2Moto >= 10 ? "Bầy xe máy ken đặc" : "Nhánh hỗn hợp";
+  const occlusionP1 = data?.occlusionP1;
   return (
     <div className="space-y-3">
       {outflowHint ? (
         <div className="font-mono text-[11px] text-slate-500">{outflowHint}</div>
       ) : null}
       <div className="flex flex-col gap-2.5">
-        <PhaseCard title={p1Title} badge="Nhánh xe tải" lines={p1Lines} areaLabel="A₁" areaValue={p1Area} phiLabel={`φ_in1 = min(1.0, ${p1Area}/150)`} phiValue={phiIn1} tone="amber" />
-        <PhaseCard title={p2Title} badge="Nhánh xe máy" lines={p2Lines} areaLabel="A₂" areaValue={p2Area} phiLabel={`φ_in2 = min(1.0, ${p2Area}/150)`} phiValue={phiIn2} tone="sky" />
+        <PhaseCard title={p1Title} badge={p1Badge} lines={p1Lines} areaLabel="A₁" areaValue={p1Area} phiLabel={`φ_in1 = min(1.0, ${p1Area}/150)`} phiValue={phiIn1} tone="amber" />
+        <PhaseCard title={p2Title} badge={p2Badge} lines={p2Lines} areaLabel="A₂" areaValue={p2Area} phiLabel={`φ_in2 = min(1.0, ${p2Area}/150)`} phiValue={phiIn2} tone="sky" />
       </div>
+      {occlusionP1?.lossPercentage > 0 ? (
+        <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-[#1e293b] bg-slate-950/50 p-2 font-mono text-[11px]">
+          <span className="rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
+            Camera Bbox (Góc nghiêng): ~{occlusionP1?.visibleCount} xe (Hụt ~{occlusionP1?.lossPercentage}% do che khuất tương hỗ)
+          </span>
+          <span className="rounded-md bg-emerald-500/15 px-2 py-1 font-bold tabular-nums text-emerald-300">
+            Độ đo không gian (CAO): φ = {phiIn1} (Diện tích A₁ = {p1Area} m²)
+          </span>
+        </div>
+      ) : null}
       {data?.occlusionP2?.occludedMotos > 0 ? (
         <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-[#1e293b] bg-slate-950/50 p-2 font-mono text-[11px]">
           <span className="rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
@@ -487,12 +500,16 @@ export function Step3Math({ data, step2 }) {
   );
 }
 
-export function Step4Math({ data, algo }) {
+export function Step4Math({ data, algo, step1 }) {
   const g1 = data?.g1 ?? 56;
   const g2 = data?.g2 ?? 56;
   const total = data?.totalCycle ?? 120;
   const lost = data?.lostTime ?? 8;
   const greenSum = total - lost;
+  // Live occlusion comes via the step1 prop (threaded by StepMathContent);
+  // fallbacks match the 26-moto swarm scenario (50% loss -> 13 visible, 39 m2).
+  const occVisible = step1?.occlusionP1?.visibleCount ?? data?.step1?.occlusionP1?.visibleCount ?? 13;
+  const occArea = step1?.p1Area ?? data?.step1?.p1Area ?? 39;
   const p1Pct = greenSum > 0 ? Math.round((g1 / greenSum) * 100) : 50;
 
   return (
@@ -537,6 +554,9 @@ export function Step4Math({ data, algo }) {
         </div>
         <div className="mt-2 text-[11px] font-mono text-slate-500 leading-relaxed">
           Đối chiếu cùng luồng xe: Baseline {data?.baseline?.g1 ?? 56}s (đếm đầu xe) · CAO {data?.cbmp?.g1 ?? 56}s (diện tích chiếm dụng).
+        </div>
+        <div className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-[11px] font-mono leading-relaxed text-slate-300">
+          🐝 Bầy xe máy ken đặc: Camera Bbox chỉ thấy ~{occVisible} xe (trên A₁ = {occArea} m²) nên Baseline cắt xanh sớm — CAO đo diện tích đầy đủ nên cấp đủ xanh xả sạch.
         </div>
       </div>
     </div>
@@ -604,7 +624,7 @@ function StepMathContent({ currentStep, stepData }) {
       />
     );
   }
-  if (currentStep === 4) return <Step4Math data={stepData?.step4} algo={stepData?.step4?.algo ?? "cao"} />;
+  if (currentStep === 4) return <Step4Math data={stepData?.step4} algo={stepData?.step4?.algo ?? "cao"} step1={stepData?.step1} />;
   if (currentStep === 5) return <Step5Math data={stepData?.step5} />;
   return null;
 }
