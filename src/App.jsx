@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import Header from "./components/Header.jsx";
 import AlgorithmLab from "./components/AlgorithmLab.jsx";
+import CameraView from "./components/CameraView.jsx";
 import MapViewport from "./components/MapViewport.jsx";
 import StatCards from "./components/StatCards.jsx";
 import ComparisonCharts from "./components/ComparisonCharts.jsx";
@@ -34,7 +35,7 @@ function LabPanel() {
 function CameraPlaceholder() {
   return (
     <div data-testid="camera-placeholder" className="rounded-xl border border-slate-800 bg-slate-900/70 p-6 text-sm text-slate-300 lg:col-span-12">
-      Camera YOLO – chờ video clip
+      <CameraView />
     </div>
   );
 }
