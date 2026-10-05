@@ -102,7 +102,7 @@ function IpmZone() {
           Bbox: ~14 xe (hụt ~40%)
         </span>
         <span className="rounded-md border border-emerald-500/40 bg-emerald-500/10 px-2 py-1 font-bold tabular-nums text-emerald-300">
-          CAO: φ = 0.48 (đúng 100%)
+          CAO: φ = 0.48 (độ đo diện tích)
         </span>
       </div>
     </section>
