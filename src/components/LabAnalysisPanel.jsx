@@ -138,7 +138,7 @@ function SpawnBtn({ label, onClick, isJam = false }) {
       className={`rounded px-2 py-1 text-xs transition ${
         isJam
           ? "border border-amber-500/40 bg-amber-500/10 font-medium text-amber-300 hover:bg-amber-500/20"
-          : "border border-[#1e293b] bg-slate-800/80 text-slate-200 hover:border-slate-500 hover:bg-slate-700"
+          : "border border-[#1e293b] bg-slate-800/80 text-slate-200 hover:bg-slate-700"
       }`}
     >
       {label}
