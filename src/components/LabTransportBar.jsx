@@ -1,4 +1,3 @@
-import { useState } from "react";
 import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
 import { formatClock } from "../lib/data.js";
 
@@ -85,42 +84,17 @@ export function TimeReadout({ simTime = 0, vehicleCount = 0 }) {
 }
 
 export function CycleScrubber({ simTime = 0, onSeek, onPause }) {
-  // Keep local drag value to avoid per-pixel seeks, commit once on release
-  const [dragSec, setDragSec] = useState(null);
   const currentSec = Math.min(112, Math.max(0, Math.round((simTime || 0) % 112)));
-  const shownSec = dragSec ?? currentSec;
-  const handlePointerDown = (e) => {
-    // Pause playback on scrub start so seek lands on a frozen clock
-    onPause?.();
-    try {
-      e.target.setPointerCapture(e.pointerId);
-    } catch {
-      // Pointer capture unsupported, drag state still tracks value
-    }
-    setDragSec(Number(e.target.value));
-  };
-  const handlePointerUp = (e) => {
-    const val = dragSec ?? Number(e.target.value);
-    onSeek?.(val);
-    setDragSec(null);
-  };
   return (
     <div>
       <input
         type="range"
         min={0}
         max={112}
-        value={shownSec}
-        onChange={(e) => setDragSec(Number(e.target.value))}
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onKeyUp={(e) => {
-          if (e.key === "Enter") {
-            onSeek?.(dragSec ?? currentSec);
-            setDragSec(null);
-          }
-        }}
-        className="transport-scrubber mt-3"
+        value={currentSec}
+        onChange={(e) => onSeek?.(Number(e.target.value))}
+        onPointerDown={() => onPause?.()}
+        className="transport-scrubber mt-2"
         aria-label="Thời gian chu kỳ"
       />
       <div className="mt-1 flex justify-between font-mono text-[10px] tabular-nums text-slate-600">
@@ -340,9 +314,17 @@ export default function LabTransportBar(props) {
       </div>
 
       {simMode === "stepper" ? (
-        <div className="flex items-center justify-between px-2 py-1 text-xs text-slate-400 bg-slate-900/60 rounded-lg border border-[#1e293b]">
-          <span>🔍 Chế độ từng bước đang hoạt động</span>
-          <span className="text-cyan-400 font-mono text-[11px]">Điều hướng & xem phân tích ở cột bên phải 👉</span>
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#1e293b] bg-slate-900/60 px-3 py-2 text-xs">
+          <StepperControls
+            currentStep={props.currentStep}
+            onSetStep={props.onSetStep}
+            onPrevStep={props.onPrevStep}
+            onNextStep={props.onNextStep}
+            isAutoStepping={props.isAutoStepping}
+            onToggleAutoStep={props.onToggleAutoStep}
+            subPhase={props.subPhase}
+          />
+          <StepperBreadcrumbs currentStep={props.currentStep} onSetStep={props.onSetStep} />
         </div>
       ) : (
         <ContinuousControls {...props} />
