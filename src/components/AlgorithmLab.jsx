@@ -380,6 +380,7 @@ function LabCanvasView({ lab, view3D, cameraPreset, onCameraPresetChange }) {
       isPlaying={lab.isPlaying}
       simSpeed={lab.simSpeed}
       selectedType={lab.selectedType}
+      selectedNode={lab.selectedNode}
       onSpawn={lab.handleCanvasSpawn}
       onTelemetry={lab.setTelemetry}
       simMode={lab.simMode}

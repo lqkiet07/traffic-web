@@ -356,7 +356,7 @@ function getVehicleAreaTag(type) {
   return "7.5m²";
 }
 
-function drawStep1Overlays(ctx, sim, stepData) {
+function drawStep1Overlays(ctx, sim, stepData, nodeId = 1) {
   const pulse = 0.5 + 0.5 * Math.sin(Date.now() / 250);
   ctx.save();
   ctx.strokeStyle = "#10b981";
@@ -364,16 +364,27 @@ function drawStep1Overlays(ctx, sim, stepData) {
   ctx.shadowColor = "#10b981";
   ctx.shadowBlur = 6 + 4 * pulse;
   ctx.globalAlpha = 0.5 + 0.5 * pulse;
-  ctx.strokeRect(1, 141, 218, 38);
+  if (nodeId === 2) ctx.strokeRect(262, 141, 276, 38);
+  else ctx.strokeRect(1, 141, 218, 38);
   ctx.restore();
 
   const phi = (stepData?.step1?.phiIn1 ?? 0).toFixed(2);
-  drawFloatingTag(ctx, 110, 150, `Quét diện tích: φ = ${phi}`, "#10b981");
+  drawFloatingTag(ctx, nodeId === 2 ? 400 : 110, 150, `Quét diện tích: φ = ${phi}`, "#10b981");
 
   const vehicles = sim?.vehicles || [];
   for (const v of vehicles) {
     const inWest = v.x < 220 && (v.approach === "west" || Math.abs(v.y - 160) <= 25);
     const inNorth1 = v.y < 140 && (v.approach === "north1" || Math.abs(v.x - 240) <= 25);
+    if (nodeId === 2) {
+      const inCorridor = v.x >= 240 && v.x < 540 && (v.approach === "corridor" || Math.abs(v.y - 160) <= 25);
+      const inCross2 = (v.y < 140 || v.y > 180) && (v.approach === "north2" || v.approach === "south2" || Math.abs(v.x - 560) <= 25);
+      if (inCorridor || inCross2) {
+        const style = VEHICLE_STYLES[v.type] || VEHICLE_STYLES.car;
+        const tag = getVehicleAreaTag(v.type);
+        drawFloatingTag(ctx, v.x, v.y - 14, tag, style.color);
+      }
+      continue;
+    }
     if (inWest || inNorth1) {
       const style = VEHICLE_STYLES[v.type] || VEHICLE_STYLES.car;
       const tag = getVehicleAreaTag(v.type);
@@ -382,7 +393,8 @@ function drawStep1Overlays(ctx, sim, stepData) {
   }
 }
 
-function drawStep2Overlays(ctx, sim, stepData) {
+function drawStep2Overlays(ctx, sim, stepData, nodeId = 1) {
+  const baseX = nodeId === 2 ? 560 : 240;
   ctx.save();
   ctx.strokeStyle = "#f43f5e";
   ctx.fillStyle = "#f43f5e";
@@ -408,38 +420,41 @@ function drawStep2Overlays(ctx, sim, stepData) {
   drawFloatingTag(ctx, 380, 146, `Dội ngược hạ lưu: -${pushback}`, "#f43f5e");
 
   const w1 = (stepData?.step2?.w1 ?? 0).toFixed(2);
-  drawFloatingTag(ctx, 210, 160, `w₁ = ${w1}`, "#f59e0b");
+  drawFloatingTag(ctx, baseX - 30, 160, `w₁ = ${w1}`, "#f59e0b");
 }
 
-function drawStep3Overlays(ctx, sim, stepData) {
+function drawStep3Overlays(ctx, sim, stepData, nodeId = 1) {
+  const baseX = nodeId === 2 ? 560 : 240;
   const g1 = (stepData?.step3?.gamma1 ?? 0).toFixed(2);
   const g2 = (stepData?.step3?.gamma2 ?? 0).toFixed(2);
-  drawFloatingTag(ctx, 240, 150, `γ₁ = ${g1}`, "#10b981");
-  drawFloatingTag(ctx, 240, 170, `γ₂ = ${g2}`, "#f59e0b");
+  drawFloatingTag(ctx, baseX, 150, `γ₁ = ${g1}`, "#10b981");
+  drawFloatingTag(ctx, baseX, 170, `γ₂ = ${g2}`, "#f59e0b");
 }
 
-function drawStep4Overlays(ctx, sim, stepData) {
+function drawStep4Overlays(ctx, sim, stepData, nodeId = 1) {
+  const baseX = nodeId === 2 ? 560 : 240;
   ctx.save();
   ctx.strokeStyle = "#10b981";
   ctx.lineWidth = 2.5;
   ctx.shadowColor = "#10b981";
   ctx.shadowBlur = 16;
-  if (ctx.roundRect) ctx.roundRect(148, 94, 18, 38, 4);
-  else ctx.rect(148, 94, 18, 38);
+  if (ctx.roundRect) ctx.roundRect(baseX - 92, 94, 18, 38, 4);
+  else ctx.rect(baseX - 92, 94, 18, 38);
   ctx.stroke();
 
   ctx.fillStyle = "#10b981";
   ctx.beginPath();
-  ctx.arc(157, 123, 5, 0, Math.PI * 2);
+  ctx.arc(baseX - 83, 123, 5, 0, Math.PI * 2);
   ctx.fill();
   ctx.restore();
 
   const g1 = stepData?.step4?.g1 ?? 56;
   const g2 = stepData?.step4?.g2 ?? 56;
-  drawFloatingTag(ctx, 240, 60, `Cấp giây xanh: P1 = ${g1}s | P2 = ${g2}s`, "#10b981");
+  drawFloatingTag(ctx, baseX, 60, `Cấp giây xanh: P1 = ${g1}s | P2 = ${g2}s`, "#10b981");
 }
 
-function drawStep5Overlays(ctx, sim, stepData) {
+function drawStep5Overlays(ctx, sim, stepData, nodeId = 1) {
+  const baseX = nodeId === 2 ? 560 : 240;
   ctx.save();
   ctx.strokeStyle = "#10b981";
   ctx.fillStyle = "#10b981";
@@ -448,14 +463,14 @@ function drawStep5Overlays(ctx, sim, stepData) {
   ctx.shadowBlur = 8;
   [152, 168].forEach((ay) => {
     ctx.beginPath();
-    ctx.moveTo(222, ay);
-    ctx.lineTo(252, ay);
+    ctx.moveTo(baseX - 18, ay);
+    ctx.lineTo(baseX + 12, ay);
     ctx.stroke();
 
     ctx.beginPath();
-    ctx.moveTo(258, ay);
-    ctx.lineTo(250, ay - 4);
-    ctx.lineTo(250, ay + 4);
+    ctx.moveTo(baseX + 18, ay);
+    ctx.lineTo(baseX + 10, ay - 4);
+    ctx.lineTo(baseX + 10, ay + 4);
     ctx.closePath();
     ctx.fill();
   });
@@ -463,7 +478,7 @@ function drawStep5Overlays(ctx, sim, stepData) {
 
   const g1 = stepData?.step4?.g1 ?? 56;
   const banner = `Pha 1 XANH (${g1}s) — Dòng xe tăng tốc qua nút`;
-  drawFloatingTag(ctx, 240, 60, banner, "#10b981");
+  drawFloatingTag(ctx, baseX, 60, banner, "#10b981");
 }
 
 function isMotionPhase(sim) {
@@ -486,22 +501,24 @@ function drawMotionBanner(ctx, sim) {
   drawFloatingTag(ctx, 400, 30, msg, "#38bdf8");
 }
 
-function drawFreezeOverlays(ctx, sim, currentStep, stepData) {
+function drawFreezeOverlays(ctx, sim, currentStep, stepData, nodeId = 1) {
   // Full math overlays shown only when frozen
-  if (currentStep === 1) drawStep1Overlays(ctx, sim, stepData);
-  else if (currentStep === 2) drawStep2Overlays(ctx, sim, stepData);
-  else if (currentStep === 3) drawStep3Overlays(ctx, sim, stepData);
-  else if (currentStep === 4) drawStep4Overlays(ctx, sim, stepData);
-  else if (currentStep === 5) drawStep5Overlays(ctx, sim, stepData);
+  const baseX = nodeId === 2 ? 560 : 240;
+  void baseX;
+  if (currentStep === 1) drawStep1Overlays(ctx, sim, stepData, nodeId);
+  else if (currentStep === 2) drawStep2Overlays(ctx, sim, stepData, nodeId);
+  else if (currentStep === 3) drawStep3Overlays(ctx, sim, stepData, nodeId);
+  else if (currentStep === 4) drawStep4Overlays(ctx, sim, stepData, nodeId);
+  else if (currentStep === 5) drawStep5Overlays(ctx, sim, stepData, nodeId);
 }
 
-function drawStepOverlays(ctx, sim, currentStep, stepData) {
+function drawStepOverlays(ctx, sim, currentStep, stepData, nodeId = 1) {
   // Motion shows banner only; freeze shows static math
   if (isMotionPhase(sim)) {
     drawMotionBanner(ctx, sim);
     return;
   }
-  drawFreezeOverlays(ctx, sim, currentStep, stepData);
+  drawFreezeOverlays(ctx, sim, currentStep, stepData, nodeId);
 }
 
 function tickSim(sim, dt, isPlaying, simMode) {
@@ -510,7 +527,7 @@ function tickSim(sim, dt, isPlaying, simMode) {
   if (shouldAdvanceSim(isPlaying, simMode, sim)) updateCorridorSim(sim, dt);
 }
 
-function drawScene(ctx, sim, ripplesRef, simMode, step, data) {
+function drawScene(ctx, sim, ripplesRef, simMode, step, data, nodeId = 1) {
   // Paint background, roads, signals, vehicles and overlays
   ctx.fillStyle = "#090d16";
   ctx.fillRect(0, 0, 800, 320);
@@ -519,7 +536,7 @@ function drawScene(ctx, sim, ripplesRef, simMode, step, data) {
   if (sim?.nodes) drawSignals(ctx, sim.nodes);
   if (sim?.vehicles) drawVehicles(ctx, sim.vehicles);
   drawRipples(ctx, ripplesRef.current);
-  if (simMode === "stepper") drawStepOverlays(ctx, sim, step, data);
+  if (simMode === "stepper") drawStepOverlays(ctx, sim, step, data, nodeId);
 }
 
 function useCanvasLoop(
@@ -531,7 +548,8 @@ function useCanvasLoop(
   ripplesRef,
   simMode = "continuous",
   currentStep = 1,
-  stepData = null
+  stepData = null,
+  selectedNode = 1
 ) {
   const isPlayingRef = useRef(isPlaying);
   isPlayingRef.current = isPlaying; // Sync play flag for rAF closure
@@ -545,6 +563,8 @@ function useCanvasLoop(
   currentStepRef.current = currentStep; // Sync stepper step
   const stepDataRef = useRef(stepData);
   stepDataRef.current = stepData; // Sync stepper math data
+  const selectedNodeRef = useRef(selectedNode);
+  selectedNodeRef.current = selectedNode; // Sync node selector
   useEffect(() => {
     const canvas = canvasRef.current; // Resolve canvas element
     if (!canvas) return;
@@ -561,7 +581,7 @@ function useCanvasLoop(
       if (sim && ++frameCount % 10 === 0) {
         onTelemetryRef.current?.(getCorridorTelemetry(sim)); // Throttle telemetry
       }
-      drawScene(ctx, sim, ripplesRef, simModeRef.current, currentStepRef.current, stepDataRef.current);
+      drawScene(ctx, sim, ripplesRef, simModeRef.current, currentStepRef.current, stepDataRef.current, selectedNodeRef.current);
       animId = requestAnimationFrame(render);
     };
     animId = requestAnimationFrame(render);
@@ -604,6 +624,7 @@ export default function CorridorCanvas({
   simMode = "continuous",
   currentStep = 1,
   stepData = null,
+  selectedNode = 1,
 }) {
   const canvasRef = useRef(null);
   const ripplesRef = useRef([]);
@@ -617,7 +638,8 @@ export default function CorridorCanvas({
     ripplesRef,
     simMode,
     currentStep,
-    stepData
+    stepData,
+    selectedNode
   );
 
   return (
