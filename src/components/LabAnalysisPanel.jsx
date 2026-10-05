@@ -308,6 +308,9 @@ export function PhaseCard({ title, badge, lines, areaLabel, areaValue, phiLabel,
       </div>
       <div className="mt-1 text-xs text-cyan-300">
         {phiLabel} = <strong className="text-cyan-400">{phiValue}</strong>
+        <span className="block text-[10px] text-slate-500 font-sans mt-0.5">
+          * 150 m²: Diện tích vùng phát hiện chuẩn của camera (30m × 5m)
+        </span>
       </div>
     </div>
   );
@@ -424,6 +427,9 @@ export function Step2Math({ data, step1 }) {
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
         <div className="text-slate-400">Công thức khấu trừ áp lực dội ngược (Downstream Back-Pressure):</div>
         <div className="mt-1 text-slate-300 text-sm">w₁ = max(0, φ_in - 0.70 × φ_out)</div>
+        <div className="text-[10px] text-slate-500 font-sans mt-0.5">
+          * 0.70: Tỷ lệ xe đi thẳng vào hành lang nối (Turn ratio R_m,p = 70%)
+        </div>
         <div className="mt-1.5 text-base font-bold text-cyan-300">
           w₁ = max(0, {phiIn} - 0.70 × {phiOut}) = {w1}
         </div>
@@ -460,6 +466,9 @@ export function Step3Math({ data, step2 }) {
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
         <div className="text-slate-400">Áp suất bão hòa (Hệ số bão hòa C_sat = 2.5):</div>
         <div className="mt-1 text-slate-300 text-sm">γ = 2.5 × w</div>
+        <div className="text-[10px] text-slate-500 font-sans mt-0.5">
+          * 2.5: Hệ số dòng bão hòa tương đối của giao lộ (c_l,m = 2.5, Eq. 4)
+        </div>
         <div className="mt-2 flex flex-col gap-2.5">
           <div className="rounded-lg bg-slate-900 p-2.5 border border-emerald-500/30">
             <span className="text-slate-400 text-xs">Pha 1 (Nhánh Tây):</span>
