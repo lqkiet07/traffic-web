@@ -313,11 +313,19 @@ export function PhaseCard({ title, badge, lines, areaLabel, areaValue, phiLabel,
   );
 }
 
-export function ParadoxNote({ p1Area }) {
+export function SimVsRealComparison() {
   return (
-    <div className="rounded-lg border border-[#1e293b] bg-slate-950/50 p-2.5 text-xs text-slate-300 leading-relaxed">
-      <strong className="text-amber-400">💡 Nghịch lý che khuất (Occlusion Paradox): </strong>
-      Xe máy chiếm 85-90% dòng xe tại VN, ken dày và che khuất lẫn nhau dưới góc camera nghiêng nên Bbox truyền thống đếm thiếu 35-50% xe. YOLOv8 segmentation đo trực tiếp diện tích chiếm dụng (φ) nên miễn nhiễm che khuất — Nhánh Tây ({p1Area} m²) vẫn được ưu tiên đúng.
+    <div className="grid grid-cols-2 gap-2 text-[11px] leading-relaxed font-mono">
+      <div className="rounded-lg border border-[#1e293b] bg-slate-950/70 p-2.5">
+        <div className="font-bold text-sky-300">🎮 Trong mô phỏng (GAMA)</div>
+        <div className="mt-1 text-slate-300">• Baseline đếm xe lý tưởng (100%)</div>
+        <div className="text-slate-400">• CAO tối ưu theo diện tích chiếm dụng (m²)</div>
+      </div>
+      <div className="rounded-lg border border-[#1e293b] bg-slate-950/70 p-2.5">
+        <div className="font-bold text-amber-300">📷 Ngoài thực tế (CCTV)</div>
+        <div className="mt-1 text-slate-300">• Bbox bị che khuất hụt 35–50% xe máy</div>
+        <div className="text-slate-400">• CAO đo mặt đường, bền vững góc quay</div>
+      </div>
     </div>
   );
 }
@@ -359,14 +367,14 @@ export function Step1Math({ data }) {
       {data?.occlusionP2?.occludedMotos > 0 ? (
         <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-[#1e293b] bg-slate-950/50 p-2 font-mono text-[11px]">
           <span className="rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
-            Camera Bbox ước tính: ~{data?.occlusionP2?.visibleCount} xe (Hụt {data?.occlusionP2?.lossPercentage}%)
+            Camera Bbox (Góc nghiêng): ~{data?.occlusionP2?.visibleCount} xe (Hụt ~{data?.occlusionP2?.lossPercentage}% do che khuất)
           </span>
           <span className="rounded-md bg-emerald-500/15 px-2 py-1 font-bold tabular-nums text-emerald-300">
-            Thực tế chiếm dụng (CAO): φ = {phiIn2} (Đúng 100%)
+            Độ đo không gian (CAO): φ = {phiIn2}
           </span>
         </div>
       ) : null}
-      <ParadoxNote p1Area={p1Area} />
+      <SimVsRealComparison />
     </div>
   );
 }
@@ -517,6 +525,9 @@ export function Step4Math({ data }) {
           <div className="bg-emerald-500 transition-all duration-300" style={{ width: `${(g1 / total) * 100}%` }} title={`Pha 1: ${g1}s`} />
           <div className="bg-cyan-500 transition-all duration-300" style={{ width: `${(g2 / total) * 100}%` }} title={`Pha 2: ${g2}s`} />
           <div className="bg-slate-600 transition-all duration-300" style={{ width: `${(lost / total) * 100}%` }} title={`Mất mát: ${lost}s`} />
+        </div>
+        <div className="mt-2 text-[11px] font-mono text-slate-500 leading-relaxed">
+          ℹ️ Giới hạn vật lý: Thuật toán chỉ tái phân bổ 92s khả dụng giữa các hướng; khi lưu lượng bão hòa toàn mạng (v/c ≥ 1.0), thông lượng chạm trần vật lý (~17.800 xe/2h theo Table 1).
         </div>
       </div>
     </div>
