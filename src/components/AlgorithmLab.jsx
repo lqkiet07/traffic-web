@@ -11,6 +11,7 @@ import {
   getCorridorTelemetry,
   recalculateNode,
   resetCorridorSim,
+  seekSim,
   spawnVehicle,
   updateCorridorSim,
 } from "../lib/corridorSim.js";
@@ -90,19 +91,6 @@ function stepSimForward(sim, seconds) {
   }
 }
 
-function seekSim(sim, activeScenario, targetSec) {
-  // Lightweight seek: set clock and derive signal state, no resim
-  const target = Math.max(0, Math.min(112, targetSec));
-  sim.time = target;
-  const nodes = [sim.nodes.node1, sim.nodes.node2];
-  for (const node of nodes) {
-    const inPhase1 = target < node.g1;
-    node.phase = inPhase1 ? 1 : 2;
-    node.timeRemaining = inPhase1 ? node.g1 - target : Math.max(0, 112 - target);
-    node.isYellow = node.timeRemaining <= 3 && node.timeRemaining > 0;
-  }
-}
-
 function createLabActions(simRef, activeScenario, { setTelemetry, setActiveScenario, setAlgo }) {
   const sync = () => syncSimState(simRef.current, setTelemetry);
   const onCustom = () => { setActiveScenario("custom"); sync(); };
@@ -131,11 +119,12 @@ function createLabActions(simRef, activeScenario, { setTelemetry, setActiveScena
       sync();
     },
     handleStepBack: () => {
-      seekSim(simRef.current, activeScenario, (simRef.current?.time ?? 0) - 10);
+      const currentSec = (simRef.current?.time ?? 0) % 112;
+      seekSim(simRef.current, Math.max(0, currentSec - 10));
       sync();
     },
     handleSeek: (targetSec) => {
-      seekSim(simRef.current, activeScenario, targetSec);
+      seekSim(simRef.current, targetSec);
       sync();
     },
   };
