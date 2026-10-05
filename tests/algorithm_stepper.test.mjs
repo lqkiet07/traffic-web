@@ -307,4 +307,22 @@ import { allocateCbmpGreen } from "../src/lib/cbmp.js";
   assert.ok(data.step4.g1 > 56, `g1 (${data.step4.g1}) should exceed 56`);
 }
 
+// Test 10: baseline step4 contract (algo-aware allocation)
+{
+  const sim = createCorridorSim({ algo: "baseline" });
+  for (let i = 0; i < 4; i++) spawnVehicle(sim, { node: 1, approach: "west", type: "truck" });
+  for (let i = 0; i < 24; i++) spawnVehicle(sim, { node: 1, approach: "north1", type: "moto" });
+
+  const data = getAlgorithmStepData(sim, 1);
+  assert.strictEqual(data.step4.algo, "baseline");
+  // 4 vehicles / 28 vehicles -> g1 = 10 + 92 * (4/28) = 23s (rounded)
+  assert.strictEqual(data.step4.g1, 23);
+  assert.strictEqual(data.step4.g2, 89);
+  assert.strictEqual(data.step4.p1Count, 4);
+  assert.strictEqual(data.step4.p2Count, 24);
+  // CAO allocation preserved for comparison (72m2 vs 36m2 -> g1 = 10 + round(92*72/108) = 71)
+  assert.strictEqual(data.step4.cbmp.g1, 71);
+  assert.strictEqual(data.step4.baseline.g1, 23);
+}
+
 console.log("[algorithm_stepper.test] all assertions passed");

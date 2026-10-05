@@ -484,7 +484,7 @@ export function Step3Math({ data, step2 }) {
   );
 }
 
-export function Step4Math({ data }) {
+export function Step4Math({ data, algo }) {
   const g1 = data?.g1 ?? 56;
   const g2 = data?.g2 ?? 56;
   const total = data?.totalCycle ?? 120;
@@ -496,8 +496,16 @@ export function Step4Math({ data }) {
     <div className="space-y-3">
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
         <div className="text-slate-400">Công thức phân bổ thời lượng đèn xanh (Chu kỳ C = 120s, L = 8s):</div>
-        <div className="mt-1 text-slate-300 text-sm">g₁ = g_min + (C - L - 2·g_min) × (γ₁ / γ_total)</div>
-        <div className="mt-1 text-cyan-300 text-xs">g₁ = 10 + 92 × (γ₁ / γ_total) = {g1}s</div>
+        {algo === "baseline" ? (
+          <div className="mt-1 text-slate-300 text-sm">g₁ = g_min + 92 × (n₁ / (n₁ + n₂))</div>
+        ) : (
+          <div className="mt-1 text-slate-300 text-sm">g₁ = g_min + (C - L - 2·g_min) × (γ₁ / γ_total)</div>
+        )}
+        {algo === "baseline" ? (
+          <div className="mt-1 text-cyan-300 text-xs">g₁ = 10 + 92 × (n₁ / (n₁ + n₂)) = {g1}s</div>
+        ) : (
+          <div className="mt-1 text-cyan-300 text-xs">g₁ = 10 + 92 × (γ₁ / γ_total) = {g1}s</div>
+        )}
       </div>
 
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 text-xs">
@@ -523,6 +531,9 @@ export function Step4Math({ data }) {
         </div>
         <div className="mt-2 text-[11px] font-mono text-slate-500 leading-relaxed">
           ℹ️ Giới hạn vật lý: Thuật toán chỉ tái phân bổ 92s khả dụng giữa các hướng; khi lưu lượng bão hòa toàn mạng (v/c ≥ 1.0), thông lượng chạm trần vật lý (~17.800 xe/2h theo Table 1).
+        </div>
+        <div className="mt-2 text-[11px] font-mono text-slate-500 leading-relaxed">
+          Đối chiếu cùng luồng xe: Baseline {data?.baseline?.g1 ?? 56}s (đếm đầu xe) · CAO {data?.cbmp?.g1 ?? 56}s (diện tích chiếm dụng).
         </div>
       </div>
     </div>
@@ -590,7 +601,7 @@ function StepMathContent({ currentStep, stepData }) {
       />
     );
   }
-  if (currentStep === 4) return <Step4Math data={stepData?.step4} />;
+  if (currentStep === 4) return <Step4Math data={stepData?.step4} algo={stepData?.step4?.algo ?? "cao"} />;
   if (currentStep === 5) return <Step5Math data={stepData?.step5} />;
   return null;
 }

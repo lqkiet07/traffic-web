@@ -210,7 +210,10 @@ export function getAlgorithmStepData(sim, nodeIndex = 1) {
   const gamma2 = C_SATURATION * w2;
   const totalGamma = gamma1 + gamma2;
 
-  const allocation = allocateCbmpGreen(gamma1, gamma2);
+  const isBaseline = sim?.algo === "baseline";
+  const baselineAllocation = allocateBaselineGreen(p1Counts, p2Counts);
+  const cbmpAllocation = allocateCbmpGreen(gamma1, gamma2);
+  const allocation = isBaseline ? baselineAllocation : cbmpAllocation;
   const activeCounts = node.phase === 1 ? p1Counts : p2Counts;
 
   return {
@@ -219,8 +222,13 @@ export function getAlgorithmStepData(sim, nodeIndex = 1) {
     step2: { w1, w2, turnRatio, backPressureDeduction },
     step3: { gamma1, gamma2, totalGamma, cSat: C_SATURATION },
     step4: {
+      algo: sim?.algo ?? "cao",
       g1: allocation.g1,
       g2: allocation.g2,
+      baseline: baselineAllocation,
+      cbmp: cbmpAllocation,
+      p1Count: totalVehicles(p1Counts),
+      p2Count: totalVehicles(p2Counts),
       minGreen: MIN_GREEN,
       availRemainder: AVAILABLE_GREEN,
       totalCycle: CYCLE_DURATION,
