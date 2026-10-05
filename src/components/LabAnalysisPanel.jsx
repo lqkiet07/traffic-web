@@ -236,33 +236,19 @@ export function LabSpawnerDock({ selectedType, onSelectType, onBatchSpawn, onCle
 function WhyBoxMessage({ algo, isBackpressure, phiCorridor, n1P1, n1P2, activeScenario }) {
   if (algo === "baseline") {
     return (
-      <p>
-        <strong className="text-indigo-400">Chế độ Baseline (Đếm xe): </strong>
-        Hệ thống phân bổ pha đèn dựa trên số đầu xe thuần túy (mỗi xe trọng số 1.0) bất kể kích thước thực tế (xe tải 18 m² bị coi như xe máy 1.5 m²). Camera Bbox mù hoàn toàn với xe máy bị che khuất nên đếm thiếu, cắt xanh sớm gây ùn ứ. Thuật toán không nhận biết áp lực dội ngược từ đoạn nối hạ lưu, dẫn đến nguy cơ tắc nghẽn dây chuyền.
-      </p>
-    );
-  }
-  if (isBackpressure) {
-    return (
-      <p>
-        <strong className="text-rose-400">Cơ chế dội ngược (Downstream Back-pressure): </strong>
-        Hành lang nối Nút 1-2 đang kẹt nặng (φ_corridor = {(phiCorridor * 100).toFixed(0)}% ≥ 70%). CAO-CBMP chủ động trừ áp lực đầu ra, giảm xanh Pha 1 Nút 1 xuống còn <strong className="text-emerald-400">{n1P1}s</strong> (nhường {n1P2}s cho Pha 2) nhằm ngăn tràn xe vào hành lang.
-      </p>
-    );
-  }
-  if (activeScenario === "paradox") {
-    return (
-      <p>
-        <strong className="text-emerald-400">Nghịch lý xe máy che khuất (Occlusion Paradox): </strong>
-        Bầy xe máy ken dày ở Pha 2 bị góc camera nghiêng che khuất lẫn nhau nên Bbox đếm thiếu 35-50%, Baseline cắt xanh sớm gây ùn ứ cần lấp khoảng trống. CAO-CBMP đo đúng diện tích chiếm dụng (φ) miễn nhiễm che khuất, cấp <strong className="text-emerald-400">{n1P1}s</strong> / {n1P2}s để giải phóng đúng nhu cầu thực tế.
-      </p>
+      <div className="space-y-1.5 text-xs text-slate-300">
+        <div>• <strong>Đếm xe truyền thống:</strong> Mỗi phương tiện tính trọng số 1.0 bất kể kích thước thực tế (xe tải 18 m² ngang với xe máy 1.5 m²).</div>
+        <div>• <strong>Đặc tính nhận diện:</strong> Phụ thuộc hoàn toàn vào số lượng Bounding Box phát hiện được; dễ chịu ảnh hưởng bởi che khuất dưới góc camera nghiêng.</div>
+        <div>• <strong>Phạm vi điều tiết:</strong> Phân bổ pha độc lập, không khấu trừ áp lực dội ngược từ đoạn nối hạ lưu.</div>
+      </div>
     );
   }
   return (
-    <p>
-      <strong className="text-emerald-400">Cân bằng áp suất (Max-Pressure): </strong>
-      CAO-CBMP tính toán mức chiếm dụng diện tích thực tế (φ_in) dựa trên footprint xe, đồng thời giám sát hành lang nối (φ_corridor = {(phiCorridor * 100).toFixed(0)}%) để tối ưu chu kỳ Nút 1 ({n1P1}s / {n1P2}s) nhịp nhàng, tối đa hóa thông lượng mạng lưới.
-    </p>
+    <div className="space-y-1.5 text-xs text-slate-300">
+      <div>• <strong>Trọng số không gian (CAO):</strong> Quy đổi 1 xe tải (18 m²) ≈ 12 xe máy (1.5 m²) giúp cân bằng áp lực không gian thực tế hơn so với đếm đầu xe.</div>
+      <div>• <strong>Hiệu quả mô phỏng (Table 1):</strong> Giảm trễ trung bình 6.01% (tải thấp) và 11.90% (tải vừa); thông lượng toàn mạng bảo toàn tương đương (±2%).</div>
+      <div>• <strong>Phối hợp liên nút (Eq. 3):</strong> Tự động điều tiết giảm xanh Nút 1 khi hành lang nối đạt ngưỡng nghẽn (φ_corridor ≥ 70%) nhằm giảm nguy cơ tắc nghẽn dây chuyền.</div>
+    </div>
   );
 }
 

@@ -559,7 +559,7 @@ function buildStep2Overlay(scene) {
   head.position.set(-3.2, 5, 0);
   group.add(head);
   const board = makeTextBoard(0, 3.4, 5);
-  paintBoard(board, "Doi nguoc ha luu", "#ef4444");
+  paintBoard(board, "Dội ngược hạ lưu", "#ef4444");
   group.add(board.sprite);
   group.visible = false;
   scene.add(group);
