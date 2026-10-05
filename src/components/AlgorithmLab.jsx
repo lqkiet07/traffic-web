@@ -58,6 +58,8 @@ function applyPresetVehicles(sim, key) {
     for (let i = 0; i < 6; i++) spawnVehicle(sim, { approach: "corridor", type: "truck", x: 500 - i * 42, y: 170 });
     // West cars use EW lane y170 as competing inflow queue
     for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 36, y: 170 });
+    // North1 cross-traffic ensures Phase 2 has active demand so Node 1 cuts Phase 1 to 10s
+    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "north1", type: "car", y: 120 - i * 25 });
   } else if (targetKey === "balanced") {
     // Balanced EW flows share lane y170 for consistent rendering
     for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 32, y: 170 });

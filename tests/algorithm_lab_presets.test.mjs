@@ -15,6 +15,7 @@ function applyPreset(sim, key) {
   } else if (key === "corridor_jam") {
     for (let i = 0; i < 6; i++) spawnVehicle(sim, { approach: "corridor", type: "truck", x: 500 - i * 42 });
     for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 36 });
+    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "north1", type: "car", y: 120 - i * 25 });
   } else if (key === "balanced") {
     for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 32 });
     for (let i = 0; i < 8; i++) spawnVehicle(sim, { approach: "west", type: "moto", x: 65 - i * 8 });
@@ -40,15 +41,15 @@ function applyPreset(sim, key) {
   );
 }
 
-// Check corridor_jam scenario: high corridor occupancy and Node 2 max green to flush corridor
+// Check corridor_jam scenario: high corridor occupancy, Node 1 squeezed to 10s, Node 2 opened to 102s
 {
   const sim = createCorridorSim({ algo: "cao" });
   applyPreset(sim, "corridor_jam");
   const telemetry = getCorridorTelemetry(sim);
 
   assert.ok(telemetry.phiCorridor >= 0.7, `phiCorridor should be >= 0.7 (got ${telemetry.phiCorridor})`);
-  assert.strictEqual(telemetry.totalVehicles, 10, "Corridor jam should have 10 vehicles");
-  assert.strictEqual(sim.nodes.node2.g1, 102, "Node 2 should give max green to flush the jammed corridor");
+  assert.strictEqual(sim.nodes.node1.g1, 10, "Node 1 must be squeezed to min green (10s) by backpressure");
+  assert.strictEqual(sim.nodes.node2.g1, 102, "Node 2 should give max green (102s) to flush the jammed corridor");
 }
 
 // Check balanced scenario: 22 vehicles total
