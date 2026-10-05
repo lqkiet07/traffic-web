@@ -276,6 +276,15 @@ export function LabWhyBox({ algo, telemetry, activeScenario }) {
   );
 }
 
+function ParameterNote({ children }) {
+  return (
+    <div className="mt-2 flex items-center gap-1.5 rounded border border-[#1e293b] bg-slate-900/60 px-2.5 py-1 text-[11px] text-slate-400">
+      <span className="text-slate-500">🏷️ Tham số:</span>
+      <span>{children}</span>
+    </div>
+  );
+}
+
 export function PhaseCard({ title, badge, lines, areaLabel, areaValue, phiLabel, phiValue, tone }) {
   const isAmber = tone === "amber";
   const wrapTone = isAmber ? "border-amber-500/30" : "border-sky-500/30";
@@ -294,9 +303,6 @@ export function PhaseCard({ title, badge, lines, areaLabel, areaValue, phiLabel,
       </div>
       <div className="mt-1 text-xs text-cyan-300">
         {phiLabel} = <strong className="text-cyan-400">{phiValue}</strong>
-        <span className="block text-[10px] text-slate-500 font-sans mt-0.5">
-          * 150 m²: Diện tích vùng phát hiện chuẩn của camera (30m × 5m)
-        </span>
       </div>
     </div>
   );
@@ -304,7 +310,7 @@ export function PhaseCard({ title, badge, lines, areaLabel, areaValue, phiLabel,
 
 export function SimVsRealComparison() {
   return (
-    <div className="grid grid-cols-2 gap-2 text-[11px] leading-relaxed font-mono">
+    <div className="grid grid-cols-2 gap-2 text-[11px] leading-relaxed">
       <div className="rounded-lg border border-[#1e293b] bg-slate-950/70 p-2.5">
         <div className="font-bold text-sky-300">🎮 Trong mô phỏng (GAMA)</div>
         <div className="mt-1 text-slate-300">• Baseline đếm xe lý tưởng (100%)</div>
@@ -364,6 +370,7 @@ export function Step1Math({ data }) {
         </div>
       ) : null}
       <SimVsRealComparison />
+      <ParameterNote>S_zone = 150 m² (vùng quan sát camera 30m × 5m)</ParameterNote>
     </div>
   );
 }
@@ -413,12 +420,10 @@ export function Step2Math({ data, step1 }) {
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
         <div className="text-slate-400">Công thức khấu trừ áp lực dội ngược (Downstream Back-Pressure):</div>
         <div className="mt-1 text-slate-300 text-sm">w₁ = max(0, φ_in - 0.70 × φ_out)</div>
-        <div className="text-[10px] text-slate-500 font-sans mt-0.5">
-          * 0.70: Tỷ lệ xe đi thẳng vào hành lang nối (Turn ratio R_m,p = 70%)
-        </div>
         <div className="mt-1.5 text-base font-bold text-cyan-300">
           w₁ = max(0, {phiIn} - 0.70 × {phiOut}) = {w1}
         </div>
+        <ParameterNote>R_thẳng = 0.70 (70% xe vào hành lang nối, Eq. 3)</ParameterNote>
       </div>
 
       {isBackpressure ? (
@@ -452,9 +457,6 @@ export function Step3Math({ data, step2 }) {
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
         <div className="text-slate-400">Áp suất bão hòa (Hệ số bão hòa C_sat = 2.5):</div>
         <div className="mt-1 text-slate-300 text-sm">γ = 2.5 × w</div>
-        <div className="text-[10px] text-slate-500 font-sans mt-0.5">
-          * 2.5: Hệ số dòng bão hòa tương đối của giao lộ (c_l,m = 2.5, Eq. 4)
-        </div>
         <div className="mt-2 flex flex-col gap-2.5">
           <div className="rounded-lg bg-slate-900 p-2.5 border border-emerald-500/30">
             <span className="text-slate-400 text-xs">Pha 1 (Nhánh Tây):</span>
@@ -465,6 +467,7 @@ export function Step3Math({ data, step2 }) {
             <div className="text-base font-bold text-slate-300">γ₂ = 2.5 × {w2} = {gamma2}</div>
           </div>
         </div>
+        <ParameterNote>c_sat = 2.5 (hệ số dòng bão hòa, Eq. 4)</ParameterNote>
       </div>
 
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 text-xs">
