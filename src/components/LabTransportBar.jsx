@@ -316,17 +316,12 @@ export default function LabTransportBar(props) {
       </div>
 
       {simMode === "stepper" ? (
-        <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-[#1e293b] bg-slate-900/60 px-3 py-2 text-xs">
-          <StepperControls
-            currentStep={props.currentStep}
-            onSetStep={props.onSetStep}
-            onPrevStep={props.onPrevStep}
-            onNextStep={props.onNextStep}
-            isAutoStepping={props.isAutoStepping}
-            onToggleAutoStep={props.onToggleAutoStep}
-            subPhase={props.subPhase}
-          />
-          <StepperBreadcrumbs currentStep={props.currentStep} onSetStep={props.onSetStep} />
+        <div className="flex items-center justify-between px-3 py-2 text-xs text-slate-400 bg-slate-900/60 rounded-lg border border-[#1e293b]">
+          <span className="flex items-center gap-2">
+            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span>🔍 Đang ở Bước [{props.currentStep}/5]</span>
+          </span>
+          <span className="text-cyan-400 font-mono text-[11px]">Điều khiển 5 bước & công thức toán ở cột bên phải 👉</span>
         </div>
       ) : (
         <ContinuousControls {...props} />

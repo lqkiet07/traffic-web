@@ -245,7 +245,7 @@ function WhyBoxMessage({ algo, isBackpressure, phiCorridor, n1P1, n1P2, activeSc
   }
   return (
     <div className="space-y-1.5 text-xs text-slate-300">
-      <div>• <strong>Trọng số không gian (CAO):</strong> Quy đổi 1 xe tải (18 m²) ≈ 12 xe máy (1.5 m²) giúp cân bằng áp lực không gian thực tế hơn so với đếm đầu xe.</div>
+      <div>• <strong>Độ đo không gian (CAO):</strong> Đo tỷ lệ diện tích mặt đường bị chiếm dụng (φ) thay vì đếm đầu xe rời rạc; chống chịu sai số do che khuất tương hỗ của bầy xe máy dưới góc camera nghiêng.</div>
       <div>• <strong>Hiệu quả mô phỏng (Table 1):</strong> Giảm trễ trung bình 6.01% (tải thấp) và 11.90% (tải vừa); thông lượng toàn mạng bảo toàn tương đương (±2%).</div>
       <div>• <strong>Phối hợp liên nút (Eq. 3):</strong> Tự động điều tiết giảm xanh Nút 1 khi hành lang nối đạt ngưỡng nghẽn (φ_corridor ≥ 70%) nhằm giảm nguy cơ tắc nghẽn dây chuyền.</div>
     </div>
