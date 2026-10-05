@@ -1,5 +1,5 @@
 import assert from "node:assert";
-import { createCorridorSim, seekSim } from "../src/lib/corridorSim.js";
+import { createCorridorSim, seekSim, spawnVehicle } from "../src/lib/corridorSim.js";
 
 // Test 1: Seek at cycle 1 (sim.time = 0) to 30s -> Phase 1 green
 {
@@ -48,6 +48,22 @@ import { createCorridorSim, seekSim } from "../src/lib/corridorSim.js";
   assert.strictEqual(sim.time, 0);
   seekSim(sim, 200);
   assert.strictEqual(sim.time, 112);
+}
+
+// Test 6: Vehicles advance along with time when seeking
+{
+  const sim = createCorridorSim();
+  spawnVehicle(sim, { approach: "west", type: "moto", x: 100, y: 170 });
+  const startX = sim.vehicles[0].x;
+  sim.initialVehicles = sim.vehicles.map((v) => ({ ...v }));
+
+  seekSim(sim, 2);
+  assert.strictEqual(sim.time, 2);
+  assert.ok(
+    sim.vehicles[0].x > startX,
+    `Vehicle should advance forward during seek (start: ${startX}, after: ${sim.vehicles[0].x})`
+  );
+  assert.strictEqual(sim.vehicles[0].id, 1, "Vehicle ID must be preserved to prevent Three.js mesh churn");
 }
 
 console.log("[lab_slider_seek.test] all assertions passed");

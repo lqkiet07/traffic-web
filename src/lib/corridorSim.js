@@ -442,8 +442,32 @@ export function seekSim(sim, targetSec) {
   const target = Math.max(0, Math.min(112, targetSec));
   const currentCycleIndex = Math.floor((sim?.time || 0) / 112);
   sim.time = currentCycleIndex * 112 + target;
-  const nodes = [sim.nodes.node1, sim.nodes.node2];
-  for (const node of nodes) {
+
+  // Restore initial vehicles with preserved IDs to avoid Three.js mesh churn
+  if (sim.initialVehicles && sim.initialVehicles.length > 0) {
+    sim.vehicles = sim.initialVehicles.map((v) => ({ ...v }));
+    sim.throughput = sim.initialThroughput ?? 0;
+    // Reset nodes to cycle start
+    for (const node of [sim.nodes.node1, sim.nodes.node2]) {
+      node.phase = 1;
+      node.timer = 0;
+      node.timeRemaining = node.g1;
+      node.isYellow = false;
+    }
+    // Fast-forward physics to target (takes < 0.5ms)
+    const dt = 0.2;
+    const steps = Math.round(target / dt);
+    const origAutoSpawn = sim.autoSpawn;
+    sim.autoSpawn = false; // suspend random generation during seek
+    for (let i = 0; i < steps; i++) {
+      updateCorridorSim(sim, dt);
+    }
+    sim.autoSpawn = origAutoSpawn;
+  }
+
+  // Ensure exact time and signal sync at target point
+  sim.time = currentCycleIndex * 112 + target;
+  for (const node of [sim.nodes.node1, sim.nodes.node2]) {
     const inPhase1 = target < node.g1;
     node.phase = inPhase1 ? 1 : 2;
     node.timeRemaining = inPhase1 ? node.g1 - target : Math.max(0, 112 - target);
