@@ -220,78 +220,98 @@ import { allocateCbmpGreen } from "../src/lib/cbmp.js";
   assert.strictEqual(sim.vehicles[0].x, frozenX, "vehicle holds position during freeze");
 }
 
-// Test 7: spawn reset + 2-lane moto queuing (paradox preset)
+// Test 7: 26-motorcycle swarming cluster 3-lane layout (paradox preset)
 {
   const sim = createCorridorSim();
-  const westX = [30, 75, 120, 165];
-  for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "truck", x: westX[i] });
+  for (let i = 0; i < 26; i++) {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    spawnVehicle(sim, { approach: "west", type: "moto", x: 205 - row * 16, y: 162 + col * 8 });
+  }
   for (let i = 0; i < 12; i++) {
     spawnVehicle(sim, {
       approach: "north1",
       type: "moto",
-      x: i % 2 === 0 ? 233 : 247,
-      y: 125 - Math.floor(i / 2) * 14,
+      x: 231 + ((i % 3) - 1) * 4,
+      y: 130 - Math.floor(i / 3) * 11,
     });
   }
-  for (let i = 0; i < 6; i++) spawnVehicle(sim, { approach: "south1", type: "moto", y: 195 + i * 20 });
+  for (let i = 0; i < 6; i++) {
+    spawnVehicle(sim, {
+      approach: "south1",
+      type: "moto",
+      x: 250 + ((i % 2) - 0.5) * 6,
+      y: 195 + i * 14,
+    });
+  }
 
-  // After reset positions: west trucks at expected x
-  const westTrucks = sim.vehicles.filter((v) => v.approach === "west");
-  assert.strictEqual(westTrucks.length, 4);
-  assert.deepStrictEqual(westTrucks.map((v) => v.x), westX);
+  // West swarm: 26 motos in 3-column layout x=205-row*16, y=162+col*8
+  const westMotos = sim.vehicles.filter((v) => v.approach === "west");
+  assert.strictEqual(westMotos.length, 26);
+  for (let i = 0; i < 26; i++) {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    assert.strictEqual(westMotos[i].x, 205 - row * 16);
+    assert.strictEqual(westMotos[i].y, 162 + col * 8);
+  }
 
-  // North1 motos queue in 2 lanes (x 233/247)
+  // North1 12-moto staggered + south1 6-moto cross
   const northMotos = sim.vehicles.filter((v) => v.approach === "north1");
   assert.strictEqual(northMotos.length, 12);
-  for (let i = 0; i < 12; i++) {
-    const expectedX = i % 2 === 0 ? 233 : 247;
-    const expectedY = 125 - Math.floor(i / 2) * 14;
-    assert.strictEqual(northMotos[i].x, expectedX);
-    assert.strictEqual(northMotos[i].y, expectedY);
-  }
-  assert.strictEqual(northMotos.filter((v) => v.x === 233).length, 6);
-  assert.strictEqual(northMotos.filter((v) => v.x === 247).length, 6);
+  const southMotos = sim.vehicles.filter((v) => v.approach === "south1");
+  assert.strictEqual(southMotos.length, 6);
 
-  // Occupancy from 4 trucks (72m2/150) gives phiIn1 near 0.48
+  // Occupancy from 26 motos (39m2/150) gives phiIn1 near 0.26
   const data = getAlgorithmStepData(sim, 1);
-  assert.strictEqual(data.step1.p1Area, 72);
-  assert.ok(Math.abs(data.step1.phiIn1 - 0.48) < 1e-9, "phiIn1 is 0.48 for 4 trucks");
+  assert.strictEqual(data.step1.p1Area, 39);
+  assert.ok(Math.abs(data.step1.phiIn1 - 0.26) < 1e-9, "phiIn1 is 0.26 for 26 motos");
 
   // Step 1 motion 1.5s moves x forward then freezes
   advanceSimStep(sim, 1);
   assert.strictEqual(sim.stepper.subPhase, "motion");
   assert.strictEqual(sim.stepper.motionDuration, 1.5);
-  const leadTruck = westTrucks[westTrucks.length - 1];
-  const startLeadX = leadTruck.x;
+  const leadMoto = westMotos[westMotos.length - 1];
+  const startLeadX = leadMoto.x;
   updateCorridorSim(sim, 0.5);
-  assert.ok(leadTruck.x > startLeadX, "lead truck advances during motion");
+  assert.ok(leadMoto.x > startLeadX, "lead moto advances during motion");
   updateCorridorSim(sim, 1.5);
   assert.strictEqual(sim.stepper.subPhase, "freeze");
-  const frozenLeadX = leadTruck.x;
+  const frozenLeadX = leadMoto.x;
   updateCorridorSim(sim, 0.5);
-  assert.strictEqual(leadTruck.x, frozenLeadX, "lead truck holds position during freeze");
+  assert.strictEqual(leadMoto.x, frozenLeadX, "lead moto holds position during freeze");
 }
 
 // Test 8: stepper stays pinned to Node 1 across steps 1..5 (paradox preset)
 {
   const sim = createCorridorSim();
-  const westX = [30, 75, 120, 165];
-  for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "truck", x: westX[i] });
+  for (let i = 0; i < 26; i++) {
+    const col = i % 3;
+    const row = Math.floor(i / 3);
+    spawnVehicle(sim, { approach: "west", type: "moto", x: 205 - row * 16, y: 162 + col * 8 });
+  }
   for (let i = 0; i < 12; i++) {
     spawnVehicle(sim, {
       approach: "north1",
       type: "moto",
-      x: i % 2 === 0 ? 233 : 247,
-      y: 125 - Math.floor(i / 2) * 14,
+      x: 231 + ((i % 3) - 1) * 4,
+      y: 130 - Math.floor(i / 3) * 11,
+    });
+  }
+  for (let i = 0; i < 6; i++) {
+    spawnVehicle(sim, {
+      approach: "south1",
+      type: "moto",
+      x: 250 + ((i % 2) - 0.5) * 6,
+      y: 195 + i * 14,
     });
   }
   for (let step = 1; step <= 5; step++) {
     advanceSimStep(sim, step);
     const data = getAlgorithmStepData(sim, 1);
     assert.strictEqual(data.nodeId, 1, `step ${step} should stay on Node 1`);
-    assert.strictEqual(data.step1.p1Counts.truck, 4, `step ${step} p1 truck count`);
-    assert.strictEqual(data.step1.p1Area, 72, `step ${step} p1Area`);
-    assert.ok(Math.abs(data.step2.w1 - 0.48) < 1e-9, `step ${step} w1 approx 0.48`);
+    assert.strictEqual(data.step1.p1Counts.moto, 26, `step ${step} p1 moto count`);
+    assert.strictEqual(data.step1.p1Area, 39, `step ${step} p1Area`);
+    assert.ok(Math.abs(data.step2.w1 - 0.26) < 1e-9, `step ${step} w1 approx 0.26`);
   }
 }
 
@@ -310,22 +330,24 @@ import { allocateCbmpGreen } from "../src/lib/cbmp.js";
   assert.ok(data.step4.g1 > 56, `g1 (${data.step4.g1}) should exceed 56`);
 }
 
-// Test 10: baseline step4 contract (algo-aware allocation)
+// Test 10: baseline swarm occlusion contract (26 west vs 18 north1 motos)
 {
   const sim = createCorridorSim({ algo: "baseline" });
-  for (let i = 0; i < 4; i++) spawnVehicle(sim, { node: 1, approach: "west", type: "truck" });
-  for (let i = 0; i < 24; i++) spawnVehicle(sim, { node: 1, approach: "north1", type: "moto" });
+  for (let i = 0; i < 26; i++) spawnVehicle(sim, { node: 1, approach: "west", type: "moto" });
+  for (let i = 0; i < 18; i++) spawnVehicle(sim, { node: 1, approach: "north1", type: "moto" });
 
   const data = getAlgorithmStepData(sim, 1);
   assert.strictEqual(data.step4.algo, "baseline");
-  // 4 vehicles / 28 vehicles -> g1 = 10 + 92 * (4/28) = 23s (rounded)
-  assert.strictEqual(data.step4.g1, 23);
-  assert.strictEqual(data.step4.g2, 89);
-  assert.strictEqual(data.step4.p1Count, 4);
-  assert.strictEqual(data.step4.p2Count, 24);
-  // CAO allocation preserved for comparison (72m2 vs 36m2 -> g1 = 10 + round(92*72/108) = 71)
-  assert.strictEqual(data.step4.cbmp.g1, 71);
-  assert.strictEqual(data.step4.baseline.g1, 23);
+  assert.strictEqual(data.step4.p1Count, 26);
+  assert.strictEqual(data.step4.p2Count, 18);
+  // Baseline uses CCTV visible counts (13 vs 11): g1 = 10 + round(92*13/24) = 60
+  assert.strictEqual(data.step4.baseline.g1, 60);
+  assert.strictEqual(data.step4.baseline.g2, 52);
+  assert.strictEqual(data.step4.g1, 60);
+  assert.strictEqual(data.step4.g2, 52);
+  // CAO uses full area (39m2 vs 27m2): g1 = 64, g2 = 48
+  assert.strictEqual(data.step4.cbmp.g1, 64);
+  assert.strictEqual(data.step4.cbmp.g2, 48);
 }
 
 console.log("[algorithm_stepper.test] all assertions passed");

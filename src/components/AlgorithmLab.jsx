@@ -32,11 +32,14 @@ function applyPresetVehicles(sim, key) {
   const targetKey = (!key || key === "custom") ? "paradox" : key;
   resetCorridorSim(sim);
   if (targetKey === "paradox") {
-    // West trucks use EW lane y170 to separate from corridor flow
-    const westX = [30, 75, 120, 165];
-    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "truck", x: westX[i], y: 170 });
+    // West 26-moto swarming cluster in 3 lanes, dense without lane discipline
+    for (let i = 0; i < 26; i++) {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      spawnVehicle(sim, { approach: "west", type: "moto", x: 205 - row * 16, y: 162 + col * 8 });
+    }
     // North1 motos use staggered lane around x231 for gap filling
-    for (let i = 0; i < 18; i++) spawnVehicle(sim, {
+    for (let i = 0; i < 12; i++) spawnVehicle(sim, {
       approach: "north1",
       type: "moto",
       x: 231 + ((i % 3) - 1) * 4,
