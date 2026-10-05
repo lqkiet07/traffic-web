@@ -73,14 +73,9 @@ function TabSwitcher({ activeTab, onTabChange }) {
     <nav className="flex items-center gap-1 rounded-lg border border-[#1e293b] bg-[#0f172a] p-1">
       {tabs.map((t) => {
         const active = activeTab === t.key;
-        const base =
-          t.key === "camera"
-            ? active
-              ? "bg-amber-500/20 text-amber-200"
-              : "text-slate-400 hover:text-slate-200"
-            : active
-              ? "bg-emerald-500 text-slate-950"
-              : "text-slate-400 hover:text-slate-200";
+        const base = active
+          ? "bg-emerald-500 text-slate-950"
+          : "text-slate-400 hover:text-slate-200";
         return (
           <button
             key={t.key}
