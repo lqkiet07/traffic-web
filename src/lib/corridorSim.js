@@ -437,3 +437,17 @@ export function updateCorridorSim(sim, dt) {
     }
   }
 }
+
+export function seekSim(sim, targetSec) {
+  const target = Math.max(0, Math.min(112, targetSec));
+  const currentCycleIndex = Math.floor((sim?.time || 0) / 112);
+  sim.time = currentCycleIndex * 112 + target;
+  const nodes = [sim.nodes.node1, sim.nodes.node2];
+  for (const node of nodes) {
+    const inPhase1 = target < node.g1;
+    node.phase = inPhase1 ? 1 : 2;
+    node.timeRemaining = inPhase1 ? node.g1 - target : Math.max(0, 112 - target);
+    node.isYellow = node.timeRemaining <= 3 && node.timeRemaining > 0;
+  }
+  return sim;
+}
