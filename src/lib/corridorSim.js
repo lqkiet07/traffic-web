@@ -447,6 +447,11 @@ export function seekSim(sim, targetSec) {
   if (sim.initialVehicles && sim.initialVehicles.length > 0) {
     sim.vehicles = sim.initialVehicles.map((v) => ({ ...v }));
     sim.throughput = sim.initialThroughput ?? 0;
+    // Replan splits from restored full demand: live g1 may have been rewritten
+    // from a depleted post-seek set by sync()/playback (e.g. 64 -> 10), which
+    // would flip phase mid-fast-forward and wrongly evacuate the network.
+    recalculateNode(sim, 1);
+    recalculateNode(sim, 2);
     // Reset nodes to cycle start
     for (const node of [sim.nodes.node1, sim.nodes.node2]) {
       node.phase = 1;
