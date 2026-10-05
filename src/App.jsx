@@ -14,7 +14,7 @@ function AnalysisPanel({ player }) {
     <section className="flex flex-col gap-3 lg:col-span-4 lg:overflow-auto">
       <StatCards kpi={player.kpi} scenario={player.scenario} globalSimTime={player.globalSimTime} />
       <ComparisonCharts kpi={player.kpi} scenario={player.scenario} globalSimTime={player.globalSimTime} />
-      <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3 text-xs leading-relaxed text-slate-400">
+      <div className="rounded-xl border border-[#1e293b] bg-slate-900/70 p-3 text-xs leading-relaxed text-slate-400">
         <b className="text-slate-200">Hướng dẫn học tập:</b> bấm <b>Phát</b> để xem dòng xe Cần
         Thơ chạy theo nhịp đèn CAO-CBMP · kéo slider tới chu kỳ cao điểm (40–60) · click vào
         từng nút giao để mổ xẻ nguyên lý Max Pressure · chuyển kịch bản Low/Medium/High để kiểm
@@ -34,7 +34,7 @@ function LabPanel() {
 
 function CameraPlaceholder() {
   return (
-    <div data-testid="camera-placeholder" className="rounded-xl border border-slate-800 bg-slate-900/70 p-6 text-sm text-slate-300 lg:col-span-12">
+    <div data-testid="camera-placeholder" className="rounded-xl border border-[#1e293b] bg-slate-900/70 p-6 text-sm text-slate-300 lg:col-span-12">
       <CameraView />
     </div>
   );
