@@ -198,8 +198,10 @@ export function getAlgorithmStepData(sim, nodeIndex = 1) {
   const phiIn1 = computeOccupancy(p1Counts, DEFAULT_ZONE_AREA);
   const phiIn2 = computeOccupancy(p2Counts, DEFAULT_ZONE_AREA);
   const phiOut = isNode1 ? computeOccupancy(outCounts, DEFAULT_ZONE_AREA) : 0;
-  const occlusionP1 = estimateOccludedCount(p1Counts, (p1Counts?.moto ?? 0) > 5 ? 0.4 : 0.1);
-  const occlusionP2 = estimateOccludedCount(p2Counts, (p2Counts?.moto ?? 0) > 5 ? 0.4 : 0.1);
+  const occlusionRateP1 = (p1Counts?.moto ?? 0) >= 20 ? 0.5 : (p1Counts?.moto ?? 0) > 5 ? 0.4 : 0.1;
+  const occlusionRateP2 = (p2Counts?.moto ?? 0) >= 20 ? 0.5 : (p2Counts?.moto ?? 0) > 5 ? 0.4 : 0.1;
+  const occlusionP1 = estimateOccludedCount(p1Counts, occlusionRateP1);
+  const occlusionP2 = estimateOccludedCount(p2Counts, occlusionRateP2);
 
   const turnRatio = 0.70;
   const backPressureDeduction = turnRatio * phiOut;
@@ -211,7 +213,9 @@ export function getAlgorithmStepData(sim, nodeIndex = 1) {
   const totalGamma = gamma1 + gamma2;
 
   const isBaseline = sim?.algo === "baseline";
-  const baselineAllocation = allocateBaselineGreen(p1Counts, p2Counts);
+  const cameraCountsP1 = { moto: occlusionP1.visibleMotos, car: p1Counts.car ?? 0, truck: p1Counts.truck ?? 0 };
+  const cameraCountsP2 = { moto: occlusionP2.visibleMotos, car: p2Counts.car ?? 0, truck: p2Counts.truck ?? 0 };
+  const baselineAllocation = allocateBaselineGreen(cameraCountsP1, cameraCountsP2);
   const cbmpAllocation = allocateCbmpGreen(gamma1, gamma2);
   const allocation = isBaseline ? baselineAllocation : cbmpAllocation;
   const activeCounts = node.phase === 1 ? p1Counts : p2Counts;

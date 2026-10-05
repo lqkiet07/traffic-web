@@ -56,36 +56,39 @@ import { allocateCbmpGreen } from "../src/lib/cbmp.js";
   assert.strictEqual(typeof data.step5.queueCount, "number");
 }
 
-// Test 2: Truck paradox in Step 1 & 4 (4 trucks on west vs 12 motos on north1)
+// Test 2: Motorcycle swarm & CCTV occlusion paradox (26 west moto vs 18 north1 moto)
 {
   const sim = createCorridorSim();
-  for (let i = 0; i < 4; i++) {
-    spawnVehicle(sim, { node: 1, approach: "west", type: "truck" });
+  for (let i = 0; i < 26; i++) {
+    spawnVehicle(sim, { node: 1, approach: "west", type: "moto" });
   }
-  for (let i = 0; i < 12; i++) {
+  for (let i = 0; i < 18; i++) {
     spawnVehicle(sim, { node: 1, approach: "north1", type: "moto" });
   }
 
   const data = getAlgorithmStepData(sim, 1);
 
-  // Raw counts: 4 trucks vs 12 motos
-  assert.strictEqual(data.step1.p1Counts.truck, 4);
-  assert.strictEqual(data.step1.p2Counts.moto, 12);
+  // Raw counts: 26-moto swarm west vs 18-moto north1
+  assert.strictEqual(data.step1.p1Counts.moto, 26);
+  assert.strictEqual(data.step1.p2Counts.moto, 18);
+
+  // CCTV Bbox occlusion: ~13 visible (50% loss)
+  assert.strictEqual(data.step1.occlusionP1.rawCount, 26);
+  assert.strictEqual(data.step1.occlusionP1.visibleCount, 13);
+  assert.strictEqual(data.step1.occlusionP1.lossPercentage, 50);
+
+  // CAO full area: 26 * 1.5 = 39.0 vs 18 * 1.5 = 27.0
+  assert.strictEqual(data.step1.p1Area, 39.0);
+  assert.strictEqual(data.step1.p2Area, 27.0);
+
+  // CAO allocates more green to Phase 1 (full area), baseline cuts early (visible count)
   assert.ok(
-    data.step1.p1Counts.truck < data.step1.p2Counts.moto,
-    "Raw vehicle count in Phase 1 is smaller than Phase 2"
+    data.step4.cbmp.g1 > data.step4.cbmp.g2,
+    `CAO allocates more green to Phase 1 (${data.step4.cbmp.g1}s) than Phase 2 (${data.step4.cbmp.g2}s)`
   );
-
-  // Area occupancy: 4 * 18m2 = 72m2 vs 12 * 1.5m2 = 18m2
-  assert.strictEqual(data.step1.p1Area, 72.0);
-  assert.strictEqual(data.step1.p2Area, 18.0);
-  assert.ok(data.step1.p1Area > data.step1.p2Area, "Phase 1 area is larger than Phase 2");
-  assert.ok(data.step1.phiIn1 > data.step1.phiIn2, "Phase 1 occupancy is higher");
-
-  // Step 4 Green split favors Phase 1
   assert.ok(
-    data.step4.g1 > data.step4.g2,
-    `CAO allocates more green to Phase 1 (${data.step4.g1}s) than Phase 2 (${data.step4.g2}s)`
+    data.step4.baseline.g1 < data.step4.cbmp.g1,
+    `Baseline cuts early (${data.step4.baseline.g1}s) vs CAO full area (${data.step4.cbmp.g1}s)`
   );
 }
 

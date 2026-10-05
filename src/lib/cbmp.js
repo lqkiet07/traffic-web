@@ -68,9 +68,9 @@ export function estimateOccludedCount(counts, occlusionRate = 0.4) {
 // Demo scenarios for the Algorithm Lab sandbox.
 export const PRESETS = {
   paradox: {
-    desc: "Bầy xe máy ken dày ở Pha 2 (20 xe = 30 m²) bị góc quay camera nghiêng che khuất lẫn nhau (occlusion). Bounding Box truyền thống chỉ đếm được ~12 xe (hụt 40%), dẫn đến Baseline cắt đèn sớm gây ùn ứ. CAO ước lượng diện tích mặt đường bị chiếm dụng.",
-    p1: { moto: 0, car: 2, truck: 2 },
-    p2: { moto: 20, car: 0, truck: 0 },
+    desc: "Bầy 26 xe máy ken dày không theo làn ở Pha 1 bị che khuất lẫn nhau (occlusion). Bbox camera chỉ đếm được ~13 xe (hụt 50%), Baseline cắt xanh sớm gây ùn ứ. CAO đo đủ diện tích mặt đường bị chiếm dụng.",
+    p1: { moto: 26, car: 0, truck: 0 },
+    p2: { moto: 18, car: 0, truck: 0 },
   },
   balanced: {
     desc: "Lưu lượng và loại phương tiện hai pha tương đương nhau. Cả hai bộ điều khiển đều chia đều 56s / 56s.",
