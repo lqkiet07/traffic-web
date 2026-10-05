@@ -37,16 +37,24 @@ body {
   border: 2px solid rgba(255, 255, 255, 0.85);
 }
 
-/* Transport scrubber: 4px slate track, glowing sky thumb */
+/* Transport scrubber: 20px clickable target, 4px track, centered glowing sky thumb */
 .transport-scrubber {
   -webkit-appearance: none;
   appearance: none;
   width: 100%;
+  height: 20px;
+  background: transparent;
+  outline: none;
+  cursor: pointer;
+  margin: 0;
+  padding: 0;
+}
+
+.transport-scrubber::-webkit-slider-runnable-track {
+  width: 100%;
   height: 4px;
   border-radius: 2px;
   background: #1e293b;
-  outline: none;
-  cursor: pointer;
 }
 
 .transport-scrubber::-webkit-slider-thumb {
@@ -54,11 +62,19 @@ body {
   appearance: none;
   width: 12px;
   height: 18px;
+  margin-top: -7px; /* Center 18px thumb on 4px track: (4 - 18) / 2 */
   border-radius: 4px;
   background: #38bdf8;
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 0 8px rgba(56, 189, 248, 0.55);
   cursor: ew-resize;
+}
+
+.transport-scrubber::-moz-range-track {
+  width: 100%;
+  height: 4px;
+  border-radius: 2px;
+  background: #1e293b;
 }
 
 .transport-scrubber::-moz-range-thumb {
@@ -69,12 +85,6 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.6);
   box-shadow: 0 0 8px rgba(56, 189, 248, 0.55);
   cursor: ew-resize;
-}
-
-.transport-scrubber::-moz-range-track {
-  height: 4px;
-  border-radius: 2px;
-  background: #1e293b;
 }
 
 /* Design tokens: single source of truth for the console theme.
