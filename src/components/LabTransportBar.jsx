@@ -339,7 +339,7 @@ export default function LabTransportBar(props) {
       </div>
 
       {simMode === "stepper" ? (
-        <div className="flex items-center justify-between px-2 py-1 text-xs text-slate-400 bg-slate-900/60 rounded-lg border border-slate-800/80">
+        <div className="flex items-center justify-between px-2 py-1 text-xs text-slate-400 bg-slate-900/60 rounded-lg border border-[#1e293b]">
           <span>🔍 Chế độ từng bước đang hoạt động</span>
           <span className="text-cyan-400 font-mono text-[11px]">Điều hướng & xem phân tích ở cột bên phải 👉</span>
         </div>

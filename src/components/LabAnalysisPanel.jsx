@@ -85,7 +85,7 @@ export const LabStatCards = memo(function LabStatCards({ telemetry }) {
 export function LabPresetBar({ algo, onAlgoChange, activeScenario, onSelectPreset }) {
   return (
     <div className="flex flex-col gap-2.5 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
-      <div className="flex items-center rounded-lg border border-slate-800 bg-slate-900/90 p-0.5 text-xs">
+      <div className="flex items-center rounded-lg border border-[#1e293b] bg-slate-900/90 p-0.5 text-xs">
         <button
           type="button"
           onClick={() => onAlgoChange?.("cao")}
@@ -119,7 +119,7 @@ export function LabPresetBar({ algo, onAlgoChange, activeScenario, onSelectPrese
             className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
               activeScenario === opt.key
                 ? opt.activeClass
-                : "border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
+                : "border border-[#1e293b] bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
             }`}
           >
             {opt.label}
@@ -138,7 +138,7 @@ function SpawnBtn({ label, onClick, isJam = false }) {
       className={`rounded px-2 py-1 text-xs transition ${
         isJam
           ? "border border-amber-500/40 bg-amber-500/10 font-medium text-amber-300 hover:bg-amber-500/20"
-          : "border border-slate-700 bg-slate-800/80 text-slate-200 hover:border-slate-500 hover:bg-slate-700"
+          : "border border-[#1e293b] bg-slate-800/80 text-slate-200 hover:border-slate-500 hover:bg-slate-700"
       }`}
     >
       {label}
@@ -172,7 +172,7 @@ function VehiclePicker({ selectedType, onSelectType }) {
               className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
                 isSelected
                   ? "border border-emerald-400 bg-slate-800 text-white shadow-sm ring-1 ring-emerald-400/50"
-                  : "border border-slate-800 bg-slate-900/80 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+                  : "border border-[#1e293b] bg-slate-900/80 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
               }`}
             >
               <span
@@ -191,7 +191,7 @@ function VehiclePicker({ selectedType, onSelectType }) {
 
 function QuickBatchSection({ onBatchSpawn }) {
   return (
-    <div className="space-y-2 border-t border-slate-800/80 pt-2.5">
+    <div className="space-y-2 border-t border-[#1e293b] pt-2.5">
       <div className="text-xs font-semibold text-slate-300">Thả xe nhanh (Quick Batch)</div>
       <BatchRow label="Nút 1">
         <SpawnBtn label="+5 Xe máy" onClick={() => onBatchSpawn?.("west", "moto", 5)} />
@@ -220,7 +220,7 @@ export function LabSpawnerDock({ selectedType, onSelectType, onBatchSpawn, onCle
     <div className="flex flex-col gap-3 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
       <VehiclePicker selectedType={selectedType} onSelectType={onSelectType} />
       <QuickBatchSection onBatchSpawn={onBatchSpawn} />
-      <div className="border-t border-slate-800/80 pt-1">
+      <div className="border-t border-[#1e293b] pt-1">
         <button
           type="button"
           onClick={onClear}
@@ -273,7 +273,7 @@ export function LabWhyBox({ algo, telemetry, activeScenario }) {
   const isBackpressure = phiCorridor >= 0.7;
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900/70 p-3 text-xs leading-relaxed text-slate-400">
+    <div className="rounded-xl border border-[#1e293b] bg-slate-900/70 p-3 text-xs leading-relaxed text-slate-400">
       <div className="mb-1.5 flex items-center gap-1.5 font-semibold text-slate-200">
         <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
         <span>Hướng dẫn học tập · Giải thích Max-Pressure:</span>
@@ -315,7 +315,7 @@ export function PhaseCard({ title, badge, lines, areaLabel, areaValue, phiLabel,
 
 export function ParadoxNote({ p1Area }) {
   return (
-    <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-2.5 text-xs text-slate-300 leading-relaxed">
+    <div className="rounded-lg border border-[#1e293b] bg-slate-950/50 p-2.5 text-xs text-slate-300 leading-relaxed">
       <strong className="text-amber-400">💡 Nghịch lý che khuất (Occlusion Paradox): </strong>
       Xe máy chiếm 85-90% dòng xe tại VN, ken dày và che khuất lẫn nhau dưới góc camera nghiêng nên Bbox truyền thống đếm thiếu 35-50% xe. YOLOv8 segmentation đo trực tiếp diện tích chiếm dụng (φ) nên miễn nhiễm che khuất — Nhánh Tây ({p1Area} m²) vẫn được ưu tiên đúng.
     </div>
@@ -357,7 +357,7 @@ export function Step1Math({ data }) {
         <PhaseCard title={p2Title} badge="Nhánh xe máy" lines={p2Lines} areaLabel="A₂" areaValue={p2Area} phiLabel={`φ_in2 = min(1.0, ${p2Area}/150)`} phiValue={phiIn2} tone="sky" />
       </div>
       {data?.occlusionP2?.occludedMotos > 0 ? (
-        <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-slate-800 bg-slate-950/50 p-2 font-mono text-[11px]">
+        <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-[#1e293b] bg-slate-950/50 p-2 font-mono text-[11px]">
           <span className="rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
             Camera Bbox ước tính: ~{data?.occlusionP2?.visibleCount} xe (Hụt {data?.occlusionP2?.lossPercentage}%)
           </span>
@@ -413,7 +413,7 @@ export function Step2Math({ data, step1 }) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 font-mono text-xs">
+      <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
         <div className="text-slate-400">Công thức khấu trừ áp lực dội ngược (Downstream Back-Pressure):</div>
         <div className="mt-1 text-slate-300 text-sm">w₁ = max(0, φ_in - 0.70 × φ_out)</div>
         <div className="mt-1.5 text-base font-bold text-cyan-300">
@@ -449,7 +449,7 @@ export function Step3Math({ data, step2 }) {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 font-mono text-xs">
+      <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
         <div className="text-slate-400">Áp suất bão hòa (Hệ số bão hòa C_sat = 2.5):</div>
         <div className="mt-1 text-slate-300 text-sm">γ = 2.5 × w</div>
         <div className="mt-2 flex flex-col gap-2.5">
@@ -457,14 +457,14 @@ export function Step3Math({ data, step2 }) {
             <span className="text-slate-400 text-xs">Pha 1 (Nhánh Tây):</span>
             <div className="text-base font-bold text-emerald-400">γ₁ = 2.5 × {w1} = {gamma1}</div>
           </div>
-          <div className="rounded-lg bg-slate-900 p-2.5 border border-slate-700">
+          <div className="rounded-lg bg-slate-900 p-2.5 border border-[#1e293b]">
             <span className="text-slate-400 text-xs">Pha 2 (Nhánh Bắc/Nam):</span>
             <div className="text-base font-bold text-slate-300">γ₂ = 2.5 × {w2} = {gamma2}</div>
           </div>
         </div>
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs">
+      <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 text-xs">
         <div className="flex justify-between items-center mb-1 text-slate-400 font-mono">
           <span>Tỷ lệ áp lực cạnh tranh:</span>
           <span className="text-emerald-400 font-bold">{ratio1}% vs {100 - ratio1}%</span>
@@ -491,13 +491,13 @@ export function Step4Math({ data }) {
 
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 font-mono text-xs">
+      <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
         <div className="text-slate-400">Công thức phân bổ thời lượng đèn xanh (Chu kỳ C = 120s, L = 8s):</div>
         <div className="mt-1 text-slate-300 text-sm">g₁ = g_min + (C - L - 2·g_min) × (γ₁ / γ_total)</div>
         <div className="mt-1 text-cyan-300 text-xs">g₁ = 10 + 92 × (γ₁ / γ_total) = {g1}s</div>
       </div>
 
-      <div className="rounded-xl border border-slate-800 bg-slate-950/70 p-3 text-xs">
+      <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 text-xs">
         <div className="text-slate-400 mb-2">Phân bổ thời lượng chu kỳ 120s:</div>
         <div className="grid grid-cols-3 gap-2 text-center font-mono mb-2.5">
           <div className="p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30">
@@ -508,7 +508,7 @@ export function Step4Math({ data }) {
             <div className="text-[11px] text-cyan-300">Pha 2 (Xanh)</div>
             <div className="text-lg font-bold text-cyan-400">{g2}s</div>
           </div>
-          <div className="p-2 rounded-lg bg-slate-800 border border-slate-700">
+          <div className="p-2 rounded-lg bg-slate-800 border border-[#1e293b]">
             <div className="text-[11px] text-slate-400">Mất mát (Vàng+Đỏ)</div>
             <div className="text-lg font-bold text-slate-300">{lost}s</div>
           </div>
@@ -545,7 +545,7 @@ export function Step5Math({ data }) {
         </div>
       </div>
 
-      <div className="rounded-lg border border-slate-800 bg-slate-950/50 p-2.5 text-xs text-slate-400 leading-relaxed">
+      <div className="rounded-lg border border-[#1e293b] bg-slate-950/50 p-2.5 text-xs text-slate-400 leading-relaxed">
         Chu trình tính toán 5 bước kết thúc. Bấm <strong className="text-cyan-400">Bước tiếp theo &gt;|</strong> để nạp đợt xe mới hoặc chuyển sang <strong className="text-emerald-400">Thời gian thực 60fps</strong> để xem xe lưu thông tự động liên tục.
       </div>
     </div>
@@ -766,7 +766,7 @@ export default function LabAnalysisPanel({
         onSelectPreset={onSelectPreset}
       />
       {isStepper ? (
-        <details className="group rounded-xl border border-slate-800/80 bg-slate-900/40 p-2.5 text-xs text-slate-400">
+        <details className="group rounded-xl border border-[#1e293b] bg-slate-900/40 p-2.5 text-xs text-slate-400">
           <summary className="cursor-pointer select-none font-medium text-slate-400 transition-colors hover:text-slate-200">
             ➕ Thêm xe thủ công (Tùy chọn)
           </summary>
