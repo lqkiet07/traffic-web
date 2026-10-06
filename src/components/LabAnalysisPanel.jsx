@@ -526,7 +526,13 @@ export function Step3Math({ data, step2 }) {
             <div className="mt-1 text-sm font-bold text-slate-300">γ₂ = 2.5 × {w2} = {gamma2}</div>
           </div>
         </div>
-        <div className="mt-2 text-[11px] text-slate-400">Baseline thấy P2 trội từ đếm ({wC1} vs {wC2}); CAO thấy đúng P1 trội từ diện tích ({w1} vs {w2}).</div>
+        <div className="mt-2 text-[11px] text-slate-400">
+          {wC1Num < wC2Num && wA1Num >= wA2Num
+            ? `Baseline thấy P2 trội từ đếm (${wC1} vs ${wC2}); CAO thấy đúng P1 trội từ diện tích (${w1} vs ${w2}).`
+            : wC1Num > wC2Num
+              ? `Cả hai phương pháp cùng nhận định Pha 1 có áp lực vượt trội (${wC1} vs ${wC2} xe; ${w1} vs ${w2} m²).`
+              : `Tỷ lệ áp lực cạnh tranh: Pha 1 (${w1}) so với Pha 2 (${w2}).`}
+        </div>
         <ParameterNote>c_sat = 2.5 (hệ số dòng bão hòa, Eq. 4)</ParameterNote>
       </div>
 
@@ -543,7 +549,15 @@ export function Step3Math({ data, step2 }) {
           Pha 1 chiếm <strong className="text-emerald-400">{ratio1}%</strong> tổng áp lực toàn giao lộ ({gamma1} trên tổng {(total).toFixed(2)}), do đó sẽ được ưu tiên nhận phần lớn thời lượng đèn xanh khả dụng.
         </div>
         <div className="mt-2 text-slate-400 leading-relaxed">
-          Đối chiếu Baseline (đếm): P1 chỉ <strong className="text-rose-300">{ratioC1}%</strong> ({gC1} trên tổng {(totalC).toFixed(1)}) nên thấy P2 trội — sai lệch gốc từ cảm biến Bước 1.
+          {ratioC1 < 50 && ratio1 >= 50 ? (
+            <>
+              Đối chiếu Baseline (đếm): P1 chỉ <strong className="text-rose-300">{ratioC1}%</strong> ({gC1} trên tổng {(totalC).toFixed(1)}) nên thấy P2 trội — sai lệch gốc từ cảm biến Bước 1.
+            </>
+          ) : (
+            <>
+              Đối chiếu Baseline (đếm): Pha 1 chiếm <strong className="text-rose-300">{ratioC1}%</strong> tổng áp lực toàn giao lộ ({gC1} trên tổng {(totalC).toFixed(1)}).
+            </>
+          )}
         </div>
       </div>
     </div>
