@@ -328,6 +328,7 @@ export function SimVsRealComparison() {
 }
 
 function DilationPipelineVisual({ visCount, rawCount, area, phi }) {
+  const lossPct = rawCount > 0 ? Math.round(((rawCount - visCount) / rawCount) * 100) : 0;
   return (
     <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-2.5 font-mono text-[11px]">
       <div className="mb-1.5 flex items-center justify-between text-slate-400">
@@ -337,7 +338,7 @@ function DilationPipelineVisual({ visCount, rawCount, area, phi }) {
       <div className="grid grid-cols-4 gap-1.5 text-center text-[10px]">
         <div className="rounded border border-rose-500/30 bg-rose-500/10 p-1.5">
           <div className="font-bold text-rose-300">1. YOLOv8 Bbox</div>
-          <div className="mt-0.5 text-slate-400">{visCount}/{rawCount} xe (Hụt ~50%)</div>
+          <div className="mt-0.5 text-slate-400">{visCount}/{rawCount} xe {lossPct > 0 ? `(Hụt ~${lossPct}%)` : "(Đủ 100%)"}</div>
         </div>
         <div className="rounded border border-[#1e293b] bg-slate-900 p-1.5">
           <div className="font-bold text-slate-300">2. ByteTrack</div>
@@ -431,13 +432,14 @@ export function Step2Math({ data, step1 }) {
   // Node 2 is corridor receiver: no downstream link, drains to network
   const isReceiver = data?.isCorridorReceiver === true;
   const outflowName = data?.outflowName || "Hành lang Nút 1-2";
+  const approachName = data?.approachName || "Nhánh Tây";
 
   return (
     <div className="space-y-3">
       {isReceiver ? <div className="rounded-lg border border-cyan-500/30 bg-cyan-500/10 p-2.5 text-xs text-cyan-200">Nút 2 xả hành lang ra mạng lưới — không bị dội ngược ({outflowName})</div> : null}
       <div className="flex flex-col gap-2.5 font-mono">
         <div className="rounded-xl border border-cyan-500/30 bg-slate-950/70 p-3">
-          <div className="text-xs text-slate-400">Áp lực hướng vào (Nhánh Tây):</div>
+          <div className="text-xs text-slate-400">Áp lực hướng vào ({approachName}):</div>
           <div className="mt-1 text-base font-bold text-cyan-400">φ_in = {phiIn}</div>
         </div>
         <div className={`rounded-xl border p-3 ${isBackpressure ? "border-rose-500/40 bg-rose-500/10 text-rose-300" : "border-emerald-500/30 bg-slate-950/70 text-emerald-400"}`}>
@@ -664,7 +666,7 @@ const STEPPER_STEPS = [
 function StepMathContent({ currentStep, stepData }) {
   // Enrich step payloads with node metadata, fallback safe for legacy callers
   if (currentStep === 1) return <Step1Math data={{ ...stepData?.step1, approachName: stepData?.approachName, outflowName: stepData?.outflowName }} />;
-  if (currentStep === 2) return <Step2Math data={{ ...stepData?.step2, isCorridorReceiver: stepData?.isCorridorReceiver, outflowName: stepData?.outflowName }} step1={stepData?.step1} />;
+  if (currentStep === 2) return <Step2Math data={{ ...stepData?.step2, isCorridorReceiver: stepData?.isCorridorReceiver, outflowName: stepData?.outflowName, approachName: stepData?.approachName }} step1={stepData?.step1} />;
   if (currentStep === 3) {
     return (
       <Step3Math
