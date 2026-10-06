@@ -327,6 +327,35 @@ export function SimVsRealComparison() {
   );
 }
 
+function DilationPipelineVisual({ visCount, rawCount, area, phi }) {
+  return (
+    <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-2.5 font-mono text-[11px]">
+      <div className="mb-1.5 flex items-center justify-between text-slate-400">
+        <span className="font-bold text-slate-300">Cơ chế trích xuất CAO (Hình 1 trong Paper):</span>
+        <span className="text-[10px] text-cyan-400">YOLOv8 → Dilation → Mask</span>
+      </div>
+      <div className="grid grid-cols-4 gap-1.5 text-center text-[10px]">
+        <div className="rounded border border-rose-500/30 bg-rose-500/10 p-1.5">
+          <div className="font-bold text-rose-300">1. YOLOv8 Bbox</div>
+          <div className="mt-0.5 text-slate-400">{visCount}/{rawCount} xe (Hụt ~50%)</div>
+        </div>
+        <div className="rounded border border-[#1e293b] bg-slate-900 p-1.5">
+          <div className="font-bold text-slate-300">2. ByteTrack</div>
+          <div className="mt-0.5 text-slate-400">Gán ID theo vết</div>
+        </div>
+        <div className="rounded border border-amber-500/30 bg-amber-500/10 p-1.5">
+          <div className="font-bold text-amber-300">3. Dilation 15×15</div>
+          <div className="mt-0.5 text-slate-400">Giãn nở gộp bầy xe</div>
+        </div>
+        <div className="rounded border border-emerald-500/30 bg-emerald-500/10 p-1.5">
+          <div className="font-bold text-emerald-300">4. Mask CAO φ</div>
+          <div className="mt-0.5 text-slate-400">A₁ = {area} m² (φ = {phi})</div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Step1Math({ data }) {
   const occ1 = data?.occlusionP1;
   const occ2 = data?.occlusionP2;
@@ -360,6 +389,7 @@ export function Step1Math({ data }) {
           </div>
         </div>
       </div>
+      <DilationPipelineVisual visCount={visP1} rawCount={rawP1} area={p1Area} phi={phiIn1} />
       <SimVsRealComparison />
       <ParameterNote>S_zone = 150 m² (vùng quan sát camera 30m × 5m, Eq. 1 trong Paper)</ParameterNote>
     </div>
