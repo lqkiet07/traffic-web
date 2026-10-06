@@ -142,8 +142,8 @@ import { allocateCbmpGreen } from "../src/lib/cbmp.js";
   advanceSimStep(sim, 1);
   assert.strictEqual(sim.stepper.currentStep, 1);
   assert.strictEqual(sim.stepper.active, true);
-  assert.strictEqual(sim.stepper.subPhase, "motion");
-  assert.strictEqual(sim.stepper.motionDuration, 1.5);
+  assert.strictEqual(sim.stepper.subPhase, "freeze");
+  assert.strictEqual(sim.stepper.motionDuration, 0.0);
   assert.strictEqual(sim.stepper.motionElapsed, 0);
 
   advanceSimStep(sim, 2);
@@ -208,13 +208,13 @@ import { allocateCbmpGreen } from "../src/lib/cbmp.js";
   assert.strictEqual(stepData.step5.greenDuration, stepData.step4.g1);
 }
 
-// Test 6: motion-freeze lifecycle (step 1 motion 1.5s then freeze)
+// Test 6: motion-freeze lifecycle (step 2 motion 1.5s then freeze)
 {
   const sim = createCorridorSim();
   spawnVehicle(sim, { approach: "west", type: "car", x: 100 });
   const startX = sim.vehicles[0].x;
 
-  advanceSimStep(sim, 1);
+  advanceSimStep(sim, 2);
   assert.strictEqual(sim.stepper.subPhase, "motion");
 
   updateCorridorSim(sim, 0.5);
@@ -275,19 +275,14 @@ import { allocateCbmpGreen } from "../src/lib/cbmp.js";
   assert.strictEqual(data.step1.p1Area, 39);
   assert.ok(Math.abs(data.step1.phiIn1 - 0.26) < 1e-9, "phiIn1 is 0.26 for 26 motos");
 
-  // Step 1 motion 1.5s moves x forward then freezes
+  // Step 1 freeze immediately holds x position behind stop line
   advanceSimStep(sim, 1);
-  assert.strictEqual(sim.stepper.subPhase, "motion");
-  assert.strictEqual(sim.stepper.motionDuration, 1.5);
+  assert.strictEqual(sim.stepper.subPhase, "freeze");
+  assert.strictEqual(sim.stepper.motionDuration, 0.0);
   const leadMoto = westMotos[westMotos.length - 1];
   const startLeadX = leadMoto.x;
   updateCorridorSim(sim, 0.5);
-  assert.ok(leadMoto.x > startLeadX, "lead moto advances during motion");
-  updateCorridorSim(sim, 1.5);
-  assert.strictEqual(sim.stepper.subPhase, "freeze");
-  const frozenLeadX = leadMoto.x;
-  updateCorridorSim(sim, 0.5);
-  assert.strictEqual(leadMoto.x, frozenLeadX, "lead moto holds position during freeze");
+  assert.strictEqual(leadMoto.x, startLeadX, "lead moto holds position during freeze");
 }
 
 // Test 8: stepper stays pinned to Node 1 across steps 1..5 (paradox preset)

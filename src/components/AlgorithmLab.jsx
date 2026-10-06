@@ -157,7 +157,7 @@ function clampNode(node) {
 }
 
 // Mirror of STEPPER_MOTION_DURATIONS in corridorSim.js (kept local: sim lib does not export it)
-const STEP_DURATIONS = { 1: 1.5, 2: 1.5, 3: 0, 4: 0.8, 5: 2.5 };
+const STEP_DURATIONS = { 1: 0.0, 2: 1.5, 3: 0, 4: 0.8, 5: 2.5 };
 
 function useSubPhase() {
   // Track motion vs freeze for transport button state

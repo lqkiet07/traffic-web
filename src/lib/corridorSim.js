@@ -264,7 +264,7 @@ export function getAlgorithmStepData(sim, nodeIndex = 1) {
   };
 }
 
-const STEPPER_MOTION_DURATIONS = { 1: 1.5, 2: 1.5, 3: 0.0, 4: 0.8, 5: 2.5 };
+const STEPPER_MOTION_DURATIONS = { 1: 0.0, 2: 1.5, 3: 0.0, 4: 0.8, 5: 2.5 };
 
 function applyStep5Green(sim) {
   // Force Phase 1 green so west approach can discharge
