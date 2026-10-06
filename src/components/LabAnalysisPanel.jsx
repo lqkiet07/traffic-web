@@ -599,7 +599,11 @@ export function Step4Math({ data }) {
             </div>
           </div>
           <div className="mt-2 rounded-md bg-rose-500/15 px-2 py-1 font-bold text-rose-300">
-            ⚠️ Cắt xanh sớm — bbox hụt xe máy, xả chưa hết
+            {bG1 < cG1
+              ? "⚠️ Cắt xanh sớm — bbox hụt xe máy, xả chưa hết"
+              : bG1 === cG1
+                ? "✓ Cấp thời lượng tương đương CAO"
+                : "ℹ️ Ưu tiên thời lượng xanh cho pha này"}
           </div>
         </div>
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5">
@@ -620,7 +624,9 @@ export function Step4Math({ data }) {
             </div>
           </div>
           <div className="mt-2 rounded-md bg-emerald-500/15 px-2 py-1 font-bold text-emerald-300">
-            ✓ Xả sạch toàn bộ — đo đủ diện tích chiếm dụng
+            {cG1 > bG1
+              ? "✓ Xả sạch toàn bộ — đo đủ diện tích chiếm dụng"
+              : "✓ Cấp thời lượng tối ưu theo diện tích chiếm dụng"}
           </div>
         </div>
       </div>
