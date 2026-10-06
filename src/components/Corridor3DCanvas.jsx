@@ -721,6 +721,13 @@ function resolveCameraTarget(presetName, vehicleMeshes, sim) {
 // Smoothly move camera toward target and look at lerped focus.
 function updateCinematicCamera(camera, rig, target) {
   if (!camera || !rig || !target) return;
+  // If camera or look target got corrupted by NaN, reset immediately to target
+  if (!Number.isFinite(camera.position.x) || !Number.isFinite(rig.currentLook.x)) {
+    camera.position.set(target.pos[0], target.pos[1], target.pos[2]);
+    rig.currentLook.set(target.look[0], target.look[1], target.look[2]);
+    camera.lookAt(rig.currentLook);
+    return;
+  }
   _camPos.set(target.pos[0], target.pos[1], target.pos[2]);
   _camLook.set(target.look[0], target.look[1], target.look[2]);
   camera.position.lerp(_camPos, 0.08);
@@ -781,8 +788,15 @@ function groundHit(camera, clientX, clientY, canvas) {
     -((clientY - rect.top) / rect.height) * 2 + 1
   );
   _raycaster.setFromCamera(_mouse, camera);
+  // Discard rays looking near or above the horizon to prevent infinite projection
+  if (_raycaster.ray.direction.y >= -0.05) return null;
+
   const hit = new THREE.Vector3();
   if (!_raycaster.ray.intersectPlane(_groundPlane, hit)) return null;
+
+  // Discard intersections beyond the visible sandbox bounds
+  if (hit.distanceTo(_raycaster.ray.origin) > 85) return null;
+  if (Math.abs(hit.x) > 60 || Math.abs(hit.z) > 35) return null;
   return hit;
 }
 
@@ -790,13 +804,30 @@ function groundHit(camera, clientX, clientY, canvas) {
 function zoomToCursor(camera, rig, deltaY, clientX, clientY, canvas) {
   if (!camera || !rig || !canvas) return;
   const hit = groundHit(camera, clientX, clientY, canvas);
-  if (hit && deltaY < 0) rig.currentLook.lerp(hit, 0.15);
+  if (hit && Number.isFinite(hit.x) && deltaY < 0) {
+    rig.currentLook.lerp(hit, 0.12);
+  }
+
+  // Constrain look-at target within the road network footprint
+  rig.currentLook.x = Math.max(-45, Math.min(45, rig.currentLook.x));
+  rig.currentLook.z = Math.max(-25, Math.min(25, rig.currentLook.z));
+  rig.currentLook.y = Math.max(0, Math.min(6, rig.currentLook.y));
+
   const off = camera.position.clone().sub(rig.currentLook);
   const radius = off.length();
-  if (!radius) return;
-  const next = Math.min(80, Math.max(6, radius * (1 + deltaY * 0.001)));
+  if (!radius || !Number.isFinite(radius)) {
+    // Self-heal corrupted camera state
+    camera.position.set(0, 28, 30);
+    rig.currentLook.set(0, 0, 0);
+    return;
+  }
+
+  const next = Math.min(80, Math.max(8, radius * (1 + deltaY * 0.001)));
   off.setLength(next);
   camera.position.copy(rig.currentLook).add(off);
+
+  // Keep camera above road level to prevent clipping through asphalt
+  if (camera.position.y < 2.0) camera.position.y = 2.0;
   camera.lookAt(rig.currentLook);
 }
 
