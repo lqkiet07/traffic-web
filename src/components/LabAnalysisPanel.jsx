@@ -383,10 +383,18 @@ function BackpressureCauseEffect() {
 }
 
 export function Step2Math({ data, step1 }) {
-  const phiIn = (step1?.phiIn1 || 0).toFixed(2);
-  const phiOutVal = step1?.phiOut || 0;
+  const phiInNum = Number(step1?.phiIn1 ?? 0) || 0;
+  const phiOutVal = Number(step1?.phiOut ?? 0) || 0;
+  const phiIn = phiInNum.toFixed(2);
   const phiOut = phiOutVal.toFixed(2);
-  const w1 = (data?.w1 || 0).toFixed(2);
+  const wArea = (Number(data?.w1 ?? 0) || 0).toFixed(2);
+  const bpArea = (Number(data?.backPressureDeduction ?? 0.70 * phiOutVal ?? 0) || 0).toFixed(2);
+  const xIn1Num = Math.round(Number(data?.xIn1 ?? step1?.occlusionP1?.visibleCount ?? 0) || 0);
+  const xOutNum = Math.round(Number(data?.xOut ?? ((step1?.outCounts?.moto ?? 0) + (step1?.outCounts?.car ?? 0) + (step1?.outCounts?.truck ?? 0)) ?? 0) || 0);
+  const wCountNum = Number(data?.w1Count ?? Math.max(0, xIn1Num - 0.70 * xOutNum) ?? 0) || 0;
+  const bpCountNum = Number(data?.backPressureCount ?? 0.70 * xOutNum ?? 0) || 0;
+  const wCount = wCountNum.toFixed(1);
+  const bpCount = bpCountNum.toFixed(1);
   const isBackpressure = phiOutVal >= 0.7;
   // Node 2 is corridor receiver: no downstream link, drains to network
   const isReceiver = data?.isCorridorReceiver === true;
@@ -407,11 +415,26 @@ export function Step2Math({ data, step1 }) {
       </div>
 
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
-        <div className="text-slate-400">Công thức khấu trừ áp lực dội ngược (Downstream Back-Pressure):</div>
-        <div className="mt-1 text-slate-300 text-sm">w₁ = max(0, φ_in - 0.70 × φ_out)</div>
-        <div className="mt-1.5 text-base font-bold text-cyan-300">
-          w₁ = max(0, {phiIn} - 0.70 × {phiOut}) = {w1}
+        <div className="text-slate-400">Song song Eq. 2 vs Eq. 3 — cùng khung Cb-MP, khác đầu vào cảm biến:</div>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5">
+            <div className="text-[11px] font-bold text-rose-300">BASELINE (Eq. 2, đếm xe)</div>
+            <div className="mt-1 text-slate-300 text-[11px]">w₁_count = max(0, x_in − 0.70 × x_out)</div>
+            <div className="mt-1 text-sm font-bold text-rose-200">
+              w₁ = max(0, {xIn1Num} − 0.70 × {xOutNum}) = {wCount}
+            </div>
+            <div className="mt-1 text-[11px] text-slate-400">Khấu trừ dội ngược: {bpCount}</div>
+          </div>
+          <div className="rounded-lg border border-cyan-500/30 bg-slate-900 p-2.5">
+            <div className="text-[11px] font-bold text-cyan-300">CAO (Eq. 3, diện tích)</div>
+            <div className="mt-1 text-slate-300 text-[11px]">w₁_area = max(0, φ_in − 0.70 × φ_out)</div>
+            <div className="mt-1 text-sm font-bold text-cyan-300">
+              w₁ = max(0, {phiIn} − 0.70 × {phiOut}) = {wArea}
+            </div>
+            <div className="mt-1 text-[11px] text-slate-400">Khấu trừ dội ngược: {bpArea}</div>
+          </div>
         </div>
+        <div className="mt-2 text-[11px] text-slate-400">Khung Cb-MP đồng dạng — cả hai đều khấu trừ dội ngược hạ lưu với R = 0.70.</div>
         <ParameterNote>R_thẳng = 0.70 (70% xe vào hành lang nối, Eq. 3)</ParameterNote>
       </div>
 
@@ -432,36 +455,50 @@ export function Step2Math({ data, step1 }) {
 }
 
 export function Step3Math({ data, step2 }) {
-  const w1 = Number(data?.w1 ?? step2?.w1 ?? (data?.gamma1 != null ? data.gamma1 / 2.5 : 0)).toFixed(2);
-  const w2 = Number(data?.w2 ?? step2?.w2 ?? (data?.gamma2 != null ? data.gamma2 / 2.5 : 0)).toFixed(2);
-  const gamma1 = (data?.gamma1 || 0).toFixed(2);
-  const gamma2 = (data?.gamma2 || 0).toFixed(2);
-  const g1Num = Number(gamma1);
-  const g2Num = Number(gamma2);
+  const wA1Num = Number(data?.w1 ?? step2?.w1 ?? (data?.gamma1 != null ? data.gamma1 / 2.5 : 0) ?? 0) || 0;
+  const wA2Num = Number(data?.w2 ?? step2?.w2 ?? (data?.gamma2 != null ? data.gamma2 / 2.5 : 0) ?? 0) || 0;
+  const g1Num = Number(data?.gamma1 ?? 2.5 * wA1Num ?? 0) || 0;
+  const g2Num = Number(data?.gamma2 ?? 2.5 * wA2Num ?? 0) || 0;
+  const wC1Num = Number(step2?.w1Count ?? (data?.gamma1Count != null ? data.gamma1Count / 2.5 : 0) ?? 0) || 0;
+  const wC2Num = Number(step2?.w2Count ?? (data?.gamma2Count != null ? data.gamma2Count / 2.5 : 0) ?? 0) || 0;
+  const gC1Num = Number(data?.gamma1Count ?? 2.5 * wC1Num ?? 0) || 0;
+  const gC2Num = Number(data?.gamma2Count ?? 2.5 * wC2Num ?? 0) || 0;
+  const w1 = wA1Num.toFixed(2);
+  const w2 = wA2Num.toFixed(2);
+  const gamma1 = g1Num.toFixed(2);
+  const gamma2 = g2Num.toFixed(2);
+  const wC1 = wC1Num.toFixed(1);
+  const wC2 = wC2Num.toFixed(1);
+  const gC1 = gC1Num.toFixed(1);
+  const gC2 = gC2Num.toFixed(1);
   const total = g1Num + g2Num;
   const ratio1 = total > 0 ? Math.round((g1Num / total) * 100) : 50;
+  const totalC = gC1Num + gC2Num;
+  const ratioC1 = totalC > 0 ? Math.round((gC1Num / totalC) * 100) : 50;
 
   return (
     <div className="space-y-3">
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
-        <div className="text-slate-400">Áp suất bão hòa (Hệ số bão hòa C_sat = 2.5):</div>
-        <div className="mt-1 text-slate-300 text-sm">γ = 2.5 × w</div>
-        <div className="mt-2 flex flex-col gap-2.5">
-          <div className="rounded-lg bg-slate-900 p-2.5 border border-emerald-500/30">
-            <span className="text-slate-400 text-xs">Pha 1 (Nhánh Tây):</span>
-            <div className="text-base font-bold text-emerald-400">γ₁ = 2.5 × {w1} = {gamma1}</div>
+        <div className="text-slate-400">Áp suất bão hòa song song (Hệ số bão hòa C_sat = 2.5): γ = 2.5 × w</div>
+        <div className="mt-2 grid grid-cols-2 gap-2">
+          <div className="rounded-lg bg-rose-500/10 p-2.5 border border-rose-500/40">
+            <div className="text-[11px] font-bold text-rose-300">BASELINE (đếm xe)</div>
+            <div className="mt-1 text-sm font-bold text-rose-200">γ₁ = 2.5 × {wC1} = {gC1}</div>
+            <div className="mt-1 text-sm font-bold text-slate-300">γ₂ = 2.5 × {wC2} = {gC2}</div>
           </div>
-          <div className="rounded-lg bg-slate-900 p-2.5 border border-[#1e293b]">
-            <span className="text-slate-400 text-xs">Pha 2 (Nhánh Bắc/Nam):</span>
-            <div className="text-base font-bold text-slate-300">γ₂ = 2.5 × {w2} = {gamma2}</div>
+          <div className="rounded-lg bg-slate-900 p-2.5 border border-emerald-500/30">
+            <div className="text-[11px] font-bold text-emerald-300">CAO (diện tích)</div>
+            <div className="mt-1 text-sm font-bold text-emerald-400">γ₁ = 2.5 × {w1} = {gamma1}</div>
+            <div className="mt-1 text-sm font-bold text-slate-300">γ₂ = 2.5 × {w2} = {gamma2}</div>
           </div>
         </div>
+        <div className="mt-2 text-[11px] text-slate-400">Baseline thấy P2 trội từ đếm ({wC1} vs {wC2}); CAO thấy đúng P1 trội từ diện tích ({w1} vs {w2}).</div>
         <ParameterNote>c_sat = 2.5 (hệ số dòng bão hòa, Eq. 4)</ParameterNote>
       </div>
 
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 text-xs">
         <div className="flex justify-between items-center mb-1 text-slate-400 font-mono">
-          <span>Tỷ lệ áp lực cạnh tranh:</span>
+          <span>Tỷ lệ áp lực cạnh tranh (CAO):</span>
           <span className="text-emerald-400 font-bold">{ratio1}% vs {100 - ratio1}%</span>
         </div>
         <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-800">
@@ -470,6 +507,9 @@ export function Step3Math({ data, step2 }) {
         </div>
         <div className="mt-2 text-slate-400 leading-relaxed">
           Pha 1 chiếm <strong className="text-emerald-400">{ratio1}%</strong> tổng áp lực toàn giao lộ ({gamma1} trên tổng {(total).toFixed(2)}), do đó sẽ được ưu tiên nhận phần lớn thời lượng đèn xanh khả dụng.
+        </div>
+        <div className="mt-2 text-slate-400 leading-relaxed">
+          Đối chiếu Baseline (đếm): P1 chỉ <strong className="text-rose-300">{ratioC1}%</strong> ({gC1} trên tổng {(totalC).toFixed(1)}) nên thấy P2 trội — sai lệch gốc từ cảm biến Bước 1.
         </div>
       </div>
     </div>
