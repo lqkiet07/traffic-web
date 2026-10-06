@@ -34,16 +34,18 @@ export function getNodeBaseX(nodeId) {
 // instead of rebuilding them. Node 1 phase 1 is fed by the West arterial;
 // node 2 phase 1 is fed by the corridor link.
 export function getStepOverlayPositions(nodeId) {
+  const isNode2 = nodeId === 2;
   const baseX = getNodeBaseX(nodeId);
   return {
     baseX,
-    inflowPlaneX: baseX - 12,
-    inflowCrossZ: -8,
-    gammaBar1X: baseX - 0.6,
-    gammaBar2X: baseX + 0.6,
+    inflowPlaneX: isNode2 ? 0 : -29,
+    inflowPlaneLength: isNode2 ? 28 : 22,
+    inflowCrossZ: -9,
+    gammaBar1X: isNode2 ? 15.4 : -16.6,
+    gammaBar2X: isNode2 ? 16.6 : -15.4,
     phaseBoardX: baseX,
-    releaseStartX: baseX - 3,
-    releaseHeadX: baseX + 4.2,
+    releaseStartX: isNode2 ? 13 : -19,
+    releaseHeadX: isNode2 ? 20.2 : -11.8,
   };
 }
 

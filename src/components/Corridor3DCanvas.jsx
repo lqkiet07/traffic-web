@@ -538,11 +538,12 @@ function buildStep1Overlay(scene) {
     group.add(m);
     return m;
   };
-  const planeArterial = mkPlane(12, 4, -28, 0);
-  const planeCross = mkPlane(4, 10, -16, -8);
+  const planeArterial = mkPlane(1, 4, -29, 0); // base width 1 for dynamic scaling
+  const planeCrossN = mkPlane(4, 14, -16, -9);
+  const planeCrossS = mkPlane(4, 14, -16, 9);
   group.visible = false;
   scene.add(group);
-  return { group, mat, planeArterial, planeCross };
+  return { group, mat, planeArterial, planeCrossN, planeCrossS };
 }
 
 // Step2: red arrow above corridor pointing west + small red board.
@@ -622,8 +623,9 @@ function buildStep5Overlay(scene) {
 function positionOverlaysForNode(rig, nodeId) {
   const p = getStepOverlayPositions(nodeId);
   rig.s1.planeArterial.position.x = p.inflowPlaneX;
-  rig.s1.planeCross.position.x = p.baseX;
-  rig.s1.planeCross.position.z = p.inflowCrossZ;
+  rig.s1.planeArterial.scale.x = p.inflowPlaneLength;
+  rig.s1.planeCrossN.position.x = p.baseX;
+  rig.s1.planeCrossS.position.x = p.baseX;
   rig.s3.b1.position.x = p.gammaBar1X;
   rig.s3.b2.position.x = p.gammaBar2X;
   rig.s4.board.sprite.position.x = p.phaseBoardX;

@@ -6,8 +6,9 @@ import { getNodeBaseX, getStepOverlayPositions } from "../src/lib/corridor3dScen
   assert.strictEqual(getNodeBaseX(1), -16);
   const p = getStepOverlayPositions(1);
   assert.strictEqual(p.baseX, -16);
-  assert.strictEqual(p.inflowPlaneX, -28);
-  assert.strictEqual(p.inflowCrossZ, -8);
+  assert.strictEqual(p.inflowPlaneX, -29);
+  assert.strictEqual(p.inflowPlaneLength, 22);
+  assert.strictEqual(p.inflowCrossZ, -9);
   assert.strictEqual(p.gammaBar1X, -16.6);
   assert.strictEqual(p.gammaBar2X, -15.4);
   assert.strictEqual(p.phaseBoardX, -16);
@@ -20,14 +21,14 @@ import { getNodeBaseX, getStepOverlayPositions } from "../src/lib/corridor3dScen
   assert.strictEqual(getNodeBaseX(2), 16);
   const p = getStepOverlayPositions(2);
   assert.strictEqual(p.baseX, 16);
-  assert.strictEqual(p.inflowPlaneX, 4);
+  assert.strictEqual(p.inflowPlaneX, 0);
+  assert.strictEqual(p.inflowPlaneLength, 28);
   assert.strictEqual(p.gammaBar1X, 15.4);
   assert.strictEqual(p.gammaBar2X, 16.6);
   assert.strictEqual(p.phaseBoardX, 16);
   assert.strictEqual(p.releaseStartX, 13);
   assert.strictEqual(p.releaseHeadX, 20.2);
-  // The cross-street scan plane keeps the same Z on both nodes.
-  assert.strictEqual(p.inflowCrossZ, -8);
+  assert.strictEqual(p.inflowCrossZ, -9);
 }
 
 // Unknown node ids fall back to Node 1 rather than producing NaN positions.
