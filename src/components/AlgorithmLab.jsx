@@ -413,7 +413,7 @@ function CorridorCoordinationBar({ telemetry, selectedNode, onSelectNode }) {
   const pct = `${Math.round(phi * 100)}%`;
   const n1 = telemetry?.node1Green?.g1 ?? 56;
   const n2 = telemetry?.node2Green?.g1 ?? 56;
-  const cut = Math.max(0, Math.round((phi - 0.7) * 100));
+  const deductionPct = Math.round(phi * 70); // R * phi_out = 0.70 * phi
   const chip = (active) =>
     active
       ? "flex items-center gap-2 px-2 py-1 rounded-md border border-emerald-500/40 bg-emerald-500/10 text-xs"
@@ -429,7 +429,14 @@ function CorridorCoordinationBar({ telemetry, selectedNode, onSelectNode }) {
       <div className="flex items-center gap-2 px-2 py-1 rounded-md border border-[#1e293b] bg-slate-900/60">
         <span className="font-medium">HÀNH LANG NỐI</span>
         <span className="font-mono text-sky-300">{pct}</span>
-        {jam ? <span className="font-mono text-rose-300">-{cut}% ÁP LỰC DỘI</span> : null}
+        {jam ? (
+          <span
+            className="font-mono text-rose-300"
+            title={`Khấu trừ ${deductionPct}% áp lực cấp cho Nút 1 (R = 0.70)`}
+          >
+            -{deductionPct}% ÁP LỰC DỘI
+          </span>
+        ) : null}
       </div>
       <span className="font-mono text-slate-500">{"-->"}</span>
       <button type="button" className={chip(selectedNode === 2)} onClick={() => onSelectNode?.(2)}>
