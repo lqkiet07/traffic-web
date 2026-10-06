@@ -739,7 +739,13 @@ function updateCinematicCamera(camera, rig, target) {
 // Preset change clears user control; never time-based so no snap-back.
 function shouldHoldCamera(rig, presetName) {
   if (!rig || rig.dragging || rig.panning) return true;
-  if (presetName === "free") return true;
+  // Record free-mode entry: otherwise lastPreset stays stale and re-clicking
+  // the previous preset skips the reset branch below, stranding the camera
+  // in user-controlled hold forever (unrecoverable black screen after deep zoom).
+  if (presetName === "free") {
+    rig.lastPreset = "free";
+    return true;
+  }
   if (presetName !== rig.lastPreset) {
     rig.lastPreset = presetName;
     rig.isUserControlled = false;
