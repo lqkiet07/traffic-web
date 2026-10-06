@@ -39,6 +39,15 @@ import { allocateCbmpGreen } from "../src/lib/cbmp.js";
   assert.strictEqual(data.step3.gamma2, 2.5 * data.step2.w2);
   assert.strictEqual(data.step3.totalGamma, data.step3.gamma1 + data.step3.gamma2);
 
+  // Step 2 dual contract: area weights vs count weights
+  assert.strictEqual(typeof data.step2.w1Count, "number");
+  assert.strictEqual(typeof data.step2.w2Count, "number");
+
+  // Step 3 dual contract: area pressure vs count pressure
+  assert.strictEqual(typeof data.step3.gamma1Count, "number");
+  assert.strictEqual(typeof data.step3.gamma2Count, "number");
+  assert.strictEqual(data.step3.gamma1Count, 2.5 * data.step2.w1Count);
+
   // Step 4: Green split allocation
   assert.ok(data.step4, "step4 should exist");
   assert.strictEqual(data.step4.minGreen, 10);

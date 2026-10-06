@@ -223,6 +223,16 @@ export function getAlgorithmStepData(sim, nodeIndex = 1) {
   const isBaseline = sim?.algo === "baseline";
   const cameraCountsP1 = { moto: occlusionP1.visibleMotos, car: p1Counts.car ?? 0, truck: p1Counts.truck ?? 0 };
   const cameraCountsP2 = { moto: occlusionP2.visibleMotos, car: p2Counts.car ?? 0, truck: p2Counts.truck ?? 0 };
+  // Baseline count-based Max-Pressure (Eq. 2 in paper)
+  const xIn1 = totalVehicles(cameraCountsP1);
+  const xIn2 = totalVehicles(cameraCountsP2);
+  const xOut = totalVehicles(outCounts);
+  const backPressureCount = isNode1 ? turnRatio * xOut : 0;
+  const w1Count = Math.max(0, xIn1 - backPressureCount);
+  const w2Count = xIn2;
+  const gamma1Count = C_SATURATION * w1Count;
+  const gamma2Count = C_SATURATION * w2Count;
+  const totalGammaCount = gamma1Count + gamma2Count;
   const baselineAllocation = allocateBaselineGreen(cameraCountsP1, cameraCountsP2);
   const cbmpAllocation = allocateCbmpGreen(gamma1, gamma2);
   const allocation = isBaseline ? baselineAllocation : cbmpAllocation;
@@ -231,8 +241,8 @@ export function getAlgorithmStepData(sim, nodeIndex = 1) {
   return {
     nodeId: node.id, isNode1, isCorridorReceiver: !isNode1, approachName: isNode1 ? "Nhánh Tây (Nút 1)" : "Hành lang Nối (Nút 1-2)", outflowName: isNode1 ? "Hành lang Nối (Hạ lưu)" : "Thoát Mạng Lưới",
     step1: { p1Counts, p2Counts, outCounts, p1Area, p2Area, outArea, phiIn1, phiIn2, phiOut, occlusionP1, occlusionP2 },
-    step2: { w1, w2, turnRatio, backPressureDeduction },
-    step3: { gamma1, gamma2, totalGamma, cSat: C_SATURATION },
+    step2: { w1, w2, turnRatio, backPressureDeduction, w1Count, w2Count, backPressureCount, xIn1, xIn2, xOut },
+    step3: { gamma1, gamma2, totalGamma, cSat: C_SATURATION, gamma1Count, gamma2Count, totalGammaCount },
     step4: {
       algo: sim?.algo ?? "cao",
       g1: allocation.g1,
