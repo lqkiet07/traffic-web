@@ -326,64 +326,40 @@ export function SimVsRealComparison() {
 }
 
 export function Step1Math({ data }) {
-  const p1 = data?.p1Counts;
-  const p2 = data?.p2Counts;
-  const p1Moto = p1?.moto || 0;
-  const p1Car = p1?.car || 0;
-  const p1Truck = p1?.truck || 0;
+  const occ1 = data?.occlusionP1;
+  const occ2 = data?.occlusionP2;
+  const rawP1 = occ1?.rawCount ?? (data?.p1Counts?.moto ?? 0);
+  const visP1 = occ1?.visibleCount ?? rawP1;
+  const rawP2 = occ2?.rawCount ?? (data?.p2Counts?.moto ?? 0);
+  const visP2 = occ2?.visibleCount ?? rawP2;
   const p1Area = (data?.p1Area || 0).toFixed(1);
   const phiIn1 = (data?.phiIn1 || 0).toFixed(2);
-  const p2Moto = p2?.moto || 0;
-  const p2Car = p2?.car || 0;
-  const p2Truck = p2?.truck || 0;
   const p2Area = (data?.p2Area || 0).toFixed(1);
   const phiIn2 = (data?.phiIn2 || 0).toFixed(2);
-  const p1Lines = [];
-  if (p1Truck > 0) p1Lines.push(`${p1Truck} Xe Tải`);
-  if (p1Car > 0) p1Lines.push(`${p1Car} Ô Tô`);
-  if (p1Moto > 0) p1Lines.push(`${p1Moto} Xe Máy`);
-  const p2Lines = [];
-  if (p2Moto > 0) p2Lines.push(`${p2Moto} Xe Máy`);
-  if (p2Car > 0) p2Lines.push(`${p2Car} Ô Tô`);
-  if (p2Truck > 0) p2Lines.push(`${p2Truck} Xe Tải`);
-  // Node-aware titles: prefer upstream approach name, fallback legacy copy
-  const p1Title = data?.approachName ? `Pha 1 · ${data.approachName}` : "Pha 1 · Nhánh Tây";
-  const p2Title = "Pha 2 · Nhánh Bắc & Nam";
-  const outflowHint = data?.outflowName ? `Hạ lưu: ${data.outflowName}` : null;
-  const p1Badge = p1Truck > 0 ? "Nhánh xe tải" : p1Moto >= 10 ? "Bầy xe máy ken đặc" : "Nhánh hỗn hợp";
-  const p2Badge = p2Truck > 0 ? "Nhánh xe tải" : p2Moto >= 10 ? "Bầy xe máy ken đặc" : "Nhánh hỗn hợp";
-  const occlusionP1 = data?.occlusionP1;
+  const loss1 = occ1?.lossPercentage ?? 0;
+  const loss2 = occ2?.lossPercentage ?? 0;
   return (
     <div className="space-y-3">
-      {outflowHint ? (
-        <div className="font-mono text-[11px] text-slate-500">{outflowHint}</div>
-      ) : null}
-      <div className="flex flex-col gap-2.5">
-        <PhaseCard title={p1Title} badge={p1Badge} lines={p1Lines} areaLabel="A₁" areaValue={p1Area} phiLabel={`φ_in1 = min(1.0, ${p1Area}/150)`} phiValue={phiIn1} tone="amber" />
-        <PhaseCard title={p2Title} badge={p2Badge} lines={p2Lines} areaLabel="A₂" areaValue={p2Area} phiLabel={`φ_in2 = min(1.0, ${p2Area}/150)`} phiValue={phiIn2} tone="sky" />
+      <div className="grid grid-cols-2 gap-2 font-mono text-[11px] leading-relaxed">
+        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-2.5">
+          <div className="font-bold text-rose-300">📷 BASELINE (CAMERA BBOX)</div>
+          <div className="mt-1.5 text-slate-200">P1: {visP1}/{rawP1} xe (thấy được/tổng)</div>
+          <div className="mt-1 text-slate-200">P2: {visP2}/{rawP2} xe (thấy được/tổng)</div>
+          <div className="mt-2 rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
+            ⚠️ Hụt ~{loss1}% (P1) / ~{loss2}% (P2) do che khuất tương hỗ
+          </div>
+        </div>
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5">
+          <div className="font-bold text-emerald-300">📐 CAO (ĐỘ ĐO DIỆN TÍCH)</div>
+          <div className="mt-1.5 text-slate-200">φ_in1 = {phiIn1} (A₁ = {p1Area} m²)</div>
+          <div className="mt-1 text-slate-200">φ_in2 = {phiIn2} (A₂ = {p2Area} m²)</div>
+          <div className="mt-2 rounded-md bg-emerald-500/15 px-2 py-1 font-bold text-emerald-300">
+            ✓ Miễn nhiễm che khuất — đo mặt đường
+          </div>
+        </div>
       </div>
-      {occlusionP1?.lossPercentage > 0 ? (
-        <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-[#1e293b] bg-slate-950/50 p-2 font-mono text-[11px]">
-          <span className="rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
-            Camera Bbox (Góc nghiêng): ~{occlusionP1?.visibleCount} xe (Hụt ~{occlusionP1?.lossPercentage}% do che khuất tương hỗ)
-          </span>
-          <span className="rounded-md bg-emerald-500/15 px-2 py-1 font-bold tabular-nums text-emerald-300">
-            Độ đo không gian (CAO): φ = {phiIn1} (Diện tích A₁ = {p1Area} m²)
-          </span>
-        </div>
-      ) : null}
-      {data?.occlusionP2?.occludedMotos > 0 ? (
-        <div className="flex flex-wrap items-center gap-1.5 rounded-lg border border-[#1e293b] bg-slate-950/50 p-2 font-mono text-[11px]">
-          <span className="rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
-            Camera Bbox (Góc nghiêng): ~{data?.occlusionP2?.visibleCount} xe (Hụt ~{data?.occlusionP2?.lossPercentage}% do che khuất)
-          </span>
-          <span className="rounded-md bg-emerald-500/15 px-2 py-1 font-bold tabular-nums text-emerald-300">
-            Độ đo không gian (CAO): φ = {phiIn2}
-          </span>
-        </div>
-      ) : null}
       <SimVsRealComparison />
-      <ParameterNote>S_zone = 150 m² (vùng quan sát camera 30m × 5m)</ParameterNote>
+      <ParameterNote>S_zone = 150 m² (vùng quan sát camera 30m × 5m, Eq. 1 trong Paper)</ParameterNote>
     </div>
   );
 }
