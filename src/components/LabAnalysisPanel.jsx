@@ -82,9 +82,10 @@ export const LabStatCards = memo(function LabStatCards({ telemetry }) {
   );
 });
 
-export function LabPresetBar({ algo, onAlgoChange, activeScenario, onSelectPreset }) {
+export function LabPresetBar({ algo, onAlgoChange, activeScenario, onSelectPreset, showAlgoToggle = true }) {
   return (
     <div className="flex flex-col gap-2.5 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
+      {showAlgoToggle ? (
       <div className="flex items-center rounded-lg border border-[#1e293b] bg-slate-900/90 p-0.5 text-xs">
         <button
           type="button"
@@ -109,6 +110,7 @@ export function LabPresetBar({ algo, onAlgoChange, activeScenario, onSelectPrese
           Đếm xe (Baseline)
         </button>
       </div>
+      ) : null}
 
       <div className="flex flex-wrap items-center gap-1.5">
         {PRESET_OPTIONS.map((opt) => (
@@ -516,64 +518,69 @@ export function Step3Math({ data, step2 }) {
   );
 }
 
-export function Step4Math({ data, algo, step1 }) {
-  const g1 = data?.g1 ?? 56;
-  const g2 = data?.g2 ?? 56;
-  const total = data?.totalCycle ?? 120;
-  const lost = data?.lostTime ?? 8;
-  const greenSum = total - lost;
-  // Live occlusion comes via the step1 prop (threaded by StepMathContent);
-  // fallbacks match the 26-moto swarm scenario (50% loss -> 13 visible, 39 m2).
-  const occVisible = step1?.occlusionP1?.visibleCount ?? data?.step1?.occlusionP1?.visibleCount ?? 13;
-  const occArea = step1?.p1Area ?? data?.step1?.p1Area ?? 39;
-  const p1Pct = greenSum > 0 ? Math.round((g1 / greenSum) * 100) : 50;
+export function Step4Math({ data }) {
+  const bG1 = Number(data?.baseline?.g1 ?? 60) || 60;
+  const bG2 = Number(data?.baseline?.g2 ?? 52) || 52;
+  const cG1 = Number(data?.cbmp?.g1 ?? 64) || 64;
+  const cG2 = Number(data?.cbmp?.g2 ?? 48) || 48;
+  const total = Number(data?.totalCycle ?? 120) || 120;
+  const lost = Number(data?.lostTime ?? 8) || 8;
+  const avail = total - lost > 0 ? total - lost : 112;
+  const pct = (g) => Math.min(100, Math.max(0, (g / avail) * 100));
 
   return (
     <div className="space-y-3">
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
-        <div className="text-slate-400">Công thức phân bổ thời lượng đèn xanh (Chu kỳ C = 120s, L = 8s):</div>
-        {algo === "baseline" ? (
-          <div className="mt-1 text-slate-300 text-sm">g₁ = g_min + 92 × (n₁ / (n₁ + n₂))</div>
-        ) : (
-          <div className="mt-1 text-slate-300 text-sm">g₁ = g_min + (C - L - 2·g_min) × (γ₁ / γ_total)</div>
-        )}
-        {algo === "baseline" ? (
-          <div className="mt-1 text-cyan-300 text-xs">g₁ = 10 + 92 × (n₁ / (n₁ + n₂)) = {g1}s</div>
-        ) : (
-          <div className="mt-1 text-cyan-300 text-xs">g₁ = 10 + 92 × (γ₁ / γ_total) = {g1}s</div>
-        )}
+        <div className="text-slate-400">Công thức phân bổ xanh (C = {total}s, L = {lost}s, khả dụng {avail}s): g = 10 + 92 × thị phần γ</div>
       </div>
 
-      <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 text-xs">
-        <div className="text-slate-400 mb-2">Phân bổ thời lượng chu kỳ 120s:</div>
-        <div className="grid grid-cols-3 gap-2 text-center font-mono mb-2.5">
-          <div className="p-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30">
-            <div className="text-[11px] text-emerald-300">Pha 1 (Xanh)</div>
-            <div className="text-lg font-bold text-emerald-400">{g1}s</div>
+      <div className="grid grid-cols-2 gap-2 font-mono text-[11px] leading-relaxed">
+        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-2.5">
+          <div className="font-bold text-rose-300">📷 BASELINE (BBOX RỜI RẠC)</div>
+          <div className="mt-1.5 text-sm font-bold text-rose-200">g₁ = {bG1}s · g₂ = {bG2}s</div>
+          <div className="mt-2 space-y-1.5">
+            <div>
+              <div className="mb-0.5 flex justify-between text-slate-300"><span>Pha 1</span><span className="tabular-nums">{bG1}s</span></div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                <div className="h-full rounded-full bg-rose-500 transition-all duration-300" style={{ width: `${pct(bG1)}%` }} />
+              </div>
+            </div>
+            <div>
+              <div className="mb-0.5 flex justify-between text-slate-300"><span>Pha 2</span><span className="tabular-nums">{bG2}s</span></div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                <div className="h-full rounded-full bg-slate-500 transition-all duration-300" style={{ width: `${pct(bG2)}%` }} />
+              </div>
+            </div>
           </div>
-          <div className="p-2 rounded-lg bg-cyan-500/15 border border-cyan-500/30">
-            <div className="text-[11px] text-cyan-300">Pha 2 (Xanh)</div>
-            <div className="text-lg font-bold text-cyan-400">{g2}s</div>
-          </div>
-          <div className="p-2 rounded-lg bg-slate-800 border border-[#1e293b]">
-            <div className="text-[11px] text-slate-400">Mất mát (Vàng+Đỏ)</div>
-            <div className="text-lg font-bold text-slate-300">{lost}s</div>
+          <div className="mt-2 rounded-md bg-rose-500/15 px-2 py-1 font-bold text-rose-300">
+            ⚠️ Cắt xanh sớm — bbox hụt xe máy, xả chưa hết
           </div>
         </div>
-        <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-800">
-          <div className="bg-emerald-500 transition-all duration-300" style={{ width: `${(g1 / total) * 100}%` }} title={`Pha 1: ${g1}s`} />
-          <div className="bg-cyan-500 transition-all duration-300" style={{ width: `${(g2 / total) * 100}%` }} title={`Pha 2: ${g2}s`} />
-          <div className="bg-slate-600 transition-all duration-300" style={{ width: `${(lost / total) * 100}%` }} title={`Mất mát: ${lost}s`} />
+        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5">
+          <div className="font-bold text-emerald-300">📐 CAO (DIỆN TÍCH LIÊN TỤC)</div>
+          <div className="mt-1.5 text-sm font-bold text-emerald-300">g₁ = {cG1}s · g₂ = {cG2}s</div>
+          <div className="mt-2 space-y-1.5">
+            <div>
+              <div className="mb-0.5 flex justify-between text-slate-300"><span>Pha 1</span><span className="tabular-nums">{cG1}s</span></div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                <div className="h-full rounded-full bg-emerald-500 transition-all duration-300" style={{ width: `${pct(cG1)}%` }} />
+              </div>
+            </div>
+            <div>
+              <div className="mb-0.5 flex justify-between text-slate-300"><span>Pha 2</span><span className="tabular-nums">{cG2}s</span></div>
+              <div className="h-2 w-full overflow-hidden rounded-full bg-slate-800">
+                <div className="h-full rounded-full bg-slate-500 transition-all duration-300" style={{ width: `${pct(cG2)}%` }} />
+              </div>
+            </div>
+          </div>
+          <div className="mt-2 rounded-md bg-emerald-500/15 px-2 py-1 font-bold text-emerald-300">
+            ✓ Xả sạch toàn bộ — đo đủ diện tích chiếm dụng
+          </div>
         </div>
-        <div className="mt-2 text-[11px] font-mono text-slate-500 leading-relaxed">
-          ℹ️ Giới hạn vật lý: Thuật toán chỉ tái phân bổ 92s khả dụng giữa các hướng; khi lưu lượng bão hòa toàn mạng (v/c ≥ 1.0), thông lượng chạm trần vật lý (~17.800 xe/2h theo Table 1).
-        </div>
-        <div className="mt-2 text-[11px] font-mono text-slate-500 leading-relaxed">
-          Đối chiếu cùng luồng xe: Baseline {data?.baseline?.g1 ?? 56}s (đếm đầu xe) · CAO {data?.cbmp?.g1 ?? 56}s (diện tích chiếm dụng).
-        </div>
-        <div className="mt-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-[11px] font-mono leading-relaxed text-slate-300">
-          🐝 Bầy xe máy ken đặc: Camera Bbox chỉ thấy ~{occVisible} xe (trên A₁ = {occArea} m²) nên Baseline cắt xanh sớm — CAO đo diện tích đầy đủ nên cấp đủ xanh xả sạch.
-        </div>
+      </div>
+
+      <div className="rounded-lg border border-[#1e293b] bg-slate-950/50 p-2.5 font-mono text-[11px] leading-relaxed text-slate-400">
+        📊 Table 1 (Paper): CAO giảm trễ trung bình 6.01% (tải thấp) / 11.90% (tải vừa); thông lượng toàn mạng bảo toàn tương đương (±2%).
       </div>
     </div>
   );
@@ -640,7 +647,7 @@ function StepMathContent({ currentStep, stepData }) {
       />
     );
   }
-  if (currentStep === 4) return <Step4Math data={stepData?.step4} algo={stepData?.step4?.algo ?? "cao"} step1={stepData?.step1} />;
+  if (currentStep === 4) return <Step4Math data={stepData?.step4} />;
   if (currentStep === 5) return <Step5Math data={stepData?.step5} />;
   return null;
 }
@@ -710,7 +717,7 @@ export function UnifiedStepHeader({
         ))}
         <StepperAction subPhase={subPhase} onNextStep={onNextStep} />
         <button type="button" onClick={onToggleAutoStep} className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${isAutoStepping ? "border-amber-400/50 bg-amber-500/20 text-amber-300 font-semibold animate-pulse" : "border-[#1e293b] bg-slate-950 text-slate-300 hover:bg-slate-800"}`} title={autoTitle}>{isAutoStepping ? "⏸ Dừng" : "▶ Tự động (3s)"}</button>
-        <span className="font-mono text-[11px] text-slate-500">Bước {currentStep}/5: {stepTitle} · {algo === "baseline" ? "Baseline" : "CAO-CBMP"}</span>
+        <span className="font-mono text-[11px] text-slate-500">Bước {currentStep}/5: {stepTitle} · Đối chiếu Max-Pressure</span>
       </div>
     </div>
   );
@@ -820,6 +827,7 @@ export default function LabAnalysisPanel({
         onAlgoChange={onAlgoChange}
         activeScenario={activeScenario}
         onSelectPreset={onSelectPreset}
+        showAlgoToggle={!isStepper}
       />
       {isStepper ? (
         <details className="group rounded-xl border border-[#1e293b] bg-slate-900/40 p-2.5 text-xs text-slate-400">
