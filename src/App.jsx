@@ -34,7 +34,7 @@ function LabPanel() {
 
 function CameraPlaceholder() {
   return (
-    <div data-testid="camera-placeholder" className="rounded-xl border border-[#1e293b] bg-slate-900/70 p-6 text-sm text-slate-300 lg:col-span-12">
+    <div data-testid="camera-placeholder" className="lg:col-span-12 h-full min-h-0 overflow-y-auto pr-1">
       <CameraView />
     </div>
   );

@@ -40,7 +40,7 @@ function TelemetryCell({ row }) {
   };
   return (
     <div className="px-3 py-2.5">
-      <div className="text-[11px] uppercase tracking-wider text-slate-500">{row.label}</div>
+      <div className="text-[11px] font-medium text-slate-400">{row.label}</div>
       <div className="mt-0.5 flex items-baseline gap-2">
         <span className="font-mono text-[22px] font-bold tabular-nums text-slate-100">
           {fmt(row.prop)}

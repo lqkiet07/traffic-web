@@ -532,7 +532,7 @@ function LabControlBar({ lab }) {
 
 function LabSidePanel({ lab }) {
   return (
-    <section className="flex flex-col gap-3 lg:col-span-4 lg:overflow-auto">
+    <section className="flex flex-col gap-3 lg:col-span-4 min-h-0 lg:overflow-y-auto pr-1">
       <LabAnalysisPanel
         telemetry={lab.telemetry}
         algo={lab.algo}

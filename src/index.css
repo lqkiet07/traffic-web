@@ -108,3 +108,18 @@ body {
   outline: 2px solid #10b981;
   outline-offset: 1px;
 }
+
+/* Leaflet dark console tooltip */
+.leaflet-tooltip {
+  background-color: rgba(15, 23, 42, 0.95);
+  border: 1px solid #334155;
+  color: #e2e8f0;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+  padding: 4px 8px;
+  font-size: 11px;
+}
+.leaflet-tooltip-top:before { border-top-color: #334155; }
+.leaflet-tooltip-bottom:before { border-bottom-color: #334155; }
+.leaflet-tooltip-left:before { border-left-color: #334155; }
+.leaflet-tooltip-right:before { border-right-color: #334155; }

@@ -67,7 +67,7 @@ const ComparisonCharts = memo(function ComparisonCharts({ kpi, scenario, globalS
   return (
     <div className="rounded-lg border border-[#1e293b] bg-[#0f172a] p-3">
       <div className="mb-2 flex items-center gap-2">
-        <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+        <span className="text-xs font-semibold text-slate-300">
           Đối đầu · {data.cycles.length} chu kỳ
         </span>
         <MetricTabs metric={metric} setMetric={setMetric} />

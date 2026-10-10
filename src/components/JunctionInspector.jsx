@@ -96,7 +96,7 @@ function PhaseTuneBox({ offsetS, setOffsetS, resetOffset }) {
 // Per-junction panel: live green split + local KPI + Max Pressure explainer.
 function HintChip() {
   return (
-    <div className="absolute right-3 top-3 z-[600] rounded-lg border border-[#1e293b] bg-[#090d16]/90 px-3 py-2 font-mono text-[11px] text-slate-500">
+    <div className="absolute right-3 top-3 z-[1001] rounded-lg border border-[#1e293b] bg-[#090d16]/90 px-3 py-2 font-mono text-[11px] text-slate-500">
       Click nút giao để mổ xẻ
     </div>
   );
@@ -106,7 +106,7 @@ function CollapsedChip({ code, onExpand }) {
   return (
     <button
       onClick={onExpand}
-      className="absolute right-3 top-3 z-[600] rounded-lg border border-[#1e293b] bg-[#090d16]/95 px-3 py-2 font-mono text-[11px] font-bold text-slate-200 hover:border-cyan-700"
+      className="absolute right-3 top-3 z-[1001] rounded-lg border border-[#1e293b] bg-[#090d16]/95 px-3 py-2 font-mono text-[11px] font-bold text-slate-200 hover:border-cyan-700"
     >
       {code} ▾
     </button>
@@ -127,7 +127,7 @@ export default function JunctionInspector({ junction, signals, localKpi, scenari
   const gamaCycle = sig.gamaCycle;
 
   return (
-    <div className="absolute right-3 top-3 z-[600] w-80 rounded-lg border border-[#1e293b] bg-[#090d16]/95 p-4 shadow-2xl backdrop-blur">
+    <div className="absolute right-3 top-3 z-[1001] max-h-[calc(100%-24px)] overflow-y-auto w-80 rounded-lg border border-[#1e293b] bg-[#090d16]/95 p-4 shadow-2xl backdrop-blur">
       <div className="flex items-start gap-2">
         <span className="mt-0.5 text-amber-300">
           <GraduationCap size={18} />
