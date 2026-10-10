@@ -84,8 +84,8 @@ function TabSwitcher({ activeTab, onTabChange }) {
           >
             {t.label}
             {t.key === "camera" && (
-              <span className="rounded-full bg-amber-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-amber-300">
-                Chờ clip
+              <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300">
+                Live AI
               </span>
             )}
           </button>

@@ -16,3 +16,12 @@ Thumbs.db
 *.png
 preview-*.html
 *.pdf
+*.pt
+
+# Raw offline video recording (large ~400MB, YOLO extraction source only)
+vid/
+
+# Python cache
+__pycache__/
+*.pyc
+
