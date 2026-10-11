@@ -490,3 +490,113 @@ export function seekSim(sim, targetSec) {
   }
   return sim;
 }
+
+export function applyPresetVehicles(sim, key) {
+  const targetKey = !key || key === "custom" ? "paradox" : key;
+  resetCorridorSim(sim);
+
+  if (targetKey === "paradox") {
+    for (let i = 0; i < 26; i++) {
+      const col = i % 3;
+      const row = Math.floor(i / 3);
+      spawnVehicle(sim, { approach: "west", type: "moto", x: 205 - row * 16, y: 162 + col * 8 });
+    }
+    for (let i = 0; i < 12; i++) {
+      spawnVehicle(sim, {
+        approach: "north1",
+        type: "moto",
+        x: 231 + ((i % 3) - 1) * 4,
+        y: 130 - Math.floor(i / 3) * 11,
+      });
+    }
+    for (let i = 0; i < 6; i++) {
+      spawnVehicle(sim, {
+        approach: "south1",
+        type: "moto",
+        x: 250 + ((i % 2) - 0.5) * 6,
+        y: 195 + i * 14,
+      });
+    }
+    for (let i = 0; i < 4; i++) {
+      spawnVehicle(sim, {
+        approach: "corridor",
+        type: "moto",
+        x: 520 - i * 10,
+        y: 168 + (i % 2) * 6,
+      });
+    }
+    for (let i = 0; i < 6; i++) {
+      spawnVehicle(sim, {
+        approach: "north2",
+        type: "moto",
+        x: 550 + ((i % 2) - 0.5) * 6,
+        y: 125 - Math.floor(i / 2) * 12,
+      });
+    }
+    for (let i = 0; i < 2; i++) {
+      spawnVehicle(sim, {
+        approach: "south2",
+        type: "car",
+        x: 570,
+        y: 205 + i * 28,
+      });
+    }
+  } else if (targetKey === "corridor_jam") {
+    for (let i = 0; i < 6; i++) {
+      spawnVehicle(sim, { approach: "corridor", type: "truck", x: 500 - i * 42, y: 170 });
+    }
+    for (let i = 0; i < 4; i++) {
+      spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 36, y: 170 });
+    }
+    for (let i = 0; i < 4; i++) {
+      spawnVehicle(sim, { approach: "north1", type: "car", y: 120 - i * 25 });
+    }
+    for (let i = 0; i < 4; i++) {
+      spawnVehicle(sim, { approach: "north2", type: "car", y: 120 - i * 25 });
+    }
+    for (let i = 0; i < 6; i++) {
+      spawnVehicle(sim, { approach: "south2", type: "moto", y: 200 + i * 12 });
+    }
+  } else if (targetKey === "balanced") {
+    for (let i = 0; i < 4; i++) {
+      spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 32, y: 170 });
+    }
+    for (let i = 0; i < 8; i++) {
+      spawnVehicle(sim, { approach: "west", type: "moto", x: 65 - i * 8, y: 170 });
+    }
+    for (let i = 0; i < 6; i++) {
+      spawnVehicle(sim, {
+        approach: "north1",
+        type: "moto",
+        x: i % 2 === 0 ? 227 : 237,
+        y: 125 - Math.floor(i / 2) * 14,
+      });
+    }
+    for (let i = 0; i < 4; i++) {
+      spawnVehicle(sim, { approach: "corridor", type: "car", x: 480 - i * 40, y: 170 });
+    }
+    for (let i = 0; i < 6; i++) {
+      spawnVehicle(sim, {
+        approach: "north2",
+        type: "moto",
+        x: 550 + ((i % 2) - 0.5) * 6,
+        y: 125 - Math.floor(i / 2) * 14,
+      });
+    }
+    for (let i = 0; i < 4; i++) {
+      spawnVehicle(sim, {
+        approach: "south2",
+        type: "moto",
+        x: 570 + ((i % 2) - 0.5) * 6,
+        y: 195 + i * 14,
+      });
+    }
+  }
+
+  recalculateNode(sim, 1);
+  recalculateNode(sim, 2);
+  sim.nodes.node1.timeRemaining = sim.nodes.node1.g1;
+  sim.nodes.node2.timeRemaining = sim.nodes.node2.g1;
+  sim.initialVehicles = sim.vehicles.map((v) => ({ ...v }));
+  sim.initialThroughput = sim.throughput ?? 0;
+}

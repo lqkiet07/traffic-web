@@ -6,6 +6,7 @@ import LabAnalysisPanel from "./LabAnalysisPanel.jsx";
 import {
   VEHICLE_SPECS,
   advanceSimStep,
+  applyPresetVehicles,
   createCorridorSim,
   getAlgorithmStepData,
   getCorridorTelemetry,
@@ -27,58 +28,6 @@ function spawnBatchVehicles(sim, approach, type, count) {
     else if (approach === "north2") y = Math.max(0, 120 - spacing);
     spawnVehicle(sim, { approach, type, x, y });
   }
-}
-
-function applyPresetVehicles(sim, key) {
-  const targetKey = (!key || key === "custom") ? "paradox" : key;
-  resetCorridorSim(sim);
-  if (targetKey === "paradox") {
-    // West 26-moto swarming cluster in 3 lanes, dense without lane discipline
-    for (let i = 0; i < 26; i++) {
-      const col = i % 3;
-      const row = Math.floor(i / 3);
-      spawnVehicle(sim, { approach: "west", type: "moto", x: 205 - row * 16, y: 162 + col * 8 });
-    }
-    // North1 motos use staggered lane around x231 for gap filling
-    for (let i = 0; i < 12; i++) spawnVehicle(sim, {
-      approach: "north1",
-      type: "moto",
-      x: 231 + ((i % 3) - 1) * 4,
-      y: 130 - Math.floor(i / 3) * 11,
-    });
-    // South1 motos use staggered lane around x250 for cross occlusion
-    for (let i = 0; i < 6; i++) spawnVehicle(sim, {
-      approach: "south1",
-      type: "moto",
-      x: 250 + ((i % 2) - 0.5) * 6,
-      y: 195 + i * 14,
-    });
-  } else if (targetKey === "corridor_jam") {
-    // Corridor trucks use EW lane y170 to show link saturation
-    for (let i = 0; i < 6; i++) spawnVehicle(sim, { approach: "corridor", type: "truck", x: 500 - i * 42, y: 170 });
-    // West cars use EW lane y170 as competing inflow queue
-    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 36, y: 170 });
-    // North1 cross-traffic ensures Phase 2 has active demand so Node 1 cuts Phase 1 to 10s
-    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "north1", type: "car", y: 120 - i * 25 });
-  } else if (targetKey === "balanced") {
-    // Balanced EW flows share lane y170 for consistent rendering
-    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "west", type: "car", x: 170 - i * 32, y: 170 });
-    for (let i = 0; i < 8; i++) spawnVehicle(sim, { approach: "west", type: "moto", x: 65 - i * 8, y: 170 });
-    for (let i = 0; i < 4; i++) spawnVehicle(sim, { approach: "corridor", type: "car", x: 480 - i * 40, y: 170 });
-    // North1 motos queue in 2 lanes to avoid overlap
-    for (let i = 0; i < 6; i++) spawnVehicle(sim, {
-      approach: "north1",
-      type: "moto",
-      x: i % 2 === 0 ? 227 : 237,
-      y: 125 - Math.floor(i / 2) * 14,
-    });
-  }
-  recalculateNode(sim, 1);
-  recalculateNode(sim, 2);
-  sim.nodes.node1.timeRemaining = sim.nodes.node1.g1;
-  sim.nodes.node2.timeRemaining = sim.nodes.node2.g1;
-  sim.initialVehicles = sim.vehicles.map((v) => ({ ...v }));
-  sim.initialThroughput = sim.throughput ?? 0;
 }
 
 function syncSimState(sim, setTelemetry) {
