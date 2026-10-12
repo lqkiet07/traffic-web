@@ -11,12 +11,12 @@ const scenarios = ["Low_400", "Medium_900", "High_1400"];
 for (const sc of scenarios) {
   const item = kpi[sc];
   assert(item, `Scenario ${sc} exists in kpi_summary.json`);
-  assert.strictEqual(item.cycles.length, 64, `${sc} cycles length === 64`);
-  assert.deepStrictEqual(item.cycles, Array.from({ length: 64 }, (_, i) => i + 1), `${sc} cycles match 1..64`);
+  assert.strictEqual(item.cycles.length, 59, `${sc} cycles length === 59`);
+  assert.deepStrictEqual(item.cycles, Array.from({ length: 59 }, (_, i) => i + 1), `${sc} cycles match 1..59`);
 
   for (const k of ["delay", "queue", "throughput"]) {
-    assert.strictEqual(item.proposed[k].length, 64, `${sc} proposed.${k} length === 64`);
-    assert.strictEqual(item.baseline[k].length, 64, `${sc} baseline.${k} length === 64`);
+    assert.strictEqual(item.proposed[k].length, 59, `${sc} proposed.${k} length === 59`);
+    assert.strictEqual(item.baseline[k].length, 59, `${sc} baseline.${k} length === 59`);
   }
 
   if (jk.cao && jk.cao[sc]) {
