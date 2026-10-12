@@ -314,6 +314,9 @@ export function spawnVehicle(sim, options) {
     width: spec.width,
     area: spec.area,
     stopLine: cfg.stopLine,
+    baseX: options.x ?? cfg.x,
+    baseY: options.y ?? cfg.y,
+    laneShift: 0,
   };
 
   sim.vehicles.push(vehicle);
@@ -333,9 +336,10 @@ function updateSignals(sim, dt) {
         recalculateNode(sim, node);
         node.timeRemaining = node.g1;
       }
+      node.isYellow = false;
+    } else {
+      node.isYellow = Boolean(node.isYellow || (node.timeRemaining <= 3 && node.timeRemaining > 0));
     }
-    // Display-only yellow hint for renderers, timing unchanged
-    node.isYellow = node.timeRemaining <= 3 && node.timeRemaining > 0;
   }
 }
 
@@ -353,8 +357,9 @@ function getLeadingDistance(v, sim) {
   let minGap = Infinity;
   for (const other of sim.vehicles) {
     if (other === v || other.direction !== v.direction) continue;
-    // Narrow lane allows staggered moto swarm to overlap longitudinally
-    const lateralThresh = v.type === "moto" && other.type === "moto" ? 7 : 18;
+    const lateralThresh = v.type === "moto"
+      ? (v.laneShift !== 0 ? 5 : (other.type === "moto" ? 7 : 18))
+      : 18;
     let gap = Infinity;
     if (v.direction === "east" && Math.abs(other.y - v.y) < lateralThresh && other.x > v.x) {
       gap = other.x - v.x - (other.length / 2 + v.length / 2);
@@ -370,33 +375,104 @@ function getLeadingDistance(v, sim) {
 
 function computeVehicleMotion(sim, v, dt) {
   const active = getActiveStop(sim, v);
-  const red = active.node
-    ? (active.node.phase === 1 ? v.direction !== "east" : v.direction === "east")
+  const approachingGreenPhase = active.node
+    ? (active.node.phase === 1 ? v.direction === "east" : v.direction !== "east")
     : false;
-  const gap = getLeadingDistance(v, sim);
-  let distToStop = Infinity;
+  const red = active.node ? !approachingGreenPhase : false;
+  const yellow = Boolean(active.node?.isYellow && approachingGreenPhase);
 
+  let distToStop = Infinity;
   if (v.direction === "east") distToStop = active.stopLine - v.x;
   else if (v.direction === "south") distToStop = active.stopLine - v.y;
   else if (v.direction === "north") distToStop = v.y - active.stopLine;
 
-  const mustStopAtSignal = red && distToStop > 0 && distToStop <= 20;
-  const leadBlocked = gap < 12;
+  const gap = getLeadingDistance(v, sim);
+
+  if (v.type === "moto" && v.laneShift === 0 && (gap < 14 || (red && distToStop > 0 && distToStop <= 40))) {
+    const offsets = [6, -6];
+    for (const offset of offsets) {
+      let free = true;
+      if (v.direction === "east") {
+        const candY = v.baseY + offset;
+        if (candY < 162 || candY > 178) {
+          free = false;
+        } else {
+          for (const other of sim.vehicles) {
+            if (other === v) continue;
+            if (Math.abs(other.y - candY) < 5 && Math.abs(other.x - v.x) < 18) {
+              free = false;
+              break;
+            }
+          }
+        }
+      } else {
+        const candX = v.baseX + offset;
+        if (candX < v.baseX - 8 || candX > v.baseX + 8) {
+          free = false;
+        } else {
+          for (const other of sim.vehicles) {
+            if (other === v) continue;
+            if (Math.abs(other.x - candX) < 5 && Math.abs(other.y - v.y) < 18) {
+              free = false;
+              break;
+            }
+          }
+        }
+      }
+      if (free) {
+        v.laneShift = offset;
+        break;
+      }
+    }
+  }
+
+  if (v.laneShift !== 0) {
+    v.currentShift = (v.currentShift ?? 0) + (v.laneShift - (v.currentShift ?? 0)) * Math.min(1, 10 * dt);
+    if (v.direction === "east") {
+      v.y = v.baseY + v.currentShift;
+    } else {
+      v.x = v.baseX + v.currentShift;
+    }
+  }
+
+  if (v.type === "moto" && v.speed > 5) {
+    const drift = Math.sin(sim.time * 3 + v.id * 1.5) * 0.8;
+    if (v.direction === "east") {
+      v.y = Math.max(162, Math.min(178, (v.baseY + (v.currentShift ?? v.laneShift)) + drift));
+    } else {
+      v.x = Math.max(v.baseX - 8, Math.min(v.baseX + 8, (v.baseX + (v.currentShift ?? v.laneShift)) + drift));
+    }
+  }
+
+  if (yellow && distToStop > 25 && distToStop <= 80) {
+    v.speed = Math.max(0, v.speed - 35 * dt);
+  }
+
+  const mustStopAtSignal =
+    (red && distToStop > 0 && distToStop <= 20) ||
+    (yellow && distToStop > 0 && distToStop <= 25 && v.speed < 15);
+
+  const effectiveGap = getLeadingDistance(v, sim);
+  const leadBlocked = effectiveGap < 12;
 
   if (mustStopAtSignal || leadBlocked) {
     v.speed = 0;
     return;
   }
 
-  const speedCap = gap < 25 ? Math.min(v.maxSpeed, Math.max(0, (gap - 10) * 2)) : v.maxSpeed;
-  v.speed = Math.min(speedCap, v.speed + 20 * dt);
+  if (!(yellow && distToStop > 25 && distToStop <= 80)) {
+    const speedCap = effectiveGap < 25 ? Math.min(v.maxSpeed, Math.max(0, (effectiveGap - 10) * 2)) : v.maxSpeed;
+    v.speed = Math.min(speedCap, v.speed + 20 * dt);
+  }
 
-  const maxTravel = red && distToStop > 0 ? Math.min(v.speed * dt, Math.max(0, distToStop - 1)) : v.speed * dt;
+  const stopping = (red || (yellow && v.speed < 15)) && distToStop > 0;
+  const maxTravel = stopping ? Math.min(v.speed * dt, Math.max(0, distToStop - 1)) : v.speed * dt;
+
   if (v.direction === "east") v.x += maxTravel;
   else if (v.direction === "south") v.y += maxTravel;
   else if (v.direction === "north") v.y -= maxTravel;
 
-  if (red && distToStop > 0 && (distToStop - maxTravel <= 1 || distToStop <= 20)) {
+  if (stopping && (distToStop - maxTravel <= 1 || distToStop <= 20)) {
     v.speed = 0;
   }
 }
@@ -589,6 +665,40 @@ export function applyPresetVehicles(sim, key) {
         type: "moto",
         x: 570 + ((i % 2) - 0.5) * 6,
         y: 195 + i * 14,
+      });
+    }
+  } else if (targetKey === "heterogeneous") {
+    spawnVehicle(sim, { approach: "west", type: "truck", x: 175, y: 170 });
+    for (let i = 0; i < 6; i++) {
+      spawnVehicle(sim, {
+        approach: "north1",
+        type: "moto",
+        x: i % 2 === 0 ? 228 : 236,
+        y: 125 - Math.floor(i / 2) * 12,
+      });
+    }
+    for (let i = 0; i < 6; i++) {
+      spawnVehicle(sim, {
+        approach: "south1",
+        type: "moto",
+        x: i % 2 === 0 ? 247 : 255,
+        y: 195 + Math.floor(i / 2) * 12,
+      });
+    }
+    for (let i = 0; i < 4; i++) {
+      spawnVehicle(sim, {
+        approach: "north2",
+        type: "moto",
+        x: 550 + ((i % 2) - 0.5) * 6,
+        y: 125 - Math.floor(i / 2) * 12,
+      });
+    }
+    for (let i = 0; i < 4; i++) {
+      spawnVehicle(sim, {
+        approach: "south2",
+        type: "moto",
+        x: 570 + ((i % 2) - 0.5) * 6,
+        y: 195 + Math.floor(i / 2) * 12,
       });
     }
   }

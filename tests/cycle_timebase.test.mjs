@@ -1,6 +1,6 @@
 // tests/cycle_timebase.test.mjs
 import assert from "node:assert";
-import { kpiIndexForTime, chartCycleForTime, isStubChunk } from "../src/lib/data.js";
+import { kpiIndexForTime, chartCycleForTime, isStubChunk, interpolateVehicles } from "../src/lib/data.js";
 
 assert.strictEqual(kpiIndexForTime(0, 64), 0, "t=0 first row");
 assert.strictEqual(kpiIndexForTime(119.9, 64), 0, "inside cycle 1");
@@ -16,5 +16,10 @@ assert.strictEqual(chartCycleForTime(65 * 120, 64), 64, "overflow clamps, never 
 assert.strictEqual(isStubChunk([]), true, "empty is stub");
 assert.strictEqual(isStubChunk([{ time: 0 }]), true, "single frame is stub");
 assert.strictEqual(isStubChunk([{ time: 0 }, { time: 2 }]), false, "two frames play");
+
+const dummyFrames = [{ time: 0, vehicles: [["v1", 0, 10, 10, 5, 0]] }];
+assert.deepStrictEqual(interpolateVehicles(dummyFrames, NaN), [], "NaN simTime must return []");
+assert.deepStrictEqual(interpolateVehicles(dummyFrames, Infinity), [], "Infinity simTime must return []");
+assert.deepStrictEqual(interpolateVehicles(dummyFrames, null), [], "null simTime must return []");
 
 console.log("[cycle_timebase.test] all assertions passed");

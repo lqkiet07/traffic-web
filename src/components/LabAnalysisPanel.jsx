@@ -22,6 +22,11 @@ const PRESET_OPTIONS = [
     label: "Cân bằng",
     activeClass: "bg-sky-500/20 text-sky-300 ring-1 ring-sky-500",
   },
+  {
+    key: "heterogeneous",
+    label: "Dòng xe dị thể (1 Tải vs 12 Máy)",
+    activeClass: "bg-purple-500/20 text-purple-300 ring-1 ring-purple-500",
+  },
 ];
 
 function TelemetryCell({ label, value, badgeText, badgeTone, subtext }) {
@@ -236,6 +241,22 @@ export function LabSpawnerDock({ selectedType, onSelectType, onBatchSpawn, onCle
 }
 
 function WhyBoxMessage({ algo, isBackpressure, phiCorridor, n1P1, n1P2, activeScenario }) {
+  if (activeScenario === "heterogeneous") {
+    if (algo === "baseline") {
+      return (
+        <div className="space-y-1.5 text-xs text-slate-300">
+          <div>• <strong>Nghịch lý đếm xe dị thể:</strong> 1 xe tải (18 m²) bị coi ngang 1 xe máy (1.5 m²). Baseline đếm 1 vs 12 đầu xe nên cắt nhịp Pha 1 xuống chỉ còn 17s-22s, ép xe tải dừng kẹt vô lý.</div>
+          <div>• <strong>Thiệt hại dòng xe:</strong> Phương tiện tải trọng lớn tiêu hao thời gian khởi động lâu và chiếm dụng không gian lớn bị dồn ứ dù áp lực giao thông hai hướng tương đương.</div>
+        </div>
+      );
+    }
+    return (
+      <div className="space-y-1.5 text-xs text-slate-300">
+        <div>• <strong>Cân bằng tải dị thể (CAO):</strong> 1 xe tải (18 m²) chiếm 12% diện tích mặt đường, ngang bằng 12 xe máy (18 m²). CAO nhận định chính xác áp lực φ₁ = φ₂ = 0.12, phân bổ nhịp xanh hoàn hảo 56s / 56s.</div>
+        <div>• <strong>Công bằng theo diện tích (Eq. 1):</strong> Trọng số hóa phương tiện theo m² thực tế giúp giải quyết triệt để sự mất cân xứng kích thước trong dòng giao thông hỗn hợp Việt Nam.</div>
+      </div>
+    );
+  }
   if (algo === "baseline") {
     return (
       <div className="space-y-1.5 text-xs text-slate-300">

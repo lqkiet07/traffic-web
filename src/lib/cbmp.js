@@ -82,4 +82,39 @@ export const PRESETS = {
     p1: { moto: 20, car: 10, truck: 5 },
     p2: { moto: 0, car: 0, truck: 0 },
   },
+  heterogeneous: {
+    desc: "1 xe tải (18 m²) đối đầu 12 xe máy (18 m²). Baseline đếm xe thiên vị 1 vs 12 (17s-22s vs 90s-95s xanh), ép xe tải dừng chờ vô lý. CAO nhận định đúng áp lực diện tích cân bằng, chia đều 56s / 56s.",
+    p1: { moto: 0, car: 0, truck: 1 },
+    p2: { moto: 12, car: 0, truck: 0 },
+  },
 };
+
+export function computeLiveCameraSignalSplit(frame, options = {}) {
+  const phi1 = Number.isFinite(frame?.occupancy_phi) ? frame.occupancy_phi : 0.48;
+  const bboxCount1 = Number.isFinite(frame?.bbox_count) ? frame.bbox_count : 8;
+  const gtCount1 = Number.isFinite(frame?.ground_truth_count) ? frame.ground_truth_count : 26;
+
+  const phi2 = options.refPhi2 ?? 0.35;
+  const refCount2 = options.refCount2 ?? 14;
+
+  const gamma1 = computePressure(phi1, 0);
+  const gamma2 = computePressure(phi2, 0);
+  const cao = allocateCbmpGreen(gamma1, gamma2);
+
+  const baseline = allocateBaselineGreen(bboxCount1, refCount2);
+  const groundTruth = allocateBaselineGreen(gtCount1, refCount2);
+
+  const deltaGreen = cao.g1 - baseline.g1;
+
+  return {
+    phi1,
+    phi2,
+    bboxCount1,
+    gtCount1,
+    refCount2,
+    cao,
+    baseline,
+    groundTruth,
+    deltaGreen,
+  };
+}

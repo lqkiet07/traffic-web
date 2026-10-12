@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
-import { Grid3x3, ScanEye } from "lucide-react";
+import { AlertTriangle, Grid3x3, ScanEye, SlidersHorizontal } from "lucide-react";
 import { applyHomography } from "../lib/homography.js";
+import { computeLiveCameraSignalSplit } from "../lib/cbmp.js";
 
 function drawRoundedRect(ctx, x, y, w, h, r) {
   ctx.beginPath();
@@ -188,13 +189,93 @@ function IpmComparisonCards({ bboxCount, occlusionPct, phi, area }) {
   );
 }
 
+function LiveSignalAllocation({ activeFrame }) {
+  const split = computeLiveCameraSignalSplit(activeFrame);
+  const { cao, baseline, deltaGreen, phi1, bboxCount1, gtCount1 } = split;
+
+  const caoP1Pct = Math.round((cao.g1 / 112) * 100);
+  const baseP1Pct = Math.round((baseline.g1 / 112) * 100);
+
+  return (
+    <div className="mt-2.5 rounded-lg border border-[#1e293b] bg-slate-900/60 p-2.5 font-mono text-[11px]">
+      <div className="mb-2 flex items-center justify-between border-b border-[#1e293b] pb-1.5">
+        <span className="flex items-center gap-1.5 font-semibold text-slate-200">
+          <SlidersHorizontal size={13} className="text-emerald-400" />
+          Phân bổ nhịp xanh Live (Digital Twin)
+        </span>
+        <span className="text-[10px] text-slate-400">Chu kỳ 120s (G=112s, Y=8s)</span>
+      </div>
+
+      <div className="mb-2 grid grid-cols-2 gap-1.5 text-[10px]">
+        <div className="rounded bg-slate-950/60 p-1.5">
+          <div className="text-slate-400">Pha 1 (Trục Camera)</div>
+          <div className="mt-0.5 font-bold text-slate-200">
+            φ₁ = {phi1.toFixed(2)} · Bbox: {bboxCount1} xe
+          </div>
+        </div>
+        <div className="rounded bg-slate-950/60 p-1.5">
+          <div className="text-slate-400">Pha 2 (Nhánh cắt ngang)</div>
+          <div className="mt-0.5 font-bold text-slate-400">
+            φ₂ = 0.35 · Ref: 14 xe
+          </div>
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="mb-1 flex items-center justify-between text-[10px]">
+          <span className="font-semibold text-emerald-400">CAO (Theo diện tích φ)</span>
+          <span className="tabular-nums text-emerald-300">
+            P1: {cao.g1}s ({caoP1Pct}%) · P2: {cao.g2}s
+          </span>
+        </div>
+        <div className="flex h-2 w-full overflow-hidden rounded-full bg-slate-800">
+          <div
+            className="h-full bg-emerald-500 transition-all duration-150"
+            style={{ width: `${caoP1Pct}%` }}
+          />
+          <div className="h-full flex-1 bg-slate-700" />
+        </div>
+      </div>
+
+      <div className="mb-2">
+        <div className="mb-1 flex items-center justify-between text-[10px]">
+          <span className="font-semibold text-rose-400">Baseline (Đếm xe Bbox hụt)</span>
+          <span className="tabular-nums text-rose-300">
+            P1: {baseline.g1}s ({baseP1Pct}%) · P2: {baseline.g2}s
+          </span>
+        </div>
+        <div className="flex h-2 w-full overflow-hidden rounded-full bg-slate-800">
+          <div
+            className="h-full bg-rose-500 transition-all duration-150"
+            style={{ width: `${baseP1Pct}%` }}
+          />
+          <div className="h-full flex-1 bg-slate-700" />
+        </div>
+      </div>
+
+      {deltaGreen > 0 ? (
+        <div className="flex items-start gap-1.5 rounded border border-amber-500/30 bg-amber-950/20 p-1.5 text-[10px] text-amber-300">
+          <AlertTriangle size={13} className="shrink-0 text-amber-400 mt-0.5" />
+          <span>
+            Baseline cắt hụt <strong className="text-amber-200">+{deltaGreen}s xanh</strong> do bỏ sót {gtCount1 - bboxCount1} xe máy bị che khuất. CAO diện tích cấp đủ nhịp xả giải phóng ùn ứ.
+          </span>
+        </div>
+      ) : (
+        <div className="rounded border border-slate-700/40 bg-slate-950/40 p-1.5 text-center text-[10px] text-slate-400">
+          Lưu lượng thấp hoặc hai pha cân bằng: Chênh lệch nhịp {deltaGreen}s.
+        </div>
+      )}
+    </div>
+  );
+}
+
 export function IpmZone({ activeFrame, metadata, currentTime = 0 }) {
   const roadArea = metadata?.roadAreaM2 ?? 150;
   const homography = metadata?.homography;
   const vehicles = activeFrame?.vehicles ?? [];
-  const phi = activeFrame?.occupancy_phi ?? 0.48;
-  const bboxCount = activeFrame?.bbox_count ?? vehicles.length;
-  const gtCount = activeFrame?.ground_truth_count ?? 26;
+  const phi = Number.isFinite(activeFrame?.occupancy_phi) ? activeFrame.occupancy_phi : 0.48;
+  const bboxCount = Number.isFinite(activeFrame?.bbox_count) ? activeFrame.bbox_count : vehicles.length;
+  const gtCount = Number.isFinite(activeFrame?.ground_truth_count) ? activeFrame.ground_truth_count : 26;
   const occlusionPct = gtCount > 0 ? Math.round(((gtCount - bboxCount) / gtCount) * 100) : 40;
   const area = phi * roadArea;
 
@@ -217,6 +298,7 @@ export function IpmZone({ activeFrame, metadata, currentTime = 0 }) {
         phi={phi}
         area={area}
       />
+      <LiveSignalAllocation activeFrame={activeFrame} />
     </section>
   );
 }

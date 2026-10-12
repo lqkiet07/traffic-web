@@ -122,7 +122,7 @@ export default function JunctionInspector({ junction, signals, localKpi, scenari
   }, [junction]);
   if (!junction) return <HintChip />;
   if (!open) return <CollapsedChip code={junction.code} onExpand={() => setOpen(true)} />;
-  const sig = getGamaSignal(signals[junction.code], globalSimTime, offsetS);
+  const sig = getGamaSignal(signals?.[junction.code], globalSimTime, offsetS);
   const g1 = sig.split?.g1 ?? 56;
   const g2 = sig.split?.g2 ?? 56;
   const phase = sig.activePhase;

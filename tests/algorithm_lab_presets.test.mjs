@@ -62,4 +62,38 @@ import {
   );
 }
 
+// Check heterogeneous scenario: 1 truck (18m2) vs 12 motos (18m2).
+// CAO sees equal area occupancy -> 56s / 56s.
+// Baseline count-based sees 1 vs 12 (or 7 visible under occlusion) -> heavily biases phase 2 (g1 <= 25s, g2 >= 87s).
+{
+  const simCao = createCorridorSim({ algo: "cao" });
+  applyPresetVehicles(simCao, "heterogeneous");
+  const simBase = createCorridorSim({ algo: "baseline" });
+  applyPresetVehicles(simBase, "heterogeneous");
+
+  assert.strictEqual(simCao.nodes.node1.g1, 56, "CAO should allocate balanced 56s green for equal area");
+  assert.strictEqual(simCao.nodes.node1.g2, 56, "CAO should allocate balanced 56s green for equal area");
+  assert.ok(
+    simBase.nodes.node1.g1 <= 25,
+    `Baseline should heavily penalize single truck (g1 = ${simBase.nodes.node1.g1} <= 25s)`
+  );
+  assert.ok(
+    simBase.nodes.node1.g2 >= 87,
+    `Baseline should give lion's share to motorcycles (g2 = ${simBase.nodes.node1.g2} >= 87s)`
+  );
+  assert.ok(
+    simCao.vehicles.filter((v) => v.node === 1).length >= 13,
+    "Node 1 should have 1 truck + 12 motos in heterogeneous preset"
+  );
+  assert.ok(
+    simCao.vehicles.filter((v) => v.node === 2).length > 0,
+    "Node 2 should have vehicles populated in heterogeneous preset"
+  );
+  const n2Step = getAlgorithmStepData(simCao, 2);
+  assert.ok(
+    n2Step.step4.p1Count > 0 || n2Step.step4.p2Count > 0,
+    "Node 2 step data should reflect vehicles"
+  );
+}
+
 console.log("[algorithm_lab_presets.test] all assertions passed");

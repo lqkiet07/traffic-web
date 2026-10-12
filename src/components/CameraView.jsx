@@ -37,11 +37,14 @@ export function formatTimestamp(totalSeconds) {
   return `${mm}:${ss}`;
 }
 
-export function findClosestFrame(frames, currentTime) {
+export function findClosestFrame(frames, currentTime, videoDuration = 0) {
   if (!Array.isArray(frames) || frames.length === 0) return null;
   let effectiveTime = currentTime;
   if (frames.length > 1) {
     const maxTime = frames[frames.length - 1]?.time ?? 0;
+    if (maxTime > 0 && currentTime >= maxTime && videoDuration > maxTime && currentTime <= videoDuration) {
+      return frames[frames.length - 1];
+    }
     if (maxTime > 0 && currentTime > maxTime) {
       const rem = currentTime % maxTime;
       effectiveTime = rem === 0 ? maxTime : rem;
@@ -695,8 +698,8 @@ function useCameraPlayer(metadata) {
   useVideoSync(videoRef, isPlaying, isScrubbing, setCurrentTime);
 
   const activeFrame = useMemo(
-    () => findClosestFrame(metadata.frames, currentTime),
-    [metadata.frames, currentTime]
+    () => findClosestFrame(metadata.frames, currentTime, metadata?.video?.duration),
+    [metadata.frames, currentTime, metadata?.video?.duration]
   );
 
   const onTogglePlay = useCallback(() => {

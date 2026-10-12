@@ -139,7 +139,7 @@ export function lerpAngle(a, b, r) {
  * Pass prebuilt per-frame id->vehicle maps to skip Map allocation (60fps path).
  */
 export function interpolateVehicles(frames, simTime, maps = null) {
-  if (!frames || frames.length === 0) return [];
+  if (!frames || frames.length === 0 || !Number.isFinite(simTime)) return [];
   if (simTime <= frames[0].time) return frames[0].vehicles;
   const last = frames[frames.length - 1];
   if (simTime >= last.time) return last.vehicles;

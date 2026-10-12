@@ -17,11 +17,14 @@ function formatTimestamp(totalSeconds) {
   return `${mm}:${ss}`;
 }
 
-function findClosestFrame(frames, currentTime) {
+function findClosestFrame(frames, currentTime, videoDuration = 0) {
   if (!Array.isArray(frames) || frames.length === 0) return null;
   let effectiveTime = currentTime;
   if (frames.length > 1) {
     const maxTime = frames[frames.length - 1]?.time ?? 0;
+    if (maxTime > 0 && currentTime >= maxTime && videoDuration > maxTime && currentTime <= videoDuration) {
+      return frames[frames.length - 1];
+    }
     if (maxTime > 0 && currentTime > maxTime) {
       const rem = currentTime % maxTime;
       effectiveTime = rem === 0 ? maxTime : rem;
@@ -75,5 +78,9 @@ assert.strictEqual(fExactMultiple.time, maxTime);
 
 const fBeyond = findClosestFrame(frames, maxTime + 2.0);
 assert.strictEqual(fBeyond.time, 2.0);
+
+// 5. Video tail clamping when currentTime is between maxTime and videoDuration
+const fTail = findClosestFrame(frames, 193.3, 193.3);
+assert.strictEqual(fTail.time, maxTime, "Video tail should clamp to last frame instead of modulo wrap");
 
 console.log("[camera_player.test] all assertions passed");
