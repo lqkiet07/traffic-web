@@ -3,10 +3,11 @@ import L from "leaflet";
 import { Marker } from "react-leaflet";
 import { loadPoles, getGamaSignal } from "../lib/data.js";
 
-// Physical signal head: vertical 2-lamp box, active lamp glows.
+// Physical signal head: vertical 3-lamp box, active lamp glows.
 function SignalHead({ pole, state }) {
   const lamps = [
     ["red", "#ef4444", state === "red"],
+    ["yellow", "#f59e0b", state === "yellow"],
     ["green", "#10b981", state === "green"],
   ];
   const dots = lamps
@@ -75,7 +76,7 @@ const PHASE_DOT = ["#22c55e", "#38bdf8"];
 // watermark at close zoom where micro poles take the spotlight.
 export function JunctionLabel({ junction, signalsForJunction, globalSimTime, zoom, selected, onSelect, offsetS = 0, children }) {
   const sig = getGamaSignal(signalsForJunction, globalSimTime, offsetS);
-  const dot = sig ? PHASE_DOT[sig.activePhase] : "#64748b";
+  const dot = sig?.isYellow ? "#f59e0b" : sig ? PHASE_DOT[sig.activePhase] : "#64748b";
   const secs = sig ? Math.max(Math.ceil(sig.remaining), 0) : 0;
   const close = zoom >= 15;
   const icon = useMemo(

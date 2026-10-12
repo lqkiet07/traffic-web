@@ -6,7 +6,8 @@
 // getGamaSignal / kpiIndexForTime / chartCycleForTime.
 
 export const CYCLE_LEN = 120;
-export const GAMA_CYCLE_LEN = 112;
+export const YELLOW_TIME = 4;
+export const GAMA_CYCLE_LEN = 120;
 
 export const SCENARIOS = [
   { key: "Low_400", label: "Thấp · 400 vph" },
@@ -66,10 +67,10 @@ function mod(n, m) {
  * In GAMA, Cycle 1 always runs 56s Phase 1, 56s Phase 2.
  * For Cycle K >= 2, executes the green times logged in row cycle === K - 1.
  */
-export function getGamaSignal(signalsForJnc, globalSimTime, offsetS = 0) {
+export function getGamaSignal(signalsForJnc, globalSimTime, offsetS = 0, yellowTime = YELLOW_TIME) {
   const t = Math.max(0, globalSimTime + offsetS);
-  const gamaCycle = Math.floor(t / GAMA_CYCLE_LEN) + 1;
-  const tInCycle = t % GAMA_CYCLE_LEN;
+  const nominalCycle = 112 + 2 * yellowTime || GAMA_CYCLE_LEN;
+  const gamaCycle = Math.floor(t / nominalCycle) + 1;
 
   let split;
   if (gamaCycle <= 1) {
@@ -82,17 +83,46 @@ export function getGamaSignal(signalsForJnc, globalSimTime, offsetS = 0) {
 
   const g1 = Number(split.g1) || 56;
   const g2 = Number(split.g2) || 56;
-  const dur = g1 + g2 || GAMA_CYCLE_LEN;
-  const isPhase1 = tInCycle < g1;
-  const activePhase = isPhase1 ? 0 : 1;
-  const remaining = isPhase1 ? g1 - tInCycle : dur - tInCycle;
-  const axis1 = isPhase1 ? "green" : "red";
-  const axis2 = isPhase1 ? "red" : "green";
+  const totalCycle = g1 + yellowTime + g2 + yellowTime || nominalCycle;
+  const tInCycle = t % totalCycle;
+
+  let axis_1;
+  let axis_2;
+  let activePhase;
+  let isYellow;
+  let remaining;
+
+  if (tInCycle < g1) {
+    axis_1 = { state: "green", secs: g1 - tInCycle };
+    axis_2 = { state: "red", secs: g1 + yellowTime - tInCycle };
+    activePhase = 0;
+    isYellow = false;
+    remaining = g1 - tInCycle;
+  } else if (tInCycle < g1 + yellowTime) {
+    axis_1 = { state: "yellow", secs: g1 + yellowTime - tInCycle };
+    axis_2 = { state: "red", secs: g1 + yellowTime - tInCycle };
+    activePhase = 0;
+    isYellow = true;
+    remaining = g1 + yellowTime - tInCycle;
+  } else if (tInCycle < g1 + yellowTime + g2) {
+    axis_1 = { state: "red", secs: totalCycle - tInCycle };
+    axis_2 = { state: "green", secs: (g1 + yellowTime + g2) - tInCycle };
+    activePhase = 1;
+    isYellow = false;
+    remaining = (g1 + yellowTime + g2) - tInCycle;
+  } else {
+    axis_1 = { state: "red", secs: totalCycle - tInCycle };
+    axis_2 = { state: "yellow", secs: totalCycle - tInCycle };
+    activePhase = 1;
+    isYellow = true;
+    remaining = totalCycle - tInCycle;
+  }
 
   return {
-    axis_1: { state: axis1, secs: remaining },
-    axis_2: { state: axis2, secs: remaining },
+    axis_1,
+    axis_2,
     activePhase,
+    isYellow,
     remaining,
     split,
     gamaCycle,

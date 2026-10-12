@@ -48,7 +48,7 @@ function LocalKpiRow({ localKpi, scenario }) {
   );
 }
 
-function PhaseSplitBar({ g1, g2, gamaCycle, phase }) {
+function PhaseSplitBar({ g1, g2, gamaCycle, phase, isYellow }) {
   const p1 = (g1 / Math.max(g1 + g2, 1)) * 100;
   return (
     <div className="mt-3">
@@ -65,8 +65,10 @@ function PhaseSplitBar({ g1, g2, gamaCycle, phase }) {
         <div className="bg-rose-500" style={{ width: `${100 - p1}%` }} />
       </div>
       <p className="mt-1 font-mono text-[11px] tabular-nums text-slate-400">
-        CK{gamaCycle} · C={GAMA_CYCLE_LEN}s · Xanh:{" "}
-        <b className={phase === 0 ? "text-emerald-300" : "text-rose-300"}>Pha {phase + 1}</b>
+        CK{gamaCycle} · C={GAMA_CYCLE_LEN}s · {isYellow ? "Vàng" : "Xanh"}:{" "}
+        <b className={isYellow ? "text-amber-300" : phase === 0 ? "text-emerald-300" : "text-rose-300"}>
+          Pha {phase + 1}
+        </b>
       </p>
     </div>
   );
@@ -151,7 +153,7 @@ export default function JunctionInspector({ junction, signals, localKpi, scenari
           </button>
         </div>
       </div>
-      <PhaseSplitBar g1={g1} g2={g2} gamaCycle={gamaCycle} phase={phase} />
+      <PhaseSplitBar g1={g1} g2={g2} gamaCycle={gamaCycle} phase={phase} isYellow={sig.isYellow} />
       <LocalKpiRow localKpi={localKpi} scenario={scenario} />
       <WhyBox g1={g1} g2={g2} />
       {phaseTune && (
