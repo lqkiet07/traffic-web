@@ -1,4 +1,12 @@
-import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
+import {
+  Activity,
+  Pause,
+  Play,
+  RotateCcw,
+  SkipBack,
+  SkipForward,
+  SlidersHorizontal,
+} from "lucide-react";
 import { formatClock } from "../lib/data.js";
 
 const SPEEDS = [1, 2, 5];
@@ -134,24 +142,24 @@ export function ModeToggle({ simMode = "continuous", onToggleMode }) {
         onClick={() => {
           if (!isContinuous) onToggleMode?.("continuous");
         }}
-        className={`rounded-md px-3 py-1 text-xs transition-colors ${
+        className={`flex items-center rounded-md px-3 py-1 text-xs transition-colors ${
           isContinuous
             ? "bg-emerald-500 font-semibold text-slate-950"
             : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
         }`}
       >
-        ▶ Thời gian thực 60fps
+        <Activity size={13} className="mr-1.5 text-emerald-400" /> Thời gian thực (60 FPS)
       </button>
       <button
         type="button"
         onClick={() => onToggleMode?.("stepper")}
-        className={`rounded-md px-3 py-1 text-xs transition-colors ${
+        className={`flex items-center rounded-md px-3 py-1 text-xs transition-colors ${
           isStepper
             ? "bg-cyan-500 font-semibold text-slate-950"
             : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
         }`}
       >
-        🔍 Từng bước thuật toán (Stepper)
+        <SlidersHorizontal size={13} className="mr-1.5 text-slate-300" /> Từng bước thuật toán (Stepper)
       </button>
     </div>
   );
@@ -169,7 +177,7 @@ function StepperMotionWait() {
       type="button"
       disabled
       className="flex cursor-wait items-center gap-2 rounded-md border border-emerald-500/40 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-300 shadow-sm"
-      title="Xe đang nổ máy di chuyển vào vị trí..."
+      title="Phương tiện đang di chuyển vào vị trí..."
     >
       <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-emerald-400/40 border-t-emerald-300" />
       <span>Xe đang di chuyển...</span>
@@ -182,7 +190,7 @@ function StepperNextButton({ onNextStep }) {
     <button
       type="button"
       onClick={onNextStep}
-      className="flex items-center gap-1.5 rounded-md bg-emerald-500 px-3.5 py-1.5 text-xs font-bold text-slate-950 shadow-md transition-all hover:bg-emerald-400 active:scale-95"
+      className="flex items-center gap-1.5 rounded-md bg-emerald-500 px-3.5 py-1.5 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400"
       title="Sang bước tiếp theo của thuật toán"
     >
       <span>Bước tiếp theo</span>
@@ -207,10 +215,10 @@ export function StepperControls({
       <button
         type="button"
         onClick={() => onSetStep?.(1)}
-        className="rounded-md border border-[#1e293b] px-2.5 py-1.5 text-xs text-slate-300 transition-colors hover:bg-slate-800"
+        className="flex items-center rounded-md border border-[#1e293b] px-2.5 py-1.5 text-xs text-slate-300 transition-colors hover:bg-slate-800"
         title="Quay về bước 1"
       >
-        ↺ Đầu
+        <RotateCcw size={13} className="mr-1" /> Đầu chu kỳ
       </button>
       <button
         type="button"
@@ -225,10 +233,18 @@ export function StepperControls({
       <button
         type="button"
         onClick={onToggleAutoStep}
-        className={`rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${autoClass}`}
+        className={`flex items-center rounded-md border px-2.5 py-1.5 text-xs font-medium transition-colors ${autoClass}`}
         title={isAutoStepping ? "Dừng tự động chuyển bước" : "Tự động chuyển bước sau 3s"}
       >
-        {isAutoStepping ? "⏸ Dừng tự động" : "▶ Tự động (3s)"}
+        {isAutoStepping ? (
+          <>
+            <Pause size={13} className="mr-1" /> Tạm dừng
+          </>
+        ) : (
+          <>
+            <Play size={13} className="mr-1" /> Tự động (3s)
+          </>
+        )}
       </button>
     </div>
   );
@@ -319,9 +335,9 @@ export default function LabTransportBar(props) {
         <div className="flex items-center justify-between px-3 py-2 text-xs text-slate-400 bg-slate-900/60 rounded-lg border border-[#1e293b]">
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>🔍 Đang ở Bước [{props.currentStep}/5]</span>
+            <span>Đang ở Bước [{props.currentStep}/5]</span>
           </span>
-          <span className="text-cyan-400 font-mono text-[11px]">Điều khiển 5 bước & công thức toán ở cột bên phải 👉</span>
+          <span className="text-cyan-400 font-mono text-[11px]">Bảng điều khiển 5 bước và công thức chi tiết tại cột bên phải</span>
         </div>
       ) : (
         <ContinuousControls {...props} />

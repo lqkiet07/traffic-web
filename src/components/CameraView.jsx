@@ -382,7 +382,7 @@ function LayerCheckboxes({
           onChange={(e) => setShowRoi(e.target.checked)}
           className="h-3.5 w-3.5 rounded border-[#1e293b] bg-slate-900 accent-amber-500"
         />
-        <span>ROI Neo P1-P4</span>
+        <span>Điểm neo ROI (P1–P4)</span>
       </label>
     </div>
   );
@@ -414,7 +414,7 @@ function LayerToggles({
           onClick={() => setIsCalibrating((v) => !v)}
           className={`flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-xs transition ${
             isCalibrating
-              ? "border-purple-500 bg-purple-950/60 text-purple-200 shadow-sm shadow-purple-500/20"
+              ? "border-purple-500 bg-purple-950/60 text-purple-200"
               : "border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700 hover:text-slate-200"
           }`}
         >

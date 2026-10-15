@@ -17,6 +17,7 @@ Thumbs.db
 !docs/figures/*.png
 preview-*.html
 *.pdf
+*.docx
 *.pt
 
 # Raw offline video recording (large ~400MB, YOLO extraction source only)

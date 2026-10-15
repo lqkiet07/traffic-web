@@ -13,10 +13,10 @@ import {
 
 // Cinematic presets for AlgorithmLab (Task 6 UI selects these).
 export const CAMERA_PRESETS = {
-  overview: { pos: [0, 28, 30], look: [0, 0, 0] },
-  junction1: { pos: [-16, 14, 18], look: [-16, 0, 0] },
-  node2: { pos: [16, 14, 18], look: [16, 0, 0] },
-  corridor: { pos: [0, 16, 20], look: [0, 0, 0] },
+  overview: { pos: [0, 18, 22], look: [0, 0, 0] },
+  junction1: { pos: [-16, 11, 15], look: [-16, 0, 0] },
+  node2: { pos: [16, 11, 15], look: [16, 0, 0] },
+  corridor: { pos: [0, 12, 16], look: [0, 0, 0] },
   chase: { pos: null, look: null, dynamic: true },
 };
 
@@ -386,7 +386,7 @@ function makeTextBoard(px, py, pz) {
   const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: true });
   const sprite = new THREE.Sprite(mat);
   sprite.position.set(px, py, pz);
-  sprite.scale.set(7.5, 2.35, 1);
+  sprite.scale.set(5.5, 1.7, 1);
   return { sprite, canvas, ctx: canvas.getContext("2d"), tex };
 }
 
@@ -415,10 +415,9 @@ function paintBoard(board, input, defaultColor = "#10b981") {
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   if (data.title) {
-    // Uppercase title in near-white for max contrast.
     ctx.font = "bold 40px system-ui, sans-serif";
     ctx.fillStyle = "#f8fafc";
-    ctx.fillText(String(data.title).toUpperCase(), W / 2, 75);
+    ctx.fillText(String(data.title), W / 2, 75);
     // Metric pill grounds the reading under the title.
     ctx.fillStyle = "rgba(30,41,59,0.9)";
     ctx.beginPath();
@@ -510,7 +509,7 @@ function formatNorthSummary(stepData, sim, simMode, nodeId = 1) {
 
 // Two curbside HUD boards; west kept in frame at junction1 camera.
 function buildHudBoards(scene) {
-  const west = makeTextBoard(-21, 4.5, 6);
+  const west = makeTextBoard(-21, 4.5, -5);
   const north = makeTextBoard(-16, 4, -12);
   scene.add(west.sprite);
   scene.add(north.sprite);
@@ -589,7 +588,7 @@ function buildStep3Overlay(scene) {
 // Step4: floating phase split board near node1.
 function buildStep4Overlay(scene) {
   const group = new THREE.Group();
-  const board = makeTextBoard(-16, 5, 4);
+  const board = makeTextBoard(-16, 6.5, -4);
   paintBoard(board, "P1: 56 s | P2: 56 s");
   group.add(board.sprite);
   group.visible = false;
@@ -629,11 +628,14 @@ function positionOverlaysForNode(rig, nodeId) {
   rig.s3.b1.position.x = p.gammaBar1X;
   rig.s3.b2.position.x = p.gammaBar2X;
   rig.s4.board.sprite.position.x = p.phaseBoardX;
+  rig.s4.board.sprite.position.y = 6.5;
+  rig.s4.board.sprite.position.z = -4;
   rig.s5.releaseBoxes.forEach((box, i) => {
     box.position.x = p.releaseStartX + i * 2;
   });
   rig.s5.releaseHead.position.x = p.releaseHeadX;
   rig.hud.west.sprite.position.x = p.baseX - 5;
+  rig.hud.west.sprite.position.z = -5;
   rig.hud.north.sprite.position.x = p.baseX;
   rig.hud.north.sprite.position.z = p.inflowCrossZ - 4;
 }

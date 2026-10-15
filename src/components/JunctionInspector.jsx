@@ -7,7 +7,7 @@ function WhyBox({ g1, g2 }) {
   const smallT = Math.round(Math.min(g1, g2));
   const equal = bigT === smallT;
   const big = g1 >= g2 ? 1 : 2;
-  const color = big === 1 ? "text-emerald-300" : "text-rose-300";
+  const color = big === 1 ? "text-emerald-300" : "text-sky-300";
   return (
     <div className="mt-3 rounded-lg bg-slate-900 p-2.5 text-[12px] leading-relaxed text-slate-300">
       <b className="text-slate-100">Vì sao phân bổ như vậy?</b>
@@ -57,16 +57,16 @@ function PhaseSplitBar({ g1, g2, gamaCycle, phase, isYellow }) {
           Pha 1: <b className="font-mono tabular-nums text-emerald-300">{Math.round(g1)}s</b>
         </span>
         <span>
-          Pha 2: <b className="font-mono tabular-nums text-rose-300">{Math.round(g2)}s</b>
+          Pha 2: <b className="font-mono tabular-nums text-sky-300">{Math.round(g2)}s</b>
         </span>
       </div>
       <div className="flex h-1.5 overflow-hidden rounded-full bg-slate-800">
-        <div className="bg-emerald-500" style={{ width: `${p1}%` }} />
-        <div className="bg-rose-500" style={{ width: `${100 - p1}%` }} />
+        <div className="bg-emerald-500 transition-all duration-300" style={{ width: `${p1}%` }} />
+        <div className="bg-sky-500 transition-all duration-300" style={{ width: `${100 - p1}%` }} />
       </div>
       <p className="mt-1 font-mono text-[11px] tabular-nums text-slate-400">
         CK{gamaCycle} · C={GAMA_CYCLE_LEN}s · {isYellow ? "Vàng" : "Xanh"}:{" "}
-        <b className={isYellow ? "text-amber-300" : phase === 0 ? "text-emerald-300" : "text-rose-300"}>
+        <b className={isYellow ? "text-amber-300" : phase === 0 ? "text-emerald-300" : "text-sky-300"}>
           Pha {phase + 1}
         </b>
       </p>
@@ -99,7 +99,7 @@ function PhaseTuneBox({ offsetS, setOffsetS, resetOffset }) {
 function HintChip() {
   return (
     <div className="absolute right-3 top-3 z-[1001] rounded-lg border border-[#1e293b] bg-[#090d16]/90 px-3 py-2 font-mono text-[11px] text-slate-500">
-      Click nút giao để mổ xẻ
+      Chọn nút giao trên bản đồ để phân tích
     </div>
   );
 }
@@ -129,7 +129,7 @@ export default function JunctionInspector({ junction, signals, localKpi, scenari
   const gamaCycle = sig.gamaCycle;
 
   return (
-    <div className="absolute right-3 top-3 z-[1001] max-h-[calc(100%-24px)] overflow-y-auto w-80 rounded-lg border border-[#1e293b] bg-[#090d16]/95 p-4 shadow-2xl backdrop-blur">
+    <div className="absolute right-3 top-3 z-[1001] max-h-[calc(100%-24px)] overflow-y-auto w-80 rounded-lg border border-[#1e293b] bg-[#090d16]/98 p-4 shadow-lg">
       <div className="flex items-start gap-2">
         <span className="mt-0.5 text-amber-300">
           <GraduationCap size={18} />

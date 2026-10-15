@@ -370,28 +370,28 @@ function CorridorCoordinationBar({ telemetry, selectedNode, onSelectNode }) {
   return (
     <div className="w-full flex flex-wrap items-center gap-2 px-3 py-1.5 border-b border-[#1e293b] bg-slate-950/60 text-xs text-slate-300">
       <button type="button" className={chip(selectedNode === 1)} onClick={() => onSelectNode?.(1)}>
-        <span className="font-medium">NÚT 1</span>
+        <span className="font-medium">Nút 1</span>
         <span className="font-mono text-emerald-300">{n1}s</span>
-        {jam ? <span className="text-amber-300">BỊ BÓP GIẢM</span> : null}
+        {jam ? <span className="text-amber-300">Điều tiết giảm</span> : null}
       </button>
       <span className="font-mono text-slate-500">{"-->"}</span>
       <div className="flex items-center gap-2 px-2 py-1 rounded-md border border-[#1e293b] bg-slate-900/60">
-        <span className="font-medium">HÀNH LANG NỐI</span>
+        <span className="font-medium">Hành lang nối</span>
         <span className="font-mono text-sky-300">{pct}</span>
         {jam ? (
           <span
             className="font-mono text-rose-300"
             title={`Khấu trừ ${deductionPct}% áp lực cấp cho Nút 1 (R = 0.70)`}
           >
-            -{deductionPct}% ÁP LỰC DỘI
+            -{deductionPct}% áp lực dội
           </span>
         ) : null}
       </div>
       <span className="font-mono text-slate-500">{"-->"}</span>
       <button type="button" className={chip(selectedNode === 2)} onClick={() => onSelectNode?.(2)}>
-        <span className="font-medium">NÚT 2</span>
+        <span className="font-medium">Nút 2</span>
         <span className="font-mono text-emerald-300">{n2}s</span>
-        {jam ? <span className="text-sky-300">MỞ TỐI ĐA</span> : null}
+        {jam ? <span className="text-sky-300">Ưu tiên xả</span> : null}
       </button>
     </div>
   );

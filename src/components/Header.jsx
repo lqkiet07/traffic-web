@@ -1,16 +1,16 @@
-import { Activity, FlaskConical } from "lucide-react";
+import { Activity, FlaskConical, Video } from "lucide-react";
 import { SCENARIOS } from "../lib/data.js";
 
 function SystemStatusBadge({ maxCycle = 60 }) {
   return (
     <div className="flex items-center gap-2">
-      <span className="h-2 w-2 animate-pulse rounded-full bg-emerald-500" />
+      <span className="h-2 w-2 rounded-full bg-emerald-500" />
       <span className="flex h-9 w-9 items-center justify-center rounded-md bg-emerald-500/10 text-emerald-400">
         <Activity size={20} />
       </span>
       <div>
         <h1 className="text-[15px] font-semibold tracking-wide text-slate-100">
-          TRAFFICDT <span className="text-emerald-400">· CẦN THƠ TWIN CONSOLE</span>
+          TrafficDT <span className="font-normal text-emerald-400">· Digital Twin Cần Thơ</span>
         </h1>
         <p className="text-xs text-slate-500">CAO-CBMP vs Đếm xe · 8 nút giao · {maxCycle} chu kỳ (replay)</p>
       </div>
@@ -65,27 +65,27 @@ function AlgoToggle({ algo, setAlgo }) {
 
 function TabSwitcher({ activeTab, onTabChange }) {
   const tabs = [
-    { key: "replay", label: "Replay Mô Phỏng" },
-    { key: "lab", label: "Lab Thuật Toán" },
-    { key: "camera", label: "Camera YOLO" },
+    { id: "replay", label: "Replay Mô Phỏng" },
+    { id: "lab", label: "Lab Thuật Toán" },
+    { id: "camera", label: "Camera CCTV", icon: Video, badge: "Live" },
   ];
   return (
     <nav className="flex items-center gap-1 rounded-lg border border-[#1e293b] bg-[#0f172a] p-1">
-      {tabs.map((t) => {
-        const active = activeTab === t.key;
+      {tabs.map((tab) => {
+        const active = activeTab === tab.id;
         const base = active
           ? "bg-emerald-500 text-slate-950"
           : "text-slate-400 hover:text-slate-200";
         return (
           <button
-            key={t.key}
-            onClick={() => onTabChange(t.key)}
+            key={tab.id}
+            onClick={() => onTabChange(tab.id)}
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium ${base}`}
           >
-            {t.label}
-            {t.key === "camera" && (
-              <span className="rounded-full bg-emerald-500/20 px-1.5 py-0.5 text-[10px] font-semibold text-emerald-300">
-                Live AI
+            <span>{tab.label}</span>
+            {tab.badge && (
+              <span className="ml-1.5 rounded bg-emerald-500/20 px-1 py-0.5 text-[10px] font-semibold text-emerald-300">
+                {tab.badge}
               </span>
             )}
           </button>

@@ -19,10 +19,7 @@ function PipelineHeader({ isPlaying }) {
       >
         {isPlaying ? (
           <>
-            <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-            </span>
+            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
             <span>Đang xử lý (30 FPS)</span>
           </>
         ) : (
@@ -41,15 +38,12 @@ function StageBadge({ stage, isPlaying }) {
     <span
       className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 font-mono text-[11px] font-medium transition ${
         isPlaying
-          ? "border border-emerald-500/40 bg-emerald-950/40 text-emerald-200 shadow-sm shadow-emerald-950/50"
+          ? "border border-emerald-500/40 bg-emerald-950/40 text-emerald-200"
           : "border border-[#1e293b] bg-slate-950 text-slate-400"
       }`}
     >
       {isPlaying ? (
-        <span className="relative flex h-2 w-2">
-          <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-          <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
-        </span>
+        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
       ) : (
         <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
       )}

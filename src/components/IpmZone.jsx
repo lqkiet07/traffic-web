@@ -51,7 +51,7 @@ function drawRoadPlane(ctx, width, height) {
   ctx.fillStyle = "rgba(255, 255, 255, 0.22)";
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText("VẠCH DỪNG CHỜ XE MÁY", width / 2, 60);
+  ctx.fillText("Vạch dừng xe máy", width / 2, 60);
 
   ctx.setLineDash([10, 8]);
   ctx.strokeStyle = "rgba(148, 163, 184, 0.4)";
@@ -178,7 +178,7 @@ function IpmComparisonCards({ bboxCount, occlusionPct, phi, area }) {
         Đối chiếu đếm xe vs diện tích chiếm dụng
       </span>
       <div className="flex items-center justify-between rounded-md border border-rose-500/20 bg-rose-950/20 px-2.5 py-1.5 font-bold tabular-nums text-rose-300">
-        <span className="text-[11px] font-medium text-rose-300/90">Bbox đếm xe</span>
+        <span className="text-[11px] font-medium text-rose-300/90">Đếm theo Bounding Box</span>
         <span>~{bboxCount} xe (hụt {occlusionPct}%)</span>
       </div>
       <div className="flex items-center justify-between rounded-md border border-emerald-500/30 bg-emerald-950/20 px-2.5 py-1.5 font-bold tabular-nums text-emerald-300">
@@ -239,7 +239,7 @@ function LiveSignalAllocation({ activeFrame }) {
 
       <div className="mb-2">
         <div className="mb-1 flex items-center justify-between text-[10px]">
-          <span className="font-semibold text-rose-400">Baseline (Đếm xe Bbox hụt)</span>
+          <span className="font-semibold text-rose-400">Baseline (Đếm xe truyền thống)</span>
           <span className="tabular-nums text-rose-300">
             P1: {baseline.g1}s ({baseP1Pct}%) · P2: {baseline.g2}s
           </span>
@@ -284,7 +284,7 @@ export function IpmZone({ activeFrame, metadata, currentTime = 0 }) {
       <div className="mb-2 flex items-center justify-between">
         <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-200">
           <Grid3x3 size={14} className="text-emerald-400" />
-          Phẳng chim IPM (Homography)
+          Hình chiếu bằng IPM (BEV Homography)
         </span>
         <span className="font-mono text-[10px] tabular-nums text-slate-500">
           t = {currentTime.toFixed(1)}s

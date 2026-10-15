@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { AlertTriangle, Check, CheckCircle2, Info, Plus } from "lucide-react";
 
 const VEHICLE_TYPES = [
   { type: "moto", label: "Xe máy", color: "#f59e0b", size: "1.5 m²" },
@@ -24,7 +25,7 @@ const PRESET_OPTIONS = [
   },
   {
     key: "heterogeneous",
-    label: "Dòng xe dị thể (1 Tải vs 12 Máy)",
+    label: "Dòng xe hỗn hợp (1 Xe tải vs 12 Xe máy)",
     activeClass: "bg-purple-500/20 text-purple-300 ring-1 ring-purple-500",
   },
 ];
@@ -245,7 +246,7 @@ function WhyBoxMessage({ algo, isBackpressure, phiCorridor, n1P1, n1P2, activeSc
     if (algo === "baseline") {
       return (
         <div className="space-y-1.5 text-xs text-slate-300">
-          <div>• <strong>Nghịch lý đếm xe dị thể:</strong> 1 xe tải (18 m²) bị coi ngang 1 xe máy (1.5 m²). Baseline đếm 1 vs 12 đầu xe nên cắt nhịp Pha 1 xuống chỉ còn 17s-22s, ép xe tải dừng kẹt vô lý.</div>
+          <div>• <strong>Nghịch lý đếm xe dị thể:</strong> 1 xe tải (18 m²) bị coi ngang 1 xe máy (1.5 m²). Baseline đếm 1 vs 12 đầu xe nên cắt nhịp Pha 1 xuống chỉ còn 17s-22s, khiến xe tải phải dừng chờ kéo dài không tương xứng.</div>
           <div>• <strong>Thiệt hại dòng xe:</strong> Phương tiện tải trọng lớn tiêu hao thời gian khởi động lâu và chiếm dụng không gian lớn bị dồn ứ dù áp lực giao thông hai hướng tương đương.</div>
         </div>
       );
@@ -302,7 +303,7 @@ export function LabWhyBox({ algo, telemetry, activeScenario }) {
 function ParameterNote({ children }) {
   return (
     <div className="mt-2 flex items-center gap-1.5 rounded border border-[#1e293b] bg-slate-900/60 px-2.5 py-1 text-[11px] text-slate-400">
-      <span className="text-slate-500">🏷️ Tham số:</span>
+      <span className="text-slate-500">Tham số hiệu chuẩn:</span>
       <span>{children}</span>
     </div>
   );
@@ -335,12 +336,12 @@ export function SimVsRealComparison() {
   return (
     <div className="grid grid-cols-2 gap-2 text-[11px] leading-relaxed">
       <div className="rounded-lg border border-[#1e293b] bg-slate-950/70 p-2.5">
-        <div className="font-bold text-sky-300">🎮 Trong mô phỏng (GAMA)</div>
+        <div className="font-bold text-sky-300">Mô phỏng GAMA</div>
         <div className="mt-1 text-slate-300">• Baseline đếm xe lý tưởng (100%)</div>
         <div className="text-slate-400">• CAO tối ưu theo diện tích chiếm dụng (m²)</div>
       </div>
       <div className="rounded-lg border border-[#1e293b] bg-slate-950/70 p-2.5">
-        <div className="font-bold text-amber-300">📷 Ngoài thực tế (CCTV)</div>
+        <div className="font-bold text-amber-300">Camera CCTV thực tế</div>
         <div className="mt-1 text-slate-300">• Bbox bị che khuất hụt 35–50% xe máy</div>
         <div className="text-slate-400">• CAO đo mặt đường, bền vững góc quay</div>
       </div>
@@ -395,19 +396,21 @@ export function Step1Math({ data }) {
     <div className="space-y-3">
       <div className="grid grid-cols-2 gap-2 font-mono text-[11px] leading-relaxed">
         <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-2.5">
-          <div className="font-bold text-rose-300">📷 BASELINE (CAMERA BBOX)</div>
+          <div className="font-bold text-rose-300">Baseline (Camera Bbox)</div>
           <div className="mt-1.5 text-slate-200">P1: {visP1}/{rawP1} xe (thấy được/tổng)</div>
           <div className="mt-1 text-slate-200">P2: {visP2}/{rawP2} xe (thấy được/tổng)</div>
           <div className="mt-2 rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
-            ⚠️ Hụt ~{loss1}% (P1) / ~{loss2}% (P2) do che khuất tương hỗ
+            <AlertTriangle size={13} className="inline mr-1 text-amber-400" />
+            Hụt ~{loss1}% (P1) / ~{loss2}% (P2) do che khuất tương hỗ
           </div>
         </div>
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5">
-          <div className="font-bold text-emerald-300">📐 CAO (ĐỘ ĐO DIỆN TÍCH)</div>
+          <div className="font-bold text-emerald-300">CAO (Độ đo diện tích)</div>
           <div className="mt-1.5 text-slate-200">φ_in1 = {phiIn1} (A₁ = {p1Area} m²)</div>
           <div className="mt-1 text-slate-200">φ_in2 = {phiIn2} (A₂ = {p2Area} m²)</div>
           <div className="mt-2 rounded-md bg-emerald-500/15 px-2 py-1 font-bold text-emerald-300">
-            ✓ Miễn nhiễm che khuất — đo mặt đường
+            <Check size={13} className="inline mr-1 text-emerald-400" />
+            Miễn nhiễm che khuất — đo mặt đường
           </div>
         </div>
       </div>
@@ -496,13 +499,15 @@ export function Step2Math({ data, step1 }) {
       {isBackpressure ? (
         <div className="space-y-2.5">
           <div className="rounded-lg border border-rose-500/40 bg-rose-500/15 p-2.5 text-xs font-semibold text-rose-300">
-            ⚠️ Cơ chế dội ngược kích hoạt: Hành lang nối Nút 1-2 bị nghẽn (φ_out ≥ 0.70). Thuật toán tự động cắt giảm thời gian xanh cấp cho Nút 1 để tránh dồn xe vào điểm nghẽn!
+            <AlertTriangle size={13} className="inline mr-1 text-amber-400" />
+            Cơ chế dội ngược kích hoạt: Hành lang nối Nút 1-2 bị nghẽn (φ_out ≥ 0.70). Thuật toán tự động cắt giảm thời gian xanh cấp cho Nút 1 để tránh dồn xe vào điểm nghẽn!
           </div>
           <BackpressureCauseEffect />
         </div>
       ) : (
         <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5 text-xs text-emerald-300">
-          ✅ Hạ lưu thông thoáng (φ_out &lt; 0.70): Không phát sinh áp lực dội ngược, xe được giải phóng tối đa qua hành lang.
+          <CheckCircle2 size={13} className="inline mr-1 text-emerald-400" />
+          Hạ lưu thông thoáng (φ_out &lt; 0.70): Không phát sinh áp lực dội ngược, xe được giải phóng tối đa qua hành lang.
         </div>
       )}
     </div>
@@ -603,7 +608,7 @@ export function Step4Math({ data }) {
 
       <div className="grid grid-cols-2 gap-2 font-mono text-[11px] leading-relaxed">
         <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-2.5">
-          <div className="font-bold text-rose-300">📷 BASELINE (BBOX RỜI RẠC)</div>
+          <div className="font-bold text-rose-300">Baseline (Bbox rời rạc)</div>
           <div className="mt-1.5 text-sm font-bold text-rose-200">g₁ = {bG1}s · g₂ = {bG2}s</div>
           <div className="mt-2 space-y-1.5">
             <div>
@@ -620,15 +625,26 @@ export function Step4Math({ data }) {
             </div>
           </div>
           <div className="mt-2 rounded-md bg-rose-500/15 px-2 py-1 font-bold text-rose-300">
-            {bG1 < cG1
-              ? "⚠️ Cắt xanh sớm — bbox hụt xe máy, xả chưa hết"
-              : bG1 === cG1
-                ? "✓ Cấp thời lượng tương đương CAO"
-                : "ℹ️ Ưu tiên thời lượng xanh cho pha này"}
+            {bG1 < cG1 ? (
+              <>
+                <AlertTriangle size={13} className="inline mr-1 text-amber-400" />
+                Cắt xanh sớm — bbox hụt xe máy, xả chưa hết
+              </>
+            ) : bG1 === cG1 ? (
+              <>
+                <Check size={13} className="inline mr-1 text-emerald-400" />
+                Cấp thời lượng tương đương CAO
+              </>
+            ) : (
+              <>
+                <Info size={13} className="inline mr-1 text-sky-400" />
+                Ưu tiên thời lượng xanh cho pha này
+              </>
+            )}
           </div>
         </div>
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5">
-          <div className="font-bold text-emerald-300">📐 CAO (DIỆN TÍCH LIÊN TỤC)</div>
+          <div className="font-bold text-emerald-300">CAO (Diện tích liên tục)</div>
           <div className="mt-1.5 text-sm font-bold text-emerald-300">g₁ = {cG1}s · g₂ = {cG2}s</div>
           <div className="mt-2 space-y-1.5">
             <div>
@@ -645,15 +661,23 @@ export function Step4Math({ data }) {
             </div>
           </div>
           <div className="mt-2 rounded-md bg-emerald-500/15 px-2 py-1 font-bold text-emerald-300">
-            {cG1 > bG1
-              ? "✓ Xả sạch toàn bộ — đo đủ diện tích chiếm dụng"
-              : "✓ Cấp thời lượng tối ưu theo diện tích chiếm dụng"}
+            {cG1 > bG1 ? (
+              <>
+                <Check size={13} className="inline mr-1 text-emerald-400" />
+                Xả sạch toàn bộ — đo đủ diện tích chiếm dụng
+              </>
+            ) : (
+              <>
+                <Check size={13} className="inline mr-1 text-emerald-400" />
+                Cấp thời lượng tối ưu theo diện tích chiếm dụng
+              </>
+            )}
           </div>
         </div>
       </div>
 
       <div className="rounded-lg border border-[#1e293b] bg-slate-950/50 p-2.5 font-mono text-[11px] leading-relaxed text-slate-400">
-        📊 Table 1 (Paper): CAO giảm trễ trung bình 6.01% (tải thấp) / 11.90% (tải vừa); thông lượng toàn mạng bảo toàn tương đương (±2%).
+        Bảng 1 (Nghiên cứu): CAO giảm trễ trung bình 6.01% (tải thấp) / 11.90% (tải vừa); thông lượng toàn mạng bảo toàn tương đương (±2%).
       </div>
     </div>
   );
@@ -757,7 +781,7 @@ function StepperAction({ subPhase, onNextStep }) {
     );
   }
   return (
-    <button type="button" onClick={onNextStep} className="flex items-center gap-1 rounded-md bg-emerald-500 px-3 py-1 text-xs font-bold text-slate-950 transition hover:bg-emerald-400 active:scale-95" title="Sang bước tiếp theo">
+    <button type="button" onClick={onNextStep} className="flex items-center gap-1 rounded-md bg-emerald-500 px-3 py-1 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400" title="Sang bước tiếp theo">
       <span>Bước tiếp theo</span>
       <span className="font-mono text-sm">&gt;|</span>
     </button>
@@ -803,7 +827,7 @@ export function NodeSelectorBar({ selectedNode = 1, onSelectNode }) {
     ? "bg-emerald-500 font-semibold text-slate-950"
     : "text-slate-400 hover:text-slate-200";
   const n2Tone = selectedNode === 2
-    ? "bg-cyan-500 font-semibold text-slate-950"
+    ? "bg-emerald-500 font-semibold text-slate-950"
     : "text-slate-400 hover:text-slate-200";
   return (
     <div className="mb-2.5 flex items-center gap-1 rounded-lg border border-[#1e293b] bg-slate-950/60 p-1 text-xs">
@@ -832,7 +856,7 @@ export function LiveMathBox({
   onSelectNode,
 }) {
   return (
-    <div className="rounded-xl border border-[#1e293b] bg-slate-900/90 p-3.5 text-xs leading-relaxed text-slate-300 shadow-xl">
+    <div className="rounded-xl border border-[#1e293b] bg-slate-900/90 p-3.5 text-xs leading-relaxed text-slate-300">
       <UnifiedStepHeader
         currentStep={currentStep}
         algo={algo}
@@ -905,7 +929,7 @@ export default function LabAnalysisPanel({
       {isStepper ? (
         <details className="group rounded-xl border border-[#1e293b] bg-slate-900/40 p-2.5 text-xs text-slate-400">
           <summary className="cursor-pointer select-none font-medium text-slate-400 transition-colors hover:text-slate-200">
-            ➕ Thêm xe thủ công (Tùy chọn)
+            <Plus size={13} className="inline mr-1" /> Thêm phương tiện tùy chọn
           </summary>
           <div className="mt-2.5">
             <LabSpawnerDock
