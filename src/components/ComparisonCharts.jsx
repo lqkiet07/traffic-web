@@ -65,14 +65,14 @@ const ComparisonCharts = memo(function ComparisonCharts({ kpi, scenario, globalS
   const rows = buildRows(data, metric);
 
   return (
-    <div className="flex flex-1 flex-col rounded-lg border border-[#1e293b] bg-[#0f172a] p-3 min-h-[260px]">
+    <div className="rounded-lg border border-[#1e293b] bg-[#0f172a] p-3">
       <div className="mb-2 flex items-center gap-2">
         <span className="text-xs font-semibold text-slate-300">
           Đối đầu · {data.cycles.length} chu kỳ
         </span>
         <MetricTabs metric={metric} setMetric={setMetric} />
       </div>
-      <div className="flex-1 w-full min-h-[200px]">
+      <div className="h-56">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={rows} margin={{ top: 5, right: 10, bottom: 0, left: -10 }}>
             <CartesianGrid stroke="#172033" strokeDasharray="2 4" />

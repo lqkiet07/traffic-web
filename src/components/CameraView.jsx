@@ -550,7 +550,7 @@ function VideoViewport({
   };
 
   return (
-    <div className="relative aspect-video overflow-hidden rounded-lg border border-[#1e293b] bg-slate-950">
+    <div className="relative mx-auto aspect-video max-h-[340px] w-full overflow-hidden rounded-lg border border-[#1e293b] bg-slate-950">
       <ViewportVideo {...videoProps} />
       <OverlayCanvas
         {...overlayProps}
@@ -570,7 +570,7 @@ function VideoViewport({
 
 function CameraStreamControls({ player, meta, layers, isCalibrating, setIsCalibrating }) {
   return (
-    <div className="mt-3 flex flex-col gap-2">
+    <div className="mt-2 flex flex-col gap-1.5">
       <TransportControls
         isPlaying={player.isPlaying}
         onTogglePlay={player.onTogglePlay}

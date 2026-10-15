@@ -143,7 +143,7 @@ function IpmCanvas({ vehicles, homography }) {
       ref={canvasRef}
       width={400}
       height={300}
-      className="block max-h-[280px] w-full object-contain mx-auto rounded-lg border border-[#1e293b] bg-slate-950"
+      className="block max-h-[190px] w-full object-contain mx-auto rounded-lg border border-[#1e293b] bg-slate-950"
     />
   );
 }
@@ -151,7 +151,7 @@ function IpmCanvas({ vehicles, homography }) {
 function IpmOccupancyBar({ phi, area }) {
   const phiPercent = Math.round(phi * 100);
   return (
-    <div className="mt-2.5">
+    <div className="mt-1.5">
       <div className="mb-1 flex items-center justify-between font-mono text-[11px]">
         <span className="text-slate-400">
           Mức chiếm dụng φ = {phi.toFixed(2)} ({phiPercent}%)
@@ -172,16 +172,16 @@ function IpmOccupancyBar({ phi, area }) {
 
 function IpmComparisonCards({ bboxCount, occlusionPct, phi, area }) {
   return (
-    <div className="mt-2.5 flex flex-col gap-1.5 font-mono text-[11px]">
+    <div className="mt-1.5 flex flex-col gap-1 font-mono text-[11px]">
       <span className="flex items-center gap-1.5 text-slate-500">
         <ScanEye size={13} className="text-slate-500" />
         Đối chiếu đếm xe vs diện tích chiếm dụng
       </span>
-      <div className="flex items-center justify-between rounded-md border border-indigo-500/30 bg-indigo-950/20 px-2.5 py-1.5 font-bold tabular-nums text-indigo-300">
+      <div className="flex items-center justify-between rounded-md border border-indigo-500/30 bg-indigo-950/20 px-2.5 py-1 font-bold tabular-nums text-indigo-300">
         <span className="text-[11px] font-medium text-indigo-300/90">Đếm theo Bounding Box</span>
         <span>~{bboxCount} xe (hụt {occlusionPct}%)</span>
       </div>
-      <div className="flex items-center justify-between rounded-md border border-emerald-500/30 bg-emerald-950/20 px-2.5 py-1.5 font-bold tabular-nums text-emerald-300">
+      <div className="flex items-center justify-between rounded-md border border-emerald-500/30 bg-emerald-950/20 px-2.5 py-1 font-bold tabular-nums text-emerald-300">
         <span className="text-[11px] font-medium text-emerald-300/90">CAO diện tích</span>
         <span>φ = {phi.toFixed(2)} ({Math.round(phi * 100)}%) · A = {area.toFixed(1)} m²</span>
       </div>
@@ -197,8 +197,8 @@ function LiveSignalAllocation({ activeFrame }) {
   const baseP1Pct = Math.round((baseline.g1 / 112) * 100);
 
   return (
-    <div className="mt-2.5 rounded-lg border border-[#1e293b] bg-slate-900/60 p-2.5 font-mono text-[11px]">
-      <div className="mb-2 flex items-center justify-between border-b border-[#1e293b] pb-1.5">
+    <div className="mt-1.5 rounded-lg border border-[#1e293b] bg-slate-900/60 p-2 font-mono text-[11px]">
+      <div className="mb-1.5 flex items-center justify-between border-b border-[#1e293b] pb-1.5">
         <span className="flex items-center gap-1.5 font-semibold text-slate-200">
           <SlidersHorizontal size={13} className="text-emerald-400" />
           Phân bổ nhịp xanh thời gian thực
@@ -206,7 +206,7 @@ function LiveSignalAllocation({ activeFrame }) {
         <span className="text-[10px] text-slate-400">Chu kỳ 120s (G=112s, Y=8s)</span>
       </div>
 
-      <div className="mb-2 grid grid-cols-2 gap-1.5 text-[10px]">
+      <div className="mb-1.5 grid grid-cols-2 gap-1.5 text-[10px]">
         <div className="rounded bg-slate-950/60 p-1.5">
           <div className="text-slate-400">Pha 1 (Trục Camera)</div>
           <div className="mt-0.5 font-bold text-slate-200">
@@ -221,7 +221,7 @@ function LiveSignalAllocation({ activeFrame }) {
         </div>
       </div>
 
-      <div className="mb-2">
+      <div className="mb-1.5">
         <div className="mb-1 flex items-center justify-between text-[10px]">
           <span className="font-semibold text-emerald-400">CAO (Theo diện tích φ)</span>
           <span className="tabular-nums text-emerald-300">
@@ -237,7 +237,7 @@ function LiveSignalAllocation({ activeFrame }) {
         </div>
       </div>
 
-      <div className="mb-2">
+      <div className="mb-1.5">
         <div className="mb-1 flex items-center justify-between text-[10px]">
           <span className="font-semibold text-indigo-400">Baseline (Đếm xe truyền thống)</span>
           <span className="tabular-nums text-indigo-300">

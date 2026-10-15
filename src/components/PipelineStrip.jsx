@@ -60,7 +60,7 @@ export function PipelineStrip({ isPlaying = false, embedded = false }) {
   );
 
   if (embedded) {
-    return <div className="mt-3 border-t border-[#1e293b] pt-2.5">{content}</div>;
+    return <div className="mt-2 border-t border-[#1e293b] pt-2">{content}</div>;
   }
 
   return (
