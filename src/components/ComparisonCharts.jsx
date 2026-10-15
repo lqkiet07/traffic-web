@@ -15,7 +15,7 @@ import {
 const METRICS = [
   { key: "queue", label: "Hàng chờ (xe)", color: "#f59e0b" },
   { key: "delay", label: "Độ trễ (giây/xe)", color: "#38bdf8" },
-  { key: "throughput", label: "Thông lượng (xe/CK)", color: "#a78bfa" },
+  { key: "throughput", label: "Thông lượng (xe/CK)", color: "#10b981" },
 ];
 
 function safeNum(arr, i) {

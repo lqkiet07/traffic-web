@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { AlertTriangle, Check, CheckCircle2, Info, Plus } from "lucide-react";
+import { AlertTriangle, Check, CheckCircle2, Info, Pause, Play, Plus, RotateCcw, StepBack, StepForward } from "lucide-react";
 
 const VEHICLE_TYPES = [
   { type: "moto", label: "Xe máy", color: "#f59e0b", size: "1.5 m²" },
@@ -26,7 +26,7 @@ const PRESET_OPTIONS = [
   {
     key: "heterogeneous",
     label: "Dòng xe hỗn hợp (1 Xe tải vs 12 Xe máy)",
-    activeClass: "bg-purple-500/20 text-purple-300 ring-1 ring-purple-500",
+    activeClass: "bg-sky-500/20 text-sky-300 ring-1 ring-sky-500",
   },
 ];
 
@@ -427,12 +427,12 @@ function BackpressureCauseEffect() {
     <div className="grid grid-cols-2 gap-2 font-mono text-[11px] leading-relaxed">
       <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5">
         <div className="font-bold text-rose-300">Hệ quả lên Nút 1 (Thượng lưu)</div>
-        <div className="mt-1 text-slate-300">{"Xanh bị bóp: 56s -> 10s"}</div>
+        <div className="mt-1 text-slate-300">{"Xanh bị bóp: 56s → 10s"}</div>
         <div className="mt-1 text-slate-400">Ngăn xe dồn thêm vào điểm nghẽn</div>
       </div>
       <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
         <div className="font-bold text-emerald-300">Phản ứng của Nút 2 (Hạ lưu)</div>
-        <div className="mt-1 text-slate-300">{"Xanh tăng vọt: 56s -> 102s"}</div>
+        <div className="mt-1 text-slate-300">{"Xanh tăng vọt: 56s → 102s"}</div>
         <div className="mt-1 text-slate-400">Mở tối đa để xả kẹt cho hành lang</div>
       </div>
     </div>
@@ -475,18 +475,18 @@ export function Step2Math({ data, step1 }) {
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
         <div className="text-slate-400">Song song Eq. 2 vs Eq. 3 — cùng khung Cb-MP, khác đầu vào cảm biến:</div>
         <div className="mt-2 grid grid-cols-2 gap-2">
-          <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5">
-            <div className="text-[11px] font-bold text-rose-300">BASELINE (Eq. 2, đếm xe)</div>
+          <div className="rounded-lg border border-indigo-500/30 bg-indigo-950/20 p-2.5">
+            <div className="text-[11px] font-bold text-indigo-300">Baseline (Eq. 2, đếm xe)</div>
             <div className="mt-1 text-slate-300 text-[11px]">w₁_count = max(0, x_in − 0.70 × x_out)</div>
-            <div className="mt-1 text-sm font-bold text-rose-200">
+            <div className="mt-1 text-sm font-bold text-indigo-200">
               w₁ = max(0, {xIn1Num} − 0.70 × {xOutNum}) = {wCount}
             </div>
             <div className="mt-1 text-[11px] text-slate-400">Khấu trừ dội ngược: {bpCount}</div>
           </div>
           <div className="rounded-lg border border-cyan-500/30 bg-slate-900 p-2.5">
-            <div className="text-[11px] font-bold text-cyan-300">CAO (Eq. 3, diện tích)</div>
+            <div className="text-[11px] font-bold text-emerald-300">CAO (Eq. 3, diện tích)</div>
             <div className="mt-1 text-slate-300 text-[11px]">w₁_area = max(0, φ_in − 0.70 × φ_out)</div>
-            <div className="mt-1 text-sm font-bold text-cyan-300">
+            <div className="mt-1 text-sm font-bold text-emerald-300">
               w₁ = max(0, {phiIn} − 0.70 × {phiOut}) = {wArea}
             </div>
             <div className="mt-1 text-[11px] text-slate-400">Khấu trừ dội ngược: {bpArea}</div>
@@ -541,9 +541,9 @@ export function Step3Math({ data, step2 }) {
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
         <div className="text-slate-400">Áp suất bão hòa song song (Hệ số bão hòa C_sat = 2.5): γ = 2.5 × w</div>
         <div className="mt-2 grid grid-cols-2 gap-2">
-          <div className="rounded-lg bg-rose-500/10 p-2.5 border border-rose-500/40">
-            <div className="text-[11px] font-bold text-rose-300">BASELINE (đếm xe)</div>
-            <div className="mt-1 text-sm font-bold text-rose-200">γ₁ = 2.5 × {wC1} = {gC1}</div>
+          <div className="rounded-lg border border-indigo-500/30 bg-indigo-950/20 p-2.5">
+            <div className="text-[11px] font-bold text-indigo-300">Baseline (đếm xe)</div>
+            <div className="mt-1 text-sm font-bold text-indigo-200">γ₁ = 2.5 × {wC1} = {gC1}</div>
             <div className="mt-1 text-sm font-bold text-slate-300">γ₂ = 2.5 × {wC2} = {gC2}</div>
           </div>
           <div className="rounded-lg bg-slate-900 p-2.5 border border-emerald-500/30">
@@ -607,9 +607,9 @@ export function Step4Math({ data }) {
       </div>
 
       <div className="grid grid-cols-2 gap-2 font-mono text-[11px] leading-relaxed">
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-2.5">
-          <div className="font-bold text-rose-300">Baseline (Bbox rời rạc)</div>
-          <div className="mt-1.5 text-sm font-bold text-rose-200">g₁ = {bG1}s · g₂ = {bG2}s</div>
+        <div className="rounded-xl border border-indigo-500/30 bg-indigo-950/20 p-2.5">
+          <div className="font-bold text-indigo-300">Baseline (Bbox rời rạc)</div>
+          <div className="mt-1.5 text-sm font-bold text-indigo-200">g₁ = {bG1}s · g₂ = {bG2}s</div>
           <div className="mt-2 space-y-1.5">
             <div>
               <div className="mb-0.5 flex justify-between text-slate-300"><span>Pha 1</span><span className="tabular-nums">{bG1}s</span></div>
@@ -693,7 +693,7 @@ export function Step5Math({ data }) {
       <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 font-mono">
         <div className="flex items-center justify-between mb-2">
           <span className="text-sm font-bold text-emerald-300">Kích Hoạt Pha {phase} Xanh ({green}s)</span>
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400 animate-pulse" />
+          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
         </div>
         <div className="text-xs text-slate-300 leading-relaxed">
           Đèn tín hiệu giao lộ chính thức mở xanh cho <strong className="text-emerald-400">Pha {phase}</strong> trong <strong className="text-emerald-400">{green} giây</strong>.
@@ -783,7 +783,7 @@ function StepperAction({ subPhase, onNextStep }) {
   return (
     <button type="button" onClick={onNextStep} className="flex items-center gap-1 rounded-md bg-emerald-500 px-3 py-1 text-xs font-semibold text-slate-950 transition hover:bg-emerald-400" title="Sang bước tiếp theo">
       <span>Bước tiếp theo</span>
-      <span className="font-mono text-sm">&gt;|</span>
+      <StepForward size={13} className="ml-1" />
     </button>
   );
 }
@@ -807,13 +807,13 @@ export function UnifiedStepHeader({
     <div className="mb-3 border-b border-[#1e293b] pb-2.5">
       <NodeSelectorBar selectedNode={selectedNode} onSelectNode={onSelectNode} />
       <div className="flex flex-wrap items-center gap-1.5">
-        <button type="button" onClick={onReset} className="rounded-md border border-[#1e293b] bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800" title="Quay về Bước 1 & Nạp lại xe xuất phát">↺ Đầu</button>
-        <button type="button" onClick={onPrevStep} disabled={currentStep <= 1} className="rounded-md border border-[#1e293b] bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40" title="Lùi về bước trước">|&lt; Lùi</button>
+        <button type="button" onClick={onReset} className="rounded-md border border-[#1e293b] bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800" title="Quay về Bước 1 & Nạp lại xe xuất phát"><RotateCcw size={12} className="inline mr-1" />Đầu chu kỳ</button>
+        <button type="button" onClick={onPrevStep} disabled={currentStep <= 1} className="rounded-md border border-[#1e293b] bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40" title="Lùi về bước trước"><StepBack size={12} className="inline mr-1" />Lùi bước</button>
         {STEPPER_STEPS.map((label, idx) => (
           <StepCrumb key={idx + 1} s={idx + 1} label={label} currentStep={currentStep} onSetStep={onSetStep} />
         ))}
         <StepperAction subPhase={subPhase} onNextStep={onNextStep} />
-        <button type="button" onClick={onToggleAutoStep} className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${isAutoStepping ? "border-amber-400/50 bg-amber-500/20 text-amber-300 font-semibold animate-pulse" : "border-[#1e293b] bg-slate-950 text-slate-300 hover:bg-slate-800"}`} title={autoTitle}>{isAutoStepping ? "⏸ Dừng" : "▶ Tự động (3s)"}</button>
+        <button type="button" onClick={onToggleAutoStep} className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${isAutoStepping ? "border-amber-400/50 bg-amber-500/20 text-amber-300 font-semibold" : "border-[#1e293b] bg-slate-950 text-slate-300 hover:bg-slate-800"}`} title={autoTitle}>{isAutoStepping ? (<><Pause size={12} className="inline mr-1" />Tạm dừng</>) : (<><Play size={12} className="inline mr-1" />Tự động (3s)</>)}</button>
         <span className="font-mono text-[11px] text-slate-500">Bước {currentStep}/5: {stepTitle} · Đối chiếu Max-Pressure</span>
       </div>
     </div>

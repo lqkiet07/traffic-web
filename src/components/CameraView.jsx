@@ -125,12 +125,12 @@ function drawCalibPoints(ctx, points, scaleX, scaleY) {
     ctx.moveTo(pts[0][0], pts[0][1]);
     for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
     if (pts.length === 4) ctx.closePath();
-    ctx.strokeStyle = "#a855f7";
+    ctx.strokeStyle = "#38bdf8";
     ctx.lineWidth = 2;
     ctx.setLineDash([6, 4]);
     ctx.stroke();
     if (pts.length === 4) {
-      ctx.fillStyle = "rgba(168, 85, 247, 0.15)";
+      ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
       ctx.fill();
     }
     ctx.setLineDash([]);
@@ -140,10 +140,10 @@ function drawCalibPoints(ctx, points, scaleX, scaleY) {
     ctx.arc(px, py, 5, 0, Math.PI * 2);
     ctx.fillStyle = "#facc15";
     ctx.fill();
-    ctx.strokeStyle = "#a855f7";
+    ctx.strokeStyle = "#38bdf8";
     ctx.lineWidth = 2;
     ctx.stroke();
-    drawAnchorBadge(ctx, px, py, `P${i + 1}`, i, "#facc15", "#a855f7", "#facc15");
+    drawAnchorBadge(ctx, px, py, `P${i + 1}`, i, "#facc15", "#38bdf8", "#facc15");
   });
   ctx.restore();
 }
@@ -173,10 +173,10 @@ function drawVehicles(ctx, vehicles, showBbox, showTrackId, scaleX, scaleY) {
     const w = v.bbox[2] * scaleX;
     const h = v.bbox[3] * scaleY;
     const isMoto = v.type === "moto";
-    const color = isMoto ? "#10b981" : "#38bdf8";
+    const color = isMoto ? "#f59e0b" : "#38bdf8";
 
     if (showBbox) {
-      ctx.fillStyle = isMoto ? "rgba(16, 185, 129, 0.12)" : "rgba(56, 189, 248, 0.12)";
+      ctx.fillStyle = isMoto ? "rgba(245, 158, 11, 0.12)" : "rgba(56, 189, 248, 0.12)";
       ctx.fillRect(x, y, w, h);
       ctx.strokeStyle = color;
       ctx.lineWidth = 2;
@@ -414,13 +414,13 @@ function LayerToggles({
           onClick={() => setIsCalibrating((v) => !v)}
           className={`flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-xs transition ${
             isCalibrating
-              ? "border-purple-500 bg-purple-950/60 text-purple-200"
+              ? "border-sky-500 bg-sky-950/60 text-sky-200"
               : "border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700 hover:text-slate-200"
           }`}
         >
           <span
             className={`h-1.5 w-1.5 rounded-full ${
-              isCalibrating ? "bg-purple-400 animate-pulse" : "bg-slate-600"
+              isCalibrating ? "bg-sky-400" : "bg-slate-600"
             }`}
           />
           <span>Hiệu chuẩn 4 điểm neo</span>
@@ -437,10 +437,10 @@ function LayerToggles({
 function CalibrationBar({ calibPoints, onReset, onApply }) {
   const isComplete = calibPoints.length === 4;
   return (
-    <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-purple-500/40 bg-purple-950/40 px-3 py-2 text-xs">
+    <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-sky-500/40 bg-sky-950/40 px-3 py-2 text-xs">
       <div className="flex flex-col gap-1 font-mono">
-        <div className="flex items-center gap-2 text-purple-200">
-          <span className="h-2 w-2 rounded-full bg-purple-400 animate-pulse" />
+        <div className="flex items-center gap-2 text-sky-200">
+          <span className="h-2 w-2 rounded-full bg-sky-400" />
           <span>
             {`Đã chấm ${calibPoints.length}/4 điểm (P1: Trên-Trái → P2: Trên-Phải → P3: Dưới-Phải → P4: Dưới-Trái)`}
           </span>
@@ -464,7 +464,7 @@ function CalibrationBar({ calibPoints, onReset, onApply }) {
         <button
           type="button"
           onClick={onReset}
-          className="rounded border border-purple-700 bg-purple-900/40 px-2.5 py-1 text-xs font-medium text-purple-200 transition hover:bg-purple-800/50"
+          className="rounded border border-sky-700 bg-sky-900/40 px-2.5 py-1 text-xs font-medium text-sky-200 transition hover:bg-sky-800/50"
         >
           Xóa chấm lại
         </button>

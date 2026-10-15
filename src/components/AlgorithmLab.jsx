@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import CorridorCanvas from "./CorridorCanvas.jsx";
 import Corridor3DCanvas from "./Corridor3DCanvas.jsx";
 import LabTransportBar from "./LabTransportBar.jsx";
@@ -374,7 +375,7 @@ function CorridorCoordinationBar({ telemetry, selectedNode, onSelectNode }) {
         <span className="font-mono text-emerald-300">{n1}s</span>
         {jam ? <span className="text-amber-300">Điều tiết giảm</span> : null}
       </button>
-      <span className="font-mono text-slate-500">{"-->"}</span>
+      <ArrowRight size={13} className="text-slate-600 shrink-0" />
       <div className="flex items-center gap-2 px-2 py-1 rounded-md border border-[#1e293b] bg-slate-900/60">
         <span className="font-medium">Hành lang nối</span>
         <span className="font-mono text-sky-300">{pct}</span>
@@ -387,7 +388,7 @@ function CorridorCoordinationBar({ telemetry, selectedNode, onSelectNode }) {
           </span>
         ) : null}
       </div>
-      <span className="font-mono text-slate-500">{"-->"}</span>
+      <ArrowRight size={13} className="text-slate-600 shrink-0" />
       <button type="button" className={chip(selectedNode === 2)} onClick={() => onSelectNode?.(2)}>
         <span className="font-medium">Nút 2</span>
         <span className="font-mono text-emerald-300">{n2}s</span>

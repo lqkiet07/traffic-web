@@ -109,7 +109,16 @@ export default function App() {
       )}
       {!replayAvailable(player.algo, player.scenario) && (
         <div className="border-b border-sky-500/30 bg-sky-500/10 px-4 py-1.5 text-xs text-sky-200">
-          {`Chưa có dữ liệu replay cho tổ hợp ${player.algo} · ${player.scenario} — đang hiển thị KPI tổng hợp.`}
+          {(() => {
+            const algoName = player.algo === "cao" ? "CAO-CBMP" : "Đếm xe (Baseline)";
+            const scenarioLabels = {
+              Low_400: "Lưu lượng thấp (400 vph)",
+              Medium_900: "Lưu lượng trung bình (900 vph)",
+              High_1400: "Lưu lượng cao (1400 vph)",
+            };
+            const scName = scenarioLabels[player.scenario] || player.scenario;
+            return `Chưa có dữ liệu tái hiện cho cấu hình ${algoName} · ${scName} — đang hiển thị chỉ số KPI tổng hợp.`;
+          })()}
         </div>
       )}
       <main className="grid flex-1 grid-cols-1 gap-3 overflow-auto p-3 lg:grid-cols-12 lg:overflow-hidden">

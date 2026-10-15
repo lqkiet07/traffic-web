@@ -6,6 +6,8 @@ import {
   SkipBack,
   SkipForward,
   SlidersHorizontal,
+  StepBack,
+  StepForward,
 } from "lucide-react";
 import { formatClock } from "../lib/data.js";
 
@@ -194,7 +196,7 @@ function StepperNextButton({ onNextStep }) {
       title="Sang bước tiếp theo của thuật toán"
     >
       <span>Bước tiếp theo</span>
-      <span className="font-mono text-sm">&gt;|</span>
+      <StepForward size={13} className="ml-1" />
     </button>
   );
 }
@@ -227,7 +229,7 @@ export function StepperControls({
         className="rounded-md border border-[#1e293b] px-2.5 py-1.5 text-xs text-slate-300 transition-colors hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
         title="Lùi về bước trước"
       >
-        {"|< Lùi"}
+        <><StepBack size={12} className="inline mr-1" />Lùi bước</>
       </button>
       {isMotion ? <StepperMotionWait /> : <StepperNextButton onNextStep={onNextStep} />}
       <button
@@ -334,10 +336,10 @@ export default function LabTransportBar(props) {
       {simMode === "stepper" ? (
         <div className="flex items-center justify-between px-3 py-2 text-xs text-slate-400 bg-slate-900/60 rounded-lg border border-[#1e293b]">
           <span className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+            <span className="h-2 w-2 rounded-full bg-emerald-400" />
             <span>Đang ở Bước [{props.currentStep}/5]</span>
           </span>
-          <span className="text-cyan-400 font-mono text-[11px]">Bảng điều khiển 5 bước và công thức chi tiết tại cột bên phải</span>
+          <span className="text-slate-400 font-mono text-[11px]">Bảng điều khiển 5 bước và công thức chi tiết tại cột bên phải</span>
         </div>
       ) : (
         <ContinuousControls {...props} />

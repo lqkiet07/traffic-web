@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { GraduationCap, X } from "lucide-react";
+import { ChevronDown, ChevronUp, GraduationCap, X } from "lucide-react";
 import { getGamaSignal, GAMA_CYCLE_LEN } from "../lib/data.js";
 
 function WhyBox({ g1, g2 }) {
@@ -27,7 +27,7 @@ function WhyBox({ g1, g2 }) {
 
 function LocalKpiRow({ localKpi, scenario }) {
   if (!localKpi) {
-    return <p className="mt-2 text-[11px] text-slate-500">Chưa có dữ liệu nút cho kịch bản {scenario} — mới có CAO/Medium_900.</p>;
+    return <p className="mt-2 text-[11px] text-slate-500">Chưa có dữ liệu KPI cho kịch bản này.</p>;
   }
   const cells = [
     ["Q", `${localKpi.queue.toFixed(2)} xe`],
@@ -108,9 +108,9 @@ function CollapsedChip({ code, onExpand }) {
   return (
     <button
       onClick={onExpand}
-      className="absolute right-3 top-3 z-[1001] rounded-lg border border-[#1e293b] bg-[#090d16]/95 px-3 py-2 font-mono text-[11px] font-bold text-slate-200 hover:border-cyan-700"
+      className="absolute right-3 top-3 z-[1001] rounded-lg border border-[#1e293b] bg-[#090d16]/95 px-3 py-2 font-mono text-[11px] font-bold text-slate-200 hover:border-slate-600"
     >
-      {code} ▾
+      <span className="flex items-center gap-1">{code} <ChevronDown size={13} /></span>
     </button>
   );
 }
@@ -146,7 +146,7 @@ export default function JunctionInspector({ junction, signals, localKpi, scenari
             onClick={() => setOpen(false)}
             className="rounded p-1 text-slate-500 hover:bg-slate-800"
           >
-            ▴
+            <ChevronUp size={16} />
           </button>
           <button onClick={onClose} className="rounded p-1 text-slate-500 hover:bg-slate-800">
             <X size={16} />

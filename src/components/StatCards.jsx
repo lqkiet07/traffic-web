@@ -1,4 +1,5 @@
 import { memo } from "react";
+import { ArrowUpRight, ArrowDownRight } from "lucide-react";
 import { improvementPct, kpiIndexForTime } from "../lib/data.js";
 
 function badgeTone(value) {
@@ -7,14 +8,13 @@ function badgeTone(value) {
 }
 
 function DeltaBadge({ value, higherIsBetter }) {
-  const arrow = higherIsBetter
-    ? value >= 0 ? "↑ " : "↓ "
-    : value >= 0 ? "↓ " : "↑ ";
+  const isGood = higherIsBetter ? value >= 0 : value <= 0;
+  const Icon = value >= 0 ? ArrowUpRight : ArrowDownRight;
   return (
     <span
-      className={`rounded px-1.5 py-0.5 font-mono text-[11px] font-bold tabular-nums ${badgeTone(value)}`}
+      className={`inline-flex items-center rounded px-1.5 py-0.5 font-mono text-[11px] font-bold tabular-nums ${badgeTone(value)}`}
     >
-      {arrow}
+      <Icon size={12} className="mr-0.5 shrink-0" />
       {Math.abs(value).toFixed(1)}%
     </span>
   );

@@ -99,8 +99,8 @@ function drawVehicleMarker(ctx, v, u, vCoord) {
     ctx.fillRect(u - 8, vCoord - 36, 4, 2);
     ctx.fillRect(u + 4, vCoord - 36, 4, 2);
   } else {
-    ctx.fillStyle = "#10b981";
-    ctx.strokeStyle = "#059669";
+    ctx.fillStyle = "#f59e0b";
+    ctx.strokeStyle = "#d97706";
     ctx.lineWidth = 1.5;
     drawRoundedRect(ctx, u - 5, vCoord - 16, 10, 16, 4);
     ctx.fill();
@@ -177,8 +177,8 @@ function IpmComparisonCards({ bboxCount, occlusionPct, phi, area }) {
         <ScanEye size={13} className="text-slate-500" />
         Đối chiếu đếm xe vs diện tích chiếm dụng
       </span>
-      <div className="flex items-center justify-between rounded-md border border-rose-500/20 bg-rose-950/20 px-2.5 py-1.5 font-bold tabular-nums text-rose-300">
-        <span className="text-[11px] font-medium text-rose-300/90">Đếm theo Bounding Box</span>
+      <div className="flex items-center justify-between rounded-md border border-indigo-500/30 bg-indigo-950/20 px-2.5 py-1.5 font-bold tabular-nums text-indigo-300">
+        <span className="text-[11px] font-medium text-indigo-300/90">Đếm theo Bounding Box</span>
         <span>~{bboxCount} xe (hụt {occlusionPct}%)</span>
       </div>
       <div className="flex items-center justify-between rounded-md border border-emerald-500/30 bg-emerald-950/20 px-2.5 py-1.5 font-bold tabular-nums text-emerald-300">
@@ -239,14 +239,14 @@ function LiveSignalAllocation({ activeFrame }) {
 
       <div className="mb-2">
         <div className="mb-1 flex items-center justify-between text-[10px]">
-          <span className="font-semibold text-rose-400">Baseline (Đếm xe truyền thống)</span>
-          <span className="tabular-nums text-rose-300">
+          <span className="font-semibold text-indigo-400">Baseline (Đếm xe truyền thống)</span>
+          <span className="tabular-nums text-indigo-300">
             P1: {baseline.g1}s ({baseP1Pct}%) · P2: {baseline.g2}s
           </span>
         </div>
         <div className="flex h-2 w-full overflow-hidden rounded-full bg-slate-800">
           <div
-            className="h-full bg-rose-500 transition-all duration-150"
+            className="h-full bg-indigo-500 transition-all duration-150"
             style={{ width: `${baseP1Pct}%` }}
           />
           <div className="h-full flex-1 bg-slate-700" />
