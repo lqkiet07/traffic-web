@@ -67,7 +67,7 @@ function TabSwitcher({ activeTab, onTabChange }) {
   const tabs = [
     { id: "replay", label: "Replay Mô Phỏng" },
     { id: "lab", label: "Lab Thuật Toán" },
-    { id: "camera", label: "Camera CCTV", icon: Video, badge: "Live" },
+    { id: "camera", label: "Camera CCTV", icon: Video },
   ];
   return (
     <nav className="flex items-center gap-1 rounded-lg border border-[#1e293b] bg-[#0f172a] p-1">
@@ -83,11 +83,6 @@ function TabSwitcher({ activeTab, onTabChange }) {
             className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-[13px] font-medium ${base}`}
           >
             <span>{tab.label}</span>
-            {tab.badge && (
-              <span className="ml-1.5 rounded bg-emerald-500/20 px-1 py-0.5 text-[10px] font-semibold text-emerald-300">
-                {tab.badge}
-              </span>
-            )}
           </button>
         );
       })}
@@ -101,16 +96,11 @@ export default function Header({ scenario, setScenario, algo, setAlgo, maxCycle 
       <SystemStatusBadge maxCycle={maxCycle} />
       <TabSwitcher activeTab={activeTab} onTabChange={onTabChange} />
       <div className="ml-auto flex flex-wrap items-center gap-2">
-        {activeTab === "replay" ? (
+        {activeTab === "replay" && (
           <>
             <ScenarioSelect scenario={scenario} setScenario={setScenario} />
             <AlgoToggle algo={algo} setAlgo={setAlgo} />
           </>
-        ) : (
-          <div className="flex items-center gap-2 rounded-md border border-[#1e293b] bg-[#0f172a] px-3 py-1.5 text-xs text-slate-400">
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span>{activeTab === "camera" ? "Chế độ Camera Replay" : "Chế độ Sandbox độc lập"}</span>
-          </div>
         )}
       </div>
     </header>

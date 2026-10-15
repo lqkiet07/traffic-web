@@ -426,10 +426,6 @@ function LayerToggles({
           <span>Hiệu chuẩn 4 điểm neo</span>
         </button>
       </div>
-      <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate-500">
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-        <span>CAM-CTU-01 · Hiệu chuẩn phối cảnh cố định</span>
-      </div>
     </div>
   );
 }
@@ -626,29 +622,32 @@ function CameraStreamZone({
   };
 
   return (
-    <section className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 lg:col-span-7">
-      <StreamHeader canvasDims={meta.canvasDims} fps={meta.metadata?.video?.fps} />
-      {isCalibrating && (
-        <CalibrationBar
+    <section className="flex flex-col justify-between rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 lg:col-span-7">
+      <div>
+        <StreamHeader canvasDims={meta.canvasDims} fps={meta.metadata?.video?.fps} />
+        {isCalibrating && (
+          <CalibrationBar
+            calibPoints={calibPoints}
+            onReset={() => setCalibPoints([])}
+            onApply={onApplyCalib}
+          />
+        )}
+        <VideoViewport
+          videoProps={videoProps}
+          overlayProps={overlayProps}
+          isCalibrating={isCalibrating}
           calibPoints={calibPoints}
-          onReset={() => setCalibPoints([])}
-          onApply={onApplyCalib}
+          setCalibPoints={setCalibPoints}
         />
-      )}
-      <VideoViewport
-        videoProps={videoProps}
-        overlayProps={overlayProps}
-        isCalibrating={isCalibrating}
-        calibPoints={calibPoints}
-        setCalibPoints={setCalibPoints}
-      />
-      <CameraStreamControls
-        player={player}
-        meta={meta}
-        layers={layers}
-        isCalibrating={isCalibrating}
-        setIsCalibrating={setIsCalibrating}
-      />
+        <CameraStreamControls
+          player={player}
+          meta={meta}
+          layers={layers}
+          isCalibrating={isCalibrating}
+          setIsCalibrating={setIsCalibrating}
+        />
+      </div>
+      <PipelineStrip isPlaying={player.isPlaying} embedded />
     </section>
   );
 }
@@ -767,7 +766,6 @@ export default function CameraView() {
         onApplyCalib={handleApplyCalib}
       />
       <IpmZone activeFrame={player.activeFrame} metadata={meta.metadata} currentTime={player.currentTime} />
-      <PipelineStrip isPlaying={player.isPlaying} />
     </div>
   );
 }

@@ -30,21 +30,14 @@ const PRESET_OPTIONS = [
   },
 ];
 
-function TelemetryCell({ label, value, badgeText, badgeTone, subtext }) {
+function TelemetryCell({ label, value, subtext }) {
   return (
     <div className="px-3 py-2.5">
       <div className="truncate text-[11px] font-medium text-slate-400">
         {label}
       </div>
-      <div className="mt-0.5 flex flex-wrap items-baseline gap-1.5">
-        <span className="font-mono text-[20px] font-bold tabular-nums text-slate-100">
-          {value}
-        </span>
-        <span
-          className={`rounded px-1.5 py-0.5 font-mono text-[10px] font-bold tabular-nums ${badgeTone}`}
-        >
-          {badgeText}
-        </span>
+      <div className="mt-0.5 font-mono text-[20px] font-bold tabular-nums text-slate-100">
+        {value}
       </div>
       <div className="mt-0.5 truncate font-mono text-[11px] tabular-nums text-slate-500">
         {subtext}
@@ -58,31 +51,22 @@ export const LabStatCards = memo(function LabStatCards({ telemetry }) {
   const phiCorridor = Number(telemetry?.phiCorridor ?? 0);
   const tp = Number(telemetry?.throughput ?? 0);
 
-  const inHeavy = phiIn >= 0.7;
-  const corridorJam = phiCorridor >= 0.7;
-
   return (
     <div className="grid grid-cols-3 divide-x divide-[#1e293b] rounded-lg border border-[#1e293b] bg-[#0f172a]">
       <TelemetryCell
         label="Áp suất vào φ_in"
-        value={`${(phiIn * 100).toFixed(0)}%`}
-        badgeText={inHeavy ? "Đông đúc" : "Thông thoáng"}
-        badgeTone={inHeavy ? "bg-amber-500/15 text-amber-300" : "bg-emerald-500/15 text-emerald-300"}
+        value={`${Math.round(phiIn * 100)}%`}
         subtext="Nút 1 Nhánh Tây"
       />
       <TelemetryCell
         label="Hạ lưu nối φ_out"
-        value={`${(phiCorridor * 100).toFixed(0)}%`}
-        badgeText={corridorJam ? "Kẹt dội ngược" : "Bình thường"}
-        badgeTone={corridorJam ? "bg-rose-500/15 text-rose-300" : "bg-emerald-500/15 text-emerald-300"}
+        value={`${Math.round(phiCorridor * 100)}%`}
         subtext="Hành lang Nút 1-2"
       />
       <TelemetryCell
         label="Thông lượng thoát"
-        value={`${tp}`}
-        badgeText={tp > 0 ? "Lưu thông" : "Chờ xe"}
-        badgeTone={tp > 0 ? "bg-emerald-500/15 text-emerald-300" : "bg-slate-700/50 text-slate-300"}
-        subtext="xe đã thoát mạng lưới"
+        value={tp}
+        subtext="xe đã thoát mạng"
       />
     </div>
   );

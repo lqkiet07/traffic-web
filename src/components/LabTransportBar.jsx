@@ -150,7 +150,7 @@ export function ModeToggle({ simMode = "continuous", onToggleMode }) {
             : "text-slate-400 hover:bg-slate-800/60 hover:text-slate-200"
         }`}
       >
-        <Activity size={13} className="mr-1.5 text-emerald-400" /> Thời gian thực (60 FPS)
+        <Activity size={13} className="mr-1.5 text-emerald-400" /> Thời gian thực
       </button>
       <button
         type="button"

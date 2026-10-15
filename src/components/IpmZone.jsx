@@ -143,7 +143,7 @@ function IpmCanvas({ vehicles, homography }) {
       ref={canvasRef}
       width={400}
       height={300}
-      className="block aspect-[4/3] w-full rounded-lg border border-[#1e293b] bg-slate-950 shadow-inner"
+      className="block max-h-[280px] w-full object-contain mx-auto rounded-lg border border-[#1e293b] bg-slate-950"
     />
   );
 }
@@ -201,7 +201,7 @@ function LiveSignalAllocation({ activeFrame }) {
       <div className="mb-2 flex items-center justify-between border-b border-[#1e293b] pb-1.5">
         <span className="flex items-center gap-1.5 font-semibold text-slate-200">
           <SlidersHorizontal size={13} className="text-emerald-400" />
-          Phân bổ nhịp xanh Live (Digital Twin)
+          Phân bổ nhịp xanh thời gian thực
         </span>
         <span className="text-[10px] text-slate-400">Chu kỳ 120s (G=112s, Y=8s)</span>
       </div>

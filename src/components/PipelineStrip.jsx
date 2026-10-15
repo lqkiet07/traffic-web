@@ -17,17 +17,12 @@ function PipelineHeader({ isPlaying }) {
             : "border border-slate-700 bg-slate-800 text-slate-400"
         }`}
       >
-        {isPlaying ? (
-          <>
-            <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            <span>Đang xử lý (30 FPS)</span>
-          </>
-        ) : (
-          <>
-            <span className="h-1.5 w-1.5 rounded-full bg-slate-500" />
-            <span>Tạm dừng</span>
-          </>
-        )}
+        <span
+          className={`h-1.5 w-1.5 rounded-full ${
+            isPlaying ? "bg-emerald-400" : "bg-slate-500"
+          }`}
+        />
+        <span>{isPlaying ? "Đang phát" : "Tạm dừng"}</span>
       </div>
     </div>
   );
@@ -42,33 +37,35 @@ function StageBadge({ stage, isPlaying }) {
           : "border border-[#1e293b] bg-slate-950 text-slate-400"
       }`}
     >
-      {isPlaying ? (
-        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400" />
-      ) : (
-        <span className="h-1.5 w-1.5 rounded-full bg-slate-600" />
-      )}
       {stage}
     </span>
   );
 }
 
-export function PipelineStrip({ isPlaying = false }) {
-  return (
-    <section className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 lg:col-span-12">
+export function PipelineStrip({ isPlaying = false, embedded = false }) {
+  const content = (
+    <>
       <PipelineHeader isPlaying={isPlaying} />
       <div className="flex flex-wrap items-center gap-1.5">
         {PIPELINE_STAGES.map((stage, idx) => (
-          <span key={stage} className="flex items-center gap-1.5">
-            {idx > 0 ? (
-              <ArrowRight
-                size={14}
-                className={isPlaying ? "text-emerald-500/60" : "text-slate-600"}
-              />
-            ) : null}
+          <div key={stage} className="flex items-center gap-1.5">
             <StageBadge stage={stage} isPlaying={isPlaying} />
-          </span>
+            {idx < PIPELINE_STAGES.length - 1 && (
+              <ArrowRight size={13} className="text-slate-600 shrink-0" />
+            )}
+          </div>
         ))}
       </div>
+    </>
+  );
+
+  if (embedded) {
+    return <div className="mt-3 border-t border-[#1e293b] pt-2.5">{content}</div>;
+  }
+
+  return (
+    <section className="rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
+      {content}
     </section>
   );
 }

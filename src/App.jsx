@@ -11,15 +11,9 @@ import { getGamaSignal, latestCycleEntry, replayAvailable } from "./lib/data.js"
 
 function AnalysisPanel({ player }) {
   return (
-    <section className="flex flex-col gap-3 lg:col-span-4 lg:overflow-auto">
+    <section className="flex h-full flex-col gap-3 lg:col-span-4 lg:overflow-hidden">
       <StatCards kpi={player.kpi} scenario={player.scenario} globalSimTime={player.globalSimTime} />
       <ComparisonCharts kpi={player.kpi} scenario={player.scenario} globalSimTime={player.globalSimTime} />
-      <div className="rounded-xl border border-[#1e293b] bg-slate-900/70 p-3 text-xs leading-relaxed text-slate-400">
-        <b className="text-slate-200">Hướng dẫn học tập:</b> bấm <b>Phát</b> để xem dòng xe Cần
-        Thơ chạy theo nhịp đèn CAO-CBMP · kéo slider tới chu kỳ cao điểm (40–60) · click vào
-        từng nút giao để mổ xẻ nguyên lý Max Pressure · chuyển kịch bản Low/Medium/High để kiểm
-        chứng lý thuyết bão hòa.
-      </div>
     </section>
   );
 }
