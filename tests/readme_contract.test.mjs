@@ -42,4 +42,11 @@ assert.ok(readme.includes("@lqkiet07"), "README.md must include permanent contac
 assert.ok(readme.includes("issues"), "README.md must include GitHub Issues link for collaboration");
 assert.ok(!readme.includes("License-MIT"), "README.md must not reference MIT badge");
 
+// 7. Language consistency: Sections 7 & 8 and LICENSE must be 100% in English
+assert.ok(!readme.includes("Đề tài nghiên cứu được thực hiện"), "README.md must not contain Vietnamese in Section 7");
+assert.ok(!readme.includes("Trích Dẫn Khoa Học"), "README.md citation heading must be in English");
+assert.ok(!readme.includes("Dự án được bảo hộ theo giấy phép"), "README.md Section 8 must be in English");
+assert.ok(!licenseContent.includes("Dự án này được công bố"), "LICENSE must not contain Vietnamese text");
+assert.ok(!licenseContent.includes("QUYỀN HẠN ĐƯỢC PHÉP"), "LICENSE sections must be in English");
+
 console.log("[readme_contract.test] all assertions passed!");

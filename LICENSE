@@ -1,17 +1,17 @@
 ACADEMIC NON-COMMERCIAL & RESEARCH LICENSE
 Copyright (c) 2026 Can Tho University (CTU) & Research Team.
-All Rights Reserved (Mọi quyền được bảo lưu).
+All Rights Reserved.
 
-Dự án này được công bố nhằm mục đích nghiên cứu học thuật, giáo dục và minh bạch khoa học.
-Bằng việc truy cập, tải về hoặc sử dụng mã nguồn và tài nguyên trong kho lưu trữ này, bạn đồng ý với các điều khoản sau:
+This project is made publicly available for academic research, educational review, and scientific reproducibility.
+By accessing, downloading, or using the source code, datasets, and digital assets in this repository, you agree to the following terms and conditions:
 
-1. QUYỀN HẠN ĐƯỢC PHÉP (PERMITTED USES):
-   - Bạn được phép xem, tải về, chạy thử nghiệm mã nguồn cho mục đích học tập cá nhân.
-   - Bạn được phép kế thừa, phát triển tiếp các bài toán nghiên cứu mới dựa trên nền tảng này, VỚI ĐIỀU KIỆN bắt buộc phải trích dẫn (cite) đầy đủ tên nhóm tác giả và công trình nghiên cứu theo định dạng BibTeX trong tệp README.md.
+1. PERMITTED USES:
+   - You are permitted to inspect, download, and execute the source code for personal educational and scientific research purposes.
+   - You are permitted to build upon, extend, or adapt the methodology for subsequent scientific research, PROVIDED that proper academic attribution is cited using the BibTeX format specified in README.md.
 
-2. CÁC HÀNH VI NGHIÊM CẤM (PROHIBITED USES - CHỐNG ĐẠO VĂN & THƯƠNG MẠI):
-   - NGHIÊM CẤM sao chép nguyên mẫu hoặc một phần mã nguồn, thuật toán, dữ liệu mô phỏng GAMA (trajectories, signals), hoặc video camera thực tế để nộp cho bất kỳ đồ án môn học, khóa luận tốt nghiệp, luận văn tại bất kỳ cơ sở giáo dục nào mà không có sự đồng ý bằng văn bản của nhóm tác giả. Hành vi vi phạm sẽ bị khiếu nại theo quy chế Chống Đạo văn (Academic Plagiarism).
-   - NGHIÊM CẤM sử dụng toàn bộ hoặc bất kỳ phần nào của dự án này cho các mục đích thương mại, kinh doanh sinh lợi, hoặc tích hợp vào các sản phẩm phần mềm thương mại đóng gói nếu không có thỏa thuận cấp phép bằng văn bản từ Trường Đại học Cần Thơ và Nhóm tác giả.
+2. PROHIBITED USES (ANTI-PLAGIARISM & COMMERCIAL RESTRICTIONS):
+   - STRICTLY PROHIBITED: Copying, redistributing, or submitting any part of this source code, mathematical algorithms, GAMA simulation datasets (trajectories, signals), or real-world CCTV footage as coursework, capstone projects, graduation theses, or dissertations at any educational institution without prior written consent from the authors. Violations will be reported under Academic Plagiarism and Dishonesty regulations.
+   - STRICTLY PROHIBITED: Using this project or any of its components for commercial purposes, revenue generation, or integration into proprietary commercial products without a formal licensing agreement from Can Tho University and the authors.
 
-3. KHƯỚC TỪ TRÁCH NHIỆM (DISCLAIMER):
-   - Phần mềm và mô hình mô phỏng được cung cấp "nguyên trạng" (AS IS) phục vụ nghiên cứu khoa học. Nhóm tác giả không chịu trách nhiệm đối với bất kỳ thiệt hại trực tiếp hoặc gián tiếp nào phát sinh từ việc sử dụng phần mềm ngoài mục đích nghiên cứu.
+3. DISCLAIMER:
+   - The software and simulation models are provided "AS IS" for academic research purposes. The authors disclaim all warranties, express or implied, and shall not be held liable for any damages arising from the use of this software.

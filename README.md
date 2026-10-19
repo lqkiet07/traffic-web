@@ -196,16 +196,16 @@ npm run build
 
 ## 7. Academic Attribution & Research Team
 
-Đề tài nghiên cứu được thực hiện tại **Trường Đại học Cần Thơ (CTU)**:
+This research project was conducted at **Can Tho University (CTU)**:
 
-- **Cơ quan chủ trì:** Khoa Công nghệ Thông tin & Truyền thông, Trường Đại học Cần Thơ.
-- **Nhóm nghiên cứu & Phát triển:** Nhóm sinh viên thực hiện đề tài.
-- **Kênh liên hệ & Hợp tác nghiên cứu:**
-  - Mọi câu hỏi, đề xuất kế thừa thuật toán hoặc trao đổi học thuật, vui lòng mở [GitHub Issues](https://github.com/lqkiet07/traffic-web/issues).
-  - Hoặc liên hệ trực tiếp qua hồ sơ GitHub: [@lqkiet07](https://github.com/lqkiet07).
+- **Host Institution:** College of Information and Communication Technology, Can Tho University, Vietnam.
+- **Research & Development Team:** Student research team.
+- **Academic Collaboration & Contact:**
+  - For technical inquiries, algorithmic extensions, or research collaboration, please open an issue on [GitHub Issues](https://github.com/lqkiet07/traffic-web/issues).
+  - Or reach out directly via GitHub profile: [@lqkiet07](https://github.com/lqkiet07).
 
-### 📖 Trích Dẫn Khoa Học (Citation)
-Nếu bạn sử dụng mã nguồn, bộ dữ liệu mô phỏng hoặc nền tảng này cho các nghiên cứu tiếp nối, vui lòng trích dẫn theo định dạng sau:
+### 📖 Citation
+If you utilize this codebase, simulation datasets, or Digital Twin platform in your subsequent research, please cite:
 
 ```bibtex
 @misc{trafficdt_web_2026,
@@ -222,5 +222,5 @@ Nếu bạn sử dụng mã nguồn, bộ dữ liệu mô phỏng hoặc nền t
 
 ## 8. License & Academic Integrity
 
-Dự án được bảo hộ theo giấy phép **Academic Non-Commercial & Research License**. Mọi quyền được bảo lưu bởi Nhóm tác giả và Trường Đại học Cần Thơ. 
-Nghiêm cấm sao chép phục vụ mục đích thương mại hoặc gian lận nộp đồ án học thuật. Xem chi tiết điều khoản tại tệp [`LICENSE`](LICENSE).
+This project is licensed under the **Academic Non-Commercial & Research License**. All rights are reserved by the Research Team and Can Tho University.
+Redistribution, plagiarism, academic dishonesty, and commercial exploitation are strictly prohibited. See [`LICENSE`](LICENSE) for full legal terms.
