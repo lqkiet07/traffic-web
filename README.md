@@ -6,7 +6,7 @@
 [![Three.js](https://img.shields.io/badge/Three.js-0.186.1-black?logo=three.js&logoColor=white)](https://threejs.org/)
 [![Python 3.12](https://img.shields.io/badge/Python-3.12-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Automated Tests](https://img.shields.io/badge/Automated_Tests-35%2F35_Passing-success?logo=checkmarx&logoColor=white)](#verification--automated-testing)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
+[![License: Academic Non-Commercial](https://img.shields.io/badge/License-Academic_Non--Commercial-blue.svg)](LICENSE)
 
 A web-based Digital Twin evaluation platform for adaptive traffic signal control using **CAO-CBMP (Continuous Area Occupancy & Corridor Back-pressure Max-Pressure)** designed specifically for heterogeneous motorcycle-dominated traffic in Can Tho City, Vietnam.
 
@@ -196,15 +196,31 @@ npm run build
 
 ## 7. Academic Attribution & Research Team
 
-Developed as part of the intelligent transportation research program at **Can Tho University (CTU)**:
+Đề tài nghiên cứu được thực hiện tại **Trường Đại học Cần Thơ (CTU)**:
 
-- **Institution:** College of Information & Communication Technology, Can Tho University, Vietnam.
-- **Research Topic:** Adaptive Traffic Signal Control for Heterogeneous Traffic in Can Tho City.
-- **Algorithm:** CAO-CBMP (Continuous Area Occupancy & Corridor Back-pressure Max-Pressure).
-- **Study Corridor:** Quang Trung Arterial & Ninh Kieu District Interconnected Grid.
+- **Cơ quan chủ trì:** Khoa Công nghệ Thông tin & Truyền thông, Trường Đại học Cần Thơ.
+- **Nhóm nghiên cứu & Phát triển:** Nhóm sinh viên thực hiện đề tài.
+- **Kênh liên hệ & Hợp tác nghiên cứu:**
+  - Mọi câu hỏi, đề xuất kế thừa thuật toán hoặc trao đổi học thuật, vui lòng mở [GitHub Issues](https://github.com/lqkiet07/traffic-web/issues).
+  - Hoặc liên hệ trực tiếp qua hồ sơ GitHub: [@lqkiet07](https://github.com/lqkiet07).
+
+### 📖 Trích Dẫn Khoa Học (Citation)
+Nếu bạn sử dụng mã nguồn, bộ dữ liệu mô phỏng hoặc nền tảng này cho các nghiên cứu tiếp nối, vui lòng trích dẫn theo định dạng sau:
+
+```bibtex
+@misc{trafficdt_web_2026,
+  author       = {Kiet, L. Q. and Research Team and Can Tho University},
+  title        = {TrafficDT-Web: A Web-based Digital Twin Evaluation Platform for Heterogeneous Traffic Signal Control},
+  year         = {2026},
+  publisher    = {GitHub},
+  howpublished = {\url{https://github.com/lqkiet07/traffic-web}},
+  note         = {College of Information and Communication Technology, Can Tho University, Vietnam}
+}
+```
 
 ---
 
-## 8. License
+## 8. License & Academic Integrity
 
-Distributed under the MIT License. See `LICENSE` for details.
+Dự án được bảo hộ theo giấy phép **Academic Non-Commercial & Research License**. Mọi quyền được bảo lưu bởi Nhóm tác giả và Trường Đại học Cần Thơ. 
+Nghiêm cấm sao chép phục vụ mục đích thương mại hoặc gian lận nộp đồ án học thuật. Xem chi tiết điều khoản tại tệp [`LICENSE`](LICENSE).

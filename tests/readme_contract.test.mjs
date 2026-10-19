@@ -28,4 +28,18 @@ assert.ok(readme.includes("Kẹt xe dây chuyền"), "README must document scena
 assert.ok(!readme.includes("LabSpawnerDock"), "README must not reference removed spawner dock");
 assert.ok(!readme.includes("CalibrationBar"), "README must not reference removed calibration bar");
 
+// 5. License file and citation/contact contract
+const licensePath = path.resolve(__dirname, "../LICENSE");
+assert.ok(fs.existsSync(licensePath), "LICENSE file must exist at root");
+const licenseContent = fs.readFileSync(licensePath, "utf8");
+assert.ok(licenseContent.includes("ACADEMIC NON-COMMERCIAL"), "LICENSE must declare Academic Non-Commercial terms");
+assert.ok(licenseContent.includes("Can Tho University"), "LICENSE must cite Can Tho University");
+
+// 6. Citation, Academic License, and Collaboration links in README
+assert.ok(readme.includes("@misc{trafficdt_web_2026"), "README.md must include BibTeX citation snippet");
+assert.ok(readme.includes("Academic Non-Commercial"), "README.md must reference the Academic License");
+assert.ok(readme.includes("@lqkiet07"), "README.md must include permanent contact GitHub profile link");
+assert.ok(readme.includes("issues"), "README.md must include GitHub Issues link for collaboration");
+assert.ok(!readme.includes("License-MIT"), "README.md must not reference MIT badge");
+
 console.log("[readme_contract.test] all assertions passed!");
