@@ -36,7 +36,15 @@ assert.ok(licenseContent.includes("ACADEMIC NON-COMMERCIAL"), "LICENSE must decl
 assert.ok(licenseContent.includes("Can Tho University"), "LICENSE must cite Can Tho University");
 
 // 6. Citation, Academic License, and Collaboration links in README
-assert.ok(readme.includes("@misc{trafficdt_web_2026"), "README.md must include BibTeX citation snippet");
+assert.ok(
+  readme.includes("Optimization of Cycle-Based Max Pressure Control in Mixed Traffic Based on Continuous Area Occupancy"),
+  "README.md must cite the exact paper title"
+);
+assert.ok(readme.includes("THS2026-69"), "README.md must cite study code THS2026-69");
+assert.ok(readme.includes("Thi-Ngoc-Tran Nguyen"), "README.md must list lead student author");
+assert.ok(readme.includes("Quoc-Kiet Le"), "README.md must list author Quoc-Kiet Le");
+assert.ok(readme.includes("Thanh-Khoa Nguyen"), "README.md must list advisor Thanh-Khoa Nguyen");
+assert.ok(readme.includes("@inproceedings{nguyen2026optimization"), "README.md must include exact BibTeX citation block");
 assert.ok(readme.includes("Academic Non-Commercial"), "README.md must reference the Academic License");
 assert.ok(readme.includes("@lqkiet07"), "README.md must include permanent contact GitHub profile link");
 assert.ok(readme.includes("issues"), "README.md must include GitHub Issues link for collaboration");

@@ -196,25 +196,38 @@ npm run build
 
 ## 7. Academic Attribution & Research Team
 
-This research project was conducted at **Can Tho University (CTU)**:
+This project is the official web-based evaluation platform for the research paper:
+> **"Optimization of Cycle-Based Max Pressure Control in Mixed Traffic Based on Continuous Area Occupancy"**  
+> *Funded by Can Tho University, Project Code: `THS2026-69`.*
 
-- **Host Institution:** College of Information and Communication Technology, Can Tho University, Vietnam.
-- **Research & Development Team:** Student research team.
+### Research Team & Affiliation
+**College of Information and Communication Technology, Can Tho University, Can Tho, Vietnam**
+
+- **Student Authors:**
+  - **Thi-Ngoc-Tran Nguyen** (`tranb2303907@student.ctu.edu.vn`)
+  - **Thi-Ngoc-Quy Nguyen** (`quyb2303898@student.ctu.edu.vn`)
+  - **Thi-Thao-Nguyen Tran** (`nguyenb2303886@student.ctu.edu.vn`)
+  - **Quoc-Kiet Le** (`kietb2303878@student.ctu.edu.vn` · [@lqkiet07](https://github.com/lqkiet07))
+  - **Tan-Phuc Huynh** (`phucb2303893@student.ctu.edu.vn`)
+- **Faculty Advisors:**
+  - **Tram Huynh Vo** (`vhtram@ctu.edu.vn`)
+  - **Quang-Nghi Huynh** (`hqnghi@ctu.edu.vn`)
+  - **Thanh-Khoa Nguyen** (`ntkhoa@ctu.edu.vn`)
+
 - **Academic Collaboration & Contact:**
-  - For technical inquiries, algorithmic extensions, or research collaboration, please open an issue on [GitHub Issues](https://github.com/lqkiet07/traffic-web/issues).
-  - Or reach out directly via GitHub profile: [@lqkiet07](https://github.com/lqkiet07).
+  - For technical inquiries, algorithmic extensions, or research collaboration, please open an issue on [GitHub Issues](https://github.com/lqkiet07/traffic-web/issues) or reach out to [@lqkiet07](https://github.com/lqkiet07).
 
 ### 📖 Citation
 If you utilize this codebase, simulation datasets, or Digital Twin platform in your subsequent research, please cite:
 
 ```bibtex
-@misc{trafficdt_web_2026,
-  author       = {Kiet, L. Q. and Research Team and Can Tho University},
-  title        = {TrafficDT-Web: A Web-based Digital Twin Evaluation Platform for Heterogeneous Traffic Signal Control},
-  year         = {2026},
-  publisher    = {GitHub},
-  howpublished = {\url{https://github.com/lqkiet07/traffic-web}},
-  note         = {College of Information and Communication Technology, Can Tho University, Vietnam}
+@inproceedings{nguyen2026optimization,
+  author    = {Nguyen, Thi-Ngoc-Tran and Nguyen, Thi-Ngoc-Quy and Tran, Thi-Thao-Nguyen and Le, Quoc-Kiet and Huynh, Tan-Phuc and Vo, Tram Huynh and Huynh, Quang-Nghi and Nguyen, Thanh-Khoa},
+  title     = {Optimization of Cycle-Based Max Pressure Control in Mixed Traffic Based on Continuous Area Occupancy},
+  booktitle = {Proceedings of the International Conference on Computational Science and Its Applications (Springer LNCS)},
+  year      = {2026},
+  note      = {Funded by Can Tho University, Code: THS2026-69. College of Information and Communication Technology, Can Tho University, Vietnam},
+  url       = {https://github.com/lqkiet07/traffic-web}
 }
 ```
 
