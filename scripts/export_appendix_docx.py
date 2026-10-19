@@ -28,42 +28,27 @@ def create_appendix_docx():
         (
             "docs/figures/hinh_1_replay_map.png",
             "Hình 1. Giao diện bản đồ tái hiện mô phỏng mạng lưới giao thông vi mô 8 nút giao",
-            5.8
+            6.0
         ),
         (
             "docs/figures/hinh_2_inspector.png",
-            "Hình 2. Giao diện chi tiết chu kỳ đèn và cột tín hiệu 3 mắt tại nút giao",
-            5.8
-        ),
-        (
-            "docs/figures/hinh_3_corridor_3d.png",
-            "Hình 3. Giao diện 3D trực quan hóa dòng giao thông hành lang liên nút",
-            5.8
+            "Hình 2. Giao diện chi tiết chu kỳ đèn và cột tín hiệu tại nút giao",
+            6.0
         ),
         (
             "docs/figures/hinh_4_heterogeneous.png",
-            "Hình 4. Giao diện thử nghiệm kịch bản dòng xe hỗn hợp dị thể (1 xe tải đối đầu 12 xe máy)",
-            5.8
+            "Hình 3. Giao diện 3D trực quan hóa thuật toán bằng dòng giao thông",
+            6.0
         ),
         (
             "docs/figures/hinh_5_stepper_math.png",
-            "Hình 5. Giao diện bộ giải đại số 5 bước phân bổ thời lượng xanh Max-Pressure",
-            5.8
+            "Hình 4. Giao diện phân bổ thời lượng xanh",
+            6.0
         ),
         (
             "docs/figures/hinh_6_camera_yolo.png",
-            "Hình 6. Giao diện nhận diện phương tiện YOLOv8 và vùng quan tâm ROI trên luồng camera",
+            "Hình 5. Giao diện nhận diện phương tiện YOLOv8 và vùng quan tâm ROI trên luồng camera",
             5.8
-        ),
-        (
-            "docs/figures/hinh_7_ipm_plane.png",
-            "Hình 7. Giao diện mặt phẳng chiếu bằng IPM và thanh đo tỷ lệ chiếm dụng diện tích mặt đường",
-            5.2
-        ),
-        (
-            "docs/figures/hinh_8_live_signal.png",
-            "Hình 8. Giao diện thẻ phân bổ nhịp xanh thích ứng thời gian thực (Live Signal Allocation)",
-            5.2
         ),
     ]
 

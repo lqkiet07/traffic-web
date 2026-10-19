@@ -1,5 +1,4 @@
 import { Pause, Play, RotateCcw, SkipBack, SkipForward } from "lucide-react";
-import { CYCLE_LEN, formatClock } from "../lib/data.js";
 
 const SPEEDS = [1, 2, 5];
 
@@ -50,25 +49,18 @@ function PlaybackButtons({ player }) {
 }
 
 function TimeReadout({ player }) {
-  const { cycle, maxCycle, simTime, globalSimTime, vehicleCount } = player;
+  const { cycle, maxCycle, vehicleCount } = player;
   return (
     <div className="ml-auto text-right font-mono text-xs tabular-nums text-slate-400">
-      <div>
-        CK <span className="font-bold text-slate-100">{cycle}/{maxCycle}</span>
-        {"  ·  "}t {Math.round(simTime)}s/{CYCLE_LEN}s
-      </div>
-      <div>
-        {formatClock(globalSimTime)} / {formatClock(maxCycle * CYCLE_LEN)}{"  ·  "}{vehicleCount} xe
-      </div>
+      CK <span className="font-bold text-slate-100">{cycle}/{maxCycle}</span>
+      <span className="mx-2 text-slate-600">·</span>
+      <span className="font-medium text-slate-200">{vehicleCount}</span> xe
     </div>
   );
 }
 
 function CycleScrubber({ player }) {
   const { cycle, maxCycle, gotoCycle } = player;
-  const ticks = Array.from({ length: Math.floor(maxCycle / 10) + 1 }, (_, i) =>
-    Math.min(i * 10 === 0 ? 1 : i * 10, maxCycle)
-  );
   return (
     <div>
       <input
@@ -79,10 +71,9 @@ function CycleScrubber({ player }) {
         onChange={(e) => gotoCycle(Number(e.target.value))}
         className="transport-scrubber mt-3"
       />
-      <div className="mt-1 flex justify-between font-mono text-[10px] tabular-nums text-slate-600">
-        {ticks.map((tick) => (
-          <span key={tick}>CK{tick}</span>
-        ))}
+      <div className="mt-1 flex justify-between font-mono text-[10px] tabular-nums text-slate-500">
+        <span>1</span>
+        <span>{maxCycle}</span>
       </div>
     </div>
   );

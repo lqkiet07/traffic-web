@@ -1,39 +1,8 @@
 import MapView from "./MapView.jsx";
 import ReplayControls from "./ReplayControls.jsx";
 import JunctionInspector from "./JunctionInspector.jsx";
-import { VEH_DIMS } from "../lib/data.js";
 
-const LAMP_LEGEND = [
-  ["#ef4444", "Đèn đỏ (dừng)"],
-  ["#22c55e", "Đèn xanh (đi)"],
-];
-
-function MapLegend() {
-  return (
-    <div className="flex flex-wrap gap-3 text-[11px] text-slate-400">
-      {Object.entries(VEH_DIMS).map(([k, s]) => (
-        <span key={k} className="flex items-center gap-1.5">
-          <span
-            className="inline-block h-2.5 w-4 rounded-sm"
-            style={{ backgroundColor: s.color }}
-          />
-          {s.label}
-        </span>
-      ))}
-      {LAMP_LEGEND.map(([color, label]) => (
-        <span key={label} className="flex items-center gap-1.5">
-          <span
-            className="inline-block h-2.5 w-2.5 rounded-full"
-            style={{ backgroundColor: color }}
-          />
-          {label}
-        </span>
-      ))}
-    </div>
-  );
-}
-
-// Left viewport: interactive map + inspector + transport bar + legend.
+// Left viewport: interactive map + inspector + transport bar.
 export default function MapViewport({ player, junction, localKpis, localKpi, scenario, selected, onSelect, offsetS = 0, phaseTune }) {
   return (
     <section className="flex min-h-[480px] flex-col gap-3 lg:col-span-8 lg:min-h-0">
@@ -52,6 +21,11 @@ export default function MapViewport({ player, junction, localKpis, localKpi, sce
           onSelect={onSelect}
           offsetS={offsetS}
         />
+        <div className="absolute bottom-3 left-3 z-[500] pointer-events-none flex items-center gap-3 rounded-md border border-[#1e293b]/80 bg-[#090d16]/85 px-2.5 py-1 text-[11px] text-slate-300 backdrop-blur-sm">
+          <span className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-sm bg-[#f59e0b]" />Xe máy</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-sm bg-[#38bdf8]" />Ô tô</span>
+          <span className="flex items-center gap-1.5"><span className="h-2 w-3 rounded-sm bg-[#ec4899]" />Xe tải</span>
+        </div>
         <JunctionInspector
           junction={junction}
           signals={player.signals}
@@ -66,7 +40,6 @@ export default function MapViewport({ player, junction, localKpis, localKpi, sce
         />
       </div>
       <ReplayControls player={player} />
-      <MapLegend />
     </section>
   );
 }

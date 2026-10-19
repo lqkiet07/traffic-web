@@ -1,31 +1,7 @@
-import { useEffect, useState } from "react";
-import { ChevronDown, ChevronUp, GraduationCap, X } from "lucide-react";
+import { X } from "lucide-react";
 import { getGamaSignal, GAMA_CYCLE_LEN } from "../lib/data.js";
 
-function WhyBox({ g1, g2 }) {
-  const bigT = Math.round(Math.max(g1, g2));
-  const smallT = Math.round(Math.min(g1, g2));
-  const equal = bigT === smallT;
-  const big = g1 >= g2 ? 1 : 2;
-  const color = big === 1 ? "text-emerald-300" : "text-sky-300";
-  return (
-    <div className="mt-3 rounded-lg bg-slate-900 p-2.5 text-[12px] leading-relaxed text-slate-300">
-      <b className="text-slate-100">Vì sao phân bổ như vậy?</b>
-      <br />
-      {equal ? (
-        <>Chu kỳ này chia đều {bigT}s mỗi pha.</>
-      ) : (
-        <>Chu kỳ này pha {big} được phân bổ <b className={color}>{bigT}s xanh</b> (so {smallT}s của pha còn lại).</>
-      )}{" "}
-      CAO-CBMP phân bổ theo áp lực Max Pressure (
-      <code className="rounded bg-slate-800 px-1 text-cyan-300">P = áp lực vào − áp lực ra</code>)
-      đo bằng diện tích chiếm dụng thực (m²): 1 ô tô được tính nặng hơn 1 xe máy — đúng bản
-      chất dòng xe hỗn hợp Việt Nam.
-    </div>
-  );
-}
-
-function LocalKpiRow({ localKpi, scenario }) {
+function LocalKpiRow({ localKpi }) {
   if (!localKpi) {
     return <p className="mt-2 text-[11px] text-slate-500">Chưa có dữ liệu KPI cho kịch bản này.</p>;
   }
@@ -74,54 +50,9 @@ function PhaseSplitBar({ g1, g2, gamaCycle, phase, isYellow }) {
   );
 }
 
-function PhaseTuneBox({ offsetS, setOffsetS, resetOffset }) {
-  return (
-    <div className="mt-3 rounded-lg bg-slate-900 p-2.5">
-      <div className="mb-1 flex items-center justify-between text-[11px] text-slate-400">
-        <span>Căn giờ đèn (thủ công)</span>
-        <span className="font-mono tabular-nums text-slate-200">{offsetS >= 0 ? "+" : ""}{offsetS}s</span>
-      </div>
-      <input
-        type="range" min={-15} max={15} step={1} value={offsetS}
-        onChange={(e) => setOffsetS(Number(e.target.value))}
-        className="transport-scrubber w-full"
-      />
-      <div className="mt-1 flex justify-between text-[10px] text-slate-600">
-        <span>-15s</span>
-        <button onClick={resetOffset} className="text-slate-400 underline hover:text-slate-200">về 0</button>
-        <span>+15s</span>
-      </div>
-    </div>
-  );
-}
+export default function JunctionInspector({ junction, signals, localKpi, globalSimTime = 0, onClose, offsetS = 0 }) {
+  if (!junction) return null;
 
-// Per-junction panel: live green split + local KPI + Max Pressure explainer.
-function HintChip() {
-  return (
-    <div className="absolute right-3 top-3 z-[1001] rounded-lg border border-[#1e293b] bg-[#090d16]/90 px-3 py-2 font-mono text-[11px] text-slate-500">
-      Chọn nút giao trên bản đồ để phân tích
-    </div>
-  );
-}
-
-function CollapsedChip({ code, onExpand }) {
-  return (
-    <button
-      onClick={onExpand}
-      className="absolute right-3 top-3 z-[1001] rounded-lg border border-[#1e293b] bg-[#090d16]/95 px-3 py-2 font-mono text-[11px] font-bold text-slate-200 hover:border-slate-600"
-    >
-      <span className="flex items-center gap-1">{code} <ChevronDown size={13} /></span>
-    </button>
-  );
-}
-
-export default function JunctionInspector({ junction, signals, localKpi, scenario, cycle, simTime, globalSimTime = 0, onClose, phaseTune, offsetS = 0 }) {
-  const [open, setOpen] = useState(false);
-  useEffect(() => {
-    if (junction) setOpen(true);
-  }, [junction]);
-  if (!junction) return <HintChip />;
-  if (!open) return <CollapsedChip code={junction.code} onExpand={() => setOpen(true)} />;
   const sig = getGamaSignal(signals?.[junction.code], globalSimTime, offsetS);
   const g1 = sig.split?.g1 ?? 56;
   const g2 = sig.split?.g2 ?? 56;
@@ -129,40 +60,21 @@ export default function JunctionInspector({ junction, signals, localKpi, scenari
   const gamaCycle = sig.gamaCycle;
 
   return (
-    <div className="absolute right-3 top-3 z-[1001] max-h-[calc(100%-24px)] overflow-y-auto w-80 rounded-lg border border-[#1e293b] bg-[#090d16]/98 p-4 shadow-lg">
-      <div className="flex items-start gap-2">
-        <span className="mt-0.5 text-amber-300">
-          <GraduationCap size={18} />
-        </span>
-        <div>
-          <h3 className="text-[15px] font-semibold text-slate-100">{junction.code}</h3>
-          <p className="text-xs text-slate-500">{junction.name}</p>
-          <p className="font-mono text-[11px] tabular-nums text-slate-600">
-            {junction.lat.toFixed(6)}, {junction.lng.toFixed(6)}
-          </p>
+    <div className="absolute right-3 top-3 z-[1001] max-h-[calc(100%-24px)] overflow-y-auto w-80 rounded-lg border border-[#1e293b] bg-[#090d16]/98 p-3.5 shadow-lg">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 truncate">
+          <span className="font-mono font-bold text-emerald-400">{junction.code}</span>
+          <span className="text-xs text-slate-200">{junction.name}</span>
         </div>
-        <div className="ml-auto flex gap-1">
-          <button
-            onClick={() => setOpen(false)}
-            className="rounded p-1 text-slate-500 hover:bg-slate-800"
-          >
-            <ChevronUp size={16} />
-          </button>
-          <button onClick={onClose} className="rounded p-1 text-slate-500 hover:bg-slate-800">
-            <X size={16} />
-          </button>
-        </div>
+        <button
+          onClick={onClose}
+          className="rounded p-1 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
+        >
+          <X size={15} />
+        </button>
       </div>
       <PhaseSplitBar g1={g1} g2={g2} gamaCycle={gamaCycle} phase={phase} isYellow={sig.isYellow} />
-      <LocalKpiRow localKpi={localKpi} scenario={scenario} />
-      <WhyBox g1={g1} g2={g2} />
-      {phaseTune && (
-        <PhaseTuneBox
-          offsetS={phaseTune.offsetS ?? offsetS}
-          setOffsetS={phaseTune.setOffsetS}
-          resetOffset={phaseTune.resetOffset}
-        />
-      )}
+      <LocalKpiRow localKpi={localKpi} />
     </div>
   );
 }

@@ -2,7 +2,7 @@
 
 > **Dự án:** `trafficdt-web` (React 19 + Vite 6 + Tailwind 4 + Three.js + Python YOLOv8)  
 > **Trạng thái:** **HOÀN THÀNH TOÀN BỘ 100% CÁC PHÂN HỆ VÀ KIỂM THỬ**  
-> **Tài liệu bàn giao chính thức:** 👉 [`docs/HANDOFF-2026-10-12-SESSION7.md`](docs/HANDOFF-2026-10-12-SESSION7.md)
+> **Tài liệu bàn giao chính thức:** 👉 [`docs/HANDOFF-2026-10-14-SESSION8.md`](docs/HANDOFF-2026-10-14-SESSION8.md) (hoặc xem bản lưu tại `C:\Users\ACER\AppData\Local\Temp\opencode\HANDOFF-SESSION8.md`)
 
 ---
 

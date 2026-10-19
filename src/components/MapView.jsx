@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { GeoJSON, MapContainer, TileLayer, Tooltip, useMap } from "react-leaflet";
-import { loadRoads, latestCycleEntry, getGamaSignal, V_INDEX } from "../lib/data.js";
+import { GeoJSON, MapContainer, TileLayer, useMap } from "react-leaflet";
+import { loadRoads } from "../lib/data.js";
 import { mppEff } from "../lib/scale.js";
 import VehicleCanvas from "./VehicleCanvas.jsx";
 import { JunctionLabel, SignalPoleLayer } from "./RealisticSignalPole.jsx";
@@ -42,48 +42,18 @@ function usePaneRef() {
   }, []);
 }
 
-// Median vehicle position of the last frame for follow mode.
-function medianLatLng(frames) {
-  const last = frames?.length ? frames[frames.length - 1].vehicles : null;
-  if (!last?.length) return null;
-  const mid = (a) => a[Math.floor(a.length / 2)];
-  const lats = last.map((v) => v[V_INDEX.LAT]).sort((a, b) => a - b);
-  const lngs = last.map((v) => v[V_INDEX.LNG]).sort((a, b) => a - b);
-  return [mid(lats), mid(lngs)];
-}
-
 // Single zoom source for all LOD layers (poles, labels, road width).
 function MapInner(props) {
   const map = useMap();
   const [zoom, setZoom] = useState(map.getZoom());
-  const [follow, setFollow] = useState(false);
   useEffect(() => {
     const sync = () => setZoom(map.getZoom());
     map.on("zoomend", sync);
     return () => map.off("zoomend", sync);
   }, [map]);
-  useEffect(() => {
-    const stop = () => setFollow(false);
-    map.on("dragstart", stop);
-    return () => map.off("dragstart", stop);
-  }, [map]);
   const { roads, frames, timeRef, onCount, junctions, signals, cycle, simTime, globalSimTime = 0, offsetS = 0 } = props;
-  useEffect(() => {
-    if (!follow || zoom < 17) return;
-    const id = setInterval(() => {
-      const c = medianLatLng(frames);
-      if (c) map.setView(c, map.getZoom(), { animate: true });
-    }, 500);
-    return () => clearInterval(id);
-  }, [map, follow, zoom, frames]);
-  const chip = "absolute left-3 top-3 z-[600] rounded-lg border border-[#1e293b] bg-[#090d16]/90 px-3 py-2 font-mono text-[11px] text-slate-300";
   return (
     <>
-      {zoom >= 17 && (
-        <button onClick={() => setFollow(!follow)} className={follow ? `${chip} border-cyan-700 text-slate-100` : chip}>
-          Theo xe
-        </button>
-      )}
       {roads && <RoadLayer roads={roads} zoom={zoom} />}
       <SignalPoleLayer junctions={junctions} signals={signals} cycle={cycle} simTime={simTime} globalSimTime={globalSimTime} zoom={zoom} offsetS={offsetS} />
       <JunctionLayer {...props} zoom={zoom} globalSimTime={globalSimTime} offsetS={offsetS} />
@@ -92,46 +62,28 @@ function MapInner(props) {
   );
 }
 
-function formatLocalKpi(entry) {
-  if (!entry) return "Chưa có KPI chu kỳ này";
-  return `Q: ${entry.queue.toFixed(2)} xe · D: ${entry.delay.toFixed(2)}s · T: ${entry.throughput}`;
-}
-
-// One pass over junctions: floating code label + tooltip with local KPI.
-function JunctionLayer({ junctions, signals, localKpis, cycle, globalSimTime = 0, selected, onSelect, zoom, offsetS = 0 }) {
+// One pass over junctions: floating code label.
+function JunctionLayer({ junctions, signals, globalSimTime = 0, selected, onSelect, zoom, offsetS = 0 }) {
   const map = useMap();
   const handleSelect = (code, j) => {
     const z = Math.max(map.getZoom(), 16);
     map.flyTo([j.lat, j.lng], z, { duration: 0.6 });
     onSelect(code);
   };
-  // KPI logs run on the 112s GAMA clock, same as lamps/badges — never the 120s web cycle.
-  const gamaCycle = getGamaSignal([], globalSimTime, offsetS).gamaCycle;
   return (
     <>
-      {junctions.map((j) => {
-        const kpiEntry = latestCycleEntry(localKpis[j.code], gamaCycle);
-        return (
-          <JunctionLabel
-            key={j.code}
-            junction={j}
-            signalsForJunction={signals?.[j.code]}
-            globalSimTime={globalSimTime}
-            zoom={zoom}
-            selected={selected === j.code}
-            onSelect={() => handleSelect(j.code, j)}
-            offsetS={offsetS}
-          >
-            <Tooltip direction="top" offset={[0, -18]}>
-              <b>{j.code}</b>
-              <br />
-              {j.name}
-              <br />
-              <span className="font-mono">{formatLocalKpi(kpiEntry)}</span>
-            </Tooltip>
-          </JunctionLabel>
-        );
-      })}
+      {junctions.map((j) => (
+        <JunctionLabel
+          key={j.code}
+          junction={j}
+          signalsForJunction={signals?.[j.code]}
+          globalSimTime={globalSimTime}
+          zoom={zoom}
+          selected={selected === j.code}
+          onSelect={() => handleSelect(j.code, j)}
+          offsetS={offsetS}
+        />
+      ))}
     </>
   );
 }

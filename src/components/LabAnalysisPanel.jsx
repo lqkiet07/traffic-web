@@ -1,32 +1,16 @@
 import { memo } from "react";
-import { AlertTriangle, Check, CheckCircle2, Info, Pause, Play, Plus, RotateCcw, StepBack, StepForward } from "lucide-react";
-
-const VEHICLE_TYPES = [
-  { type: "moto", label: "Xe máy", color: "#f59e0b", size: "1.5 m²" },
-  { type: "car", label: "Ô tô", color: "#38bdf8", size: "7.5 m²" },
-  { type: "truck", label: "Xe tải", color: "#ec4899", size: "18.0 m²" },
-];
+import { AlertTriangle, Check, CheckCircle2, Info, StepBack, StepForward } from "lucide-react";
 
 const PRESET_OPTIONS = [
   {
     key: "paradox",
-    label: "Nghịch lý xe máy che khuất",
-    activeClass: "bg-emerald-500/20 text-emerald-300 ring-1 ring-emerald-500",
+    label: "1. Giờ cao điểm xe máy",
+    activeClass: "bg-emerald-500 font-semibold text-slate-950 shadow-sm",
   },
   {
     key: "corridor_jam",
-    label: "Kẹt dội ngược liên nút",
-    activeClass: "bg-amber-500/20 text-amber-300 ring-1 ring-amber-500",
-  },
-  {
-    key: "balanced",
-    label: "Cân bằng",
-    activeClass: "bg-sky-500/20 text-sky-300 ring-1 ring-sky-500",
-  },
-  {
-    key: "heterogeneous",
-    label: "Dòng xe hỗn hợp (1 Xe tải vs 12 Xe máy)",
-    activeClass: "bg-sky-500/20 text-sky-300 ring-1 ring-sky-500",
+    label: "2. Kẹt xe dây chuyền",
+    activeClass: "bg-amber-500 font-semibold text-slate-950 shadow-sm",
   },
 ];
 
@@ -72,223 +56,23 @@ export const LabStatCards = memo(function LabStatCards({ telemetry }) {
   );
 });
 
-export function LabPresetBar({ algo, onAlgoChange, activeScenario, onSelectPreset, showAlgoToggle = true }) {
+export function LabPresetBar({ activeScenario, onSelectPreset }) {
   return (
-    <div className="flex flex-col gap-2.5 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
-      {showAlgoToggle ? (
-      <div className="flex items-center rounded-lg border border-[#1e293b] bg-slate-900/90 p-0.5 text-xs">
+    <div className="grid grid-cols-2 gap-1 rounded-lg border border-[#1e293b] bg-slate-950/80 p-1 text-xs">
+      {PRESET_OPTIONS.map((opt) => (
         <button
+          key={opt.key}
           type="button"
-          onClick={() => onAlgoChange?.("cao")}
-          className={`flex-1 rounded-md px-2.5 py-1.5 font-medium transition ${
-            algo === "cao"
-              ? "bg-emerald-500 font-semibold text-slate-950"
-              : "text-slate-400 hover:text-slate-200"
+          onClick={() => onSelectPreset?.(opt.key)}
+          className={`rounded-md py-1.5 text-center font-medium transition ${
+            activeScenario === opt.key
+              ? opt.activeClass
+              : "text-slate-400 hover:bg-slate-900 hover:text-slate-200"
           }`}
         >
-          CAO-CBMP (Đề xuất)
+          {opt.label}
         </button>
-        <button
-          type="button"
-          onClick={() => onAlgoChange?.("baseline")}
-          className={`flex-1 rounded-md px-2.5 py-1.5 font-medium transition ${
-            algo === "baseline"
-              ? "bg-indigo-600 font-semibold text-white"
-              : "text-slate-400 hover:text-slate-200"
-          }`}
-        >
-          Đếm xe (Baseline)
-        </button>
-      </div>
-      ) : null}
-
-      <div className="flex flex-wrap items-center gap-1.5">
-        {PRESET_OPTIONS.map((opt) => (
-          <button
-            key={opt.key}
-            type="button"
-            onClick={() => onSelectPreset?.(opt.key)}
-            className={`rounded-md px-2.5 py-1 text-xs font-medium transition ${
-              activeScenario === opt.key
-                ? opt.activeClass
-                : "border border-[#1e293b] bg-slate-900 text-slate-300 hover:bg-slate-800 hover:text-white"
-            }`}
-          >
-            {opt.label}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function SpawnBtn({ label, onClick, isJam = false }) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      className={`rounded px-2 py-1 text-xs transition ${
-        isJam
-          ? "border border-amber-500/40 bg-amber-500/10 font-medium text-amber-300 hover:bg-amber-500/20"
-          : "border border-[#1e293b] bg-slate-800/80 text-slate-200 hover:bg-slate-700"
-      }`}
-    >
-      {label}
-    </button>
-  );
-}
-
-function BatchRow({ label, children }) {
-  return (
-    <div className="flex flex-wrap items-center gap-1.5 text-xs">
-      <span className="w-24 font-medium text-slate-400">{label}:</span>
-      {children}
-    </div>
-  );
-}
-
-function VehiclePicker({ selectedType, onSelectType }) {
-  return (
-    <div>
-      <div className="mb-1.5 text-xs font-semibold text-slate-300">
-        Loại phương tiện thủ công
-      </div>
-      <div className="flex flex-wrap items-center gap-1.5">
-        {VEHICLE_TYPES.map((opt) => {
-          const isSelected = selectedType === opt.type;
-          return (
-            <button
-              key={opt.type}
-              type="button"
-              onClick={() => onSelectType?.(opt.type)}
-              className={`flex items-center gap-1.5 rounded-md px-2.5 py-1 text-xs font-medium transition ${
-                isSelected
-                  ? "border border-emerald-400 bg-slate-800 text-white shadow-sm ring-1 ring-emerald-400/50"
-                  : "border border-[#1e293b] bg-slate-900/80 text-slate-400 hover:bg-slate-800 hover:text-slate-200"
-              }`}
-            >
-              <span
-                className="inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: opt.color }}
-              />
-              <span>{opt.label}</span>
-              <span className="font-mono text-[10px] text-slate-500">({opt.size})</span>
-            </button>
-          );
-        })}
-      </div>
-    </div>
-  );
-}
-
-function QuickBatchSection({ onBatchSpawn }) {
-  return (
-    <div className="space-y-2 border-t border-[#1e293b] pt-2.5">
-      <div className="text-xs font-semibold text-slate-300">Thả xe nhanh (Quick Batch)</div>
-      <BatchRow label="Nút 1">
-        <SpawnBtn label="+5 Xe máy" onClick={() => onBatchSpawn?.("west", "moto", 5)} />
-        <SpawnBtn label="+2 Ô tô" onClick={() => onBatchSpawn?.("west", "car", 2)} />
-        <SpawnBtn label="+1 Xe tải" onClick={() => onBatchSpawn?.("west", "truck", 1)} />
-      </BatchRow>
-      <BatchRow label="Hành lang nối">
-        <SpawnBtn
-          label="+4 Xe tải (Gây nghẽn)"
-          onClick={() => onBatchSpawn?.("corridor", "truck", 4)}
-          isJam
-        />
-        <SpawnBtn label="+5 Xe máy" onClick={() => onBatchSpawn?.("corridor", "moto", 5)} />
-      </BatchRow>
-      <BatchRow label="Nút 2">
-        <SpawnBtn label="+5 Xe máy" onClick={() => onBatchSpawn?.("north2", "moto", 5)} />
-        <SpawnBtn label="+2 Ô tô" onClick={() => onBatchSpawn?.("north2", "car", 2)} />
-        <SpawnBtn label="+1 Xe tải" onClick={() => onBatchSpawn?.("north2", "truck", 1)} />
-      </BatchRow>
-    </div>
-  );
-}
-
-export function LabSpawnerDock({ selectedType, onSelectType, onBatchSpawn, onClear }) {
-  return (
-    <div className="flex flex-col gap-3 rounded-xl border border-[#1e293b] bg-[#0f172a] p-3">
-      <VehiclePicker selectedType={selectedType} onSelectType={onSelectType} />
-      <QuickBatchSection onBatchSpawn={onBatchSpawn} />
-      <div className="border-t border-[#1e293b] pt-1">
-        <button
-          type="button"
-          onClick={onClear}
-          className="w-full rounded-md border border-rose-500/40 bg-rose-500/10 py-1.5 text-xs font-semibold text-rose-300 transition hover:bg-rose-500/20"
-        >
-          Dọn sạch xe
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function WhyBoxMessage({ algo, isBackpressure, phiCorridor, n1P1, n1P2, activeScenario }) {
-  if (activeScenario === "heterogeneous") {
-    if (algo === "baseline") {
-      return (
-        <div className="space-y-1.5 text-xs text-slate-300">
-          <div>• <strong>Nghịch lý đếm xe dị thể:</strong> 1 xe tải (18 m²) bị coi ngang 1 xe máy (1.5 m²). Baseline đếm 1 vs 12 đầu xe nên cắt nhịp Pha 1 xuống chỉ còn 17s-22s, khiến xe tải phải dừng chờ kéo dài không tương xứng.</div>
-          <div>• <strong>Thiệt hại dòng xe:</strong> Phương tiện tải trọng lớn tiêu hao thời gian khởi động lâu và chiếm dụng không gian lớn bị dồn ứ dù áp lực giao thông hai hướng tương đương.</div>
-        </div>
-      );
-    }
-    return (
-      <div className="space-y-1.5 text-xs text-slate-300">
-        <div>• <strong>Cân bằng tải dị thể (CAO):</strong> 1 xe tải (18 m²) chiếm 12% diện tích mặt đường, ngang bằng 12 xe máy (18 m²). CAO nhận định chính xác áp lực φ₁ = φ₂ = 0.12, phân bổ nhịp xanh hoàn hảo 56s / 56s.</div>
-        <div>• <strong>Công bằng theo diện tích (Eq. 1):</strong> Trọng số hóa phương tiện theo m² thực tế giúp giải quyết triệt để sự mất cân xứng kích thước trong dòng giao thông hỗn hợp Việt Nam.</div>
-      </div>
-    );
-  }
-  if (algo === "baseline") {
-    return (
-      <div className="space-y-1.5 text-xs text-slate-300">
-        <div>• <strong>Đếm xe truyền thống:</strong> Mỗi phương tiện tính trọng số 1.0 bất kể kích thước thực tế (xe tải 18 m² ngang với xe máy 1.5 m²).</div>
-        <div>• <strong>Đặc tính nhận diện:</strong> Phụ thuộc hoàn toàn vào số lượng Bounding Box phát hiện được; dễ chịu ảnh hưởng bởi che khuất dưới góc camera nghiêng.</div>
-        <div>• <strong>Phạm vi điều tiết:</strong> Phân bổ pha độc lập, không khấu trừ áp lực dội ngược từ đoạn nối hạ lưu.</div>
-      </div>
-    );
-  }
-  return (
-    <div className="space-y-1.5 text-xs text-slate-300">
-      <div>• <strong>Độ đo không gian (CAO):</strong> Đo tỷ lệ diện tích mặt đường bị chiếm dụng (φ) thay vì đếm đầu xe rời rạc; chống chịu sai số do che khuất tương hỗ của bầy xe máy dưới góc camera nghiêng.</div>
-      <div>• <strong>Hiệu quả mô phỏng (Table 1):</strong> Giảm trễ trung bình 6.01% (tải thấp) và 11.90% (tải vừa); thông lượng toàn mạng bảo toàn tương đương (±2%).</div>
-      <div>• <strong>Phối hợp liên nút (Eq. 3):</strong> Tự động điều tiết giảm xanh Nút 1 khi hành lang nối đạt ngưỡng nghẽn (φ_corridor ≥ 70%) nhằm giảm nguy cơ tắc nghẽn dây chuyền.</div>
-    </div>
-  );
-}
-
-export function LabWhyBox({ algo, telemetry, activeScenario }) {
-  const phiCorridor = Number(telemetry?.phiCorridor ?? 0);
-  const n1P1 = telemetry?.node1Green?.g1 ?? 56;
-  const n1P2 = telemetry?.node1Green?.g2 ?? 56;
-  const isBackpressure = phiCorridor >= 0.7;
-
-  return (
-    <div className="rounded-xl border border-[#1e293b] bg-slate-900/70 p-3 text-xs leading-relaxed text-slate-400">
-      <div className="mb-1.5 flex items-center gap-1.5 font-semibold text-slate-200">
-        <span className="inline-block h-2 w-2 rounded-full bg-emerald-400" />
-        <span>Hướng dẫn học tập · Giải thích Max-Pressure:</span>
-      </div>
-      <WhyBoxMessage
-        algo={algo}
-        isBackpressure={isBackpressure}
-        phiCorridor={phiCorridor}
-        n1P1={n1P1}
-        n1P2={n1P2}
-        activeScenario={activeScenario}
-      />
-    </div>
-  );
-}
-
-function ParameterNote({ children }) {
-  return (
-    <div className="mt-2 flex items-center gap-1.5 rounded border border-[#1e293b] bg-slate-900/60 px-2.5 py-1 text-[11px] text-slate-400">
-      <span className="text-slate-500">Tham số hiệu chuẩn:</span>
-      <span>{children}</span>
+      ))}
     </div>
   );
 }
@@ -316,53 +100,6 @@ export function PhaseCard({ title, badge, lines, areaLabel, areaValue, phiLabel,
   );
 }
 
-export function SimVsRealComparison() {
-  return (
-    <div className="grid grid-cols-2 gap-2 text-[11px] leading-relaxed">
-      <div className="rounded-lg border border-[#1e293b] bg-slate-950/70 p-2.5">
-        <div className="font-bold text-sky-300">Mô phỏng GAMA</div>
-        <div className="mt-1 text-slate-300">• Baseline đếm xe lý tưởng (100%)</div>
-        <div className="text-slate-400">• CAO tối ưu theo diện tích chiếm dụng (m²)</div>
-      </div>
-      <div className="rounded-lg border border-[#1e293b] bg-slate-950/70 p-2.5">
-        <div className="font-bold text-amber-300">Camera CCTV thực tế</div>
-        <div className="mt-1 text-slate-300">• Bbox bị che khuất hụt 35–50% xe máy</div>
-        <div className="text-slate-400">• CAO đo mặt đường, bền vững góc quay</div>
-      </div>
-    </div>
-  );
-}
-
-function DilationPipelineVisual({ visCount, rawCount, area, phi }) {
-  const lossPct = rawCount > 0 ? Math.round(((rawCount - visCount) / rawCount) * 100) : 0;
-  return (
-    <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-2.5 font-mono text-[11px]">
-      <div className="mb-1.5 flex items-center justify-between text-slate-400">
-        <span className="font-bold text-slate-300">Cơ chế trích xuất CAO (Hình 1 trong Paper):</span>
-        <span className="text-[10px] text-cyan-400">YOLOv8 → Dilation → Mask</span>
-      </div>
-      <div className="grid grid-cols-4 gap-1.5 text-center text-[10px]">
-        <div className="rounded border border-rose-500/30 bg-rose-500/10 p-1.5">
-          <div className="font-bold text-rose-300">1. YOLOv8 Bbox</div>
-          <div className="mt-0.5 text-slate-400">{visCount}/{rawCount} xe {lossPct > 0 ? `(Hụt ~${lossPct}%)` : "(Đủ 100%)"}</div>
-        </div>
-        <div className="rounded border border-[#1e293b] bg-slate-900 p-1.5">
-          <div className="font-bold text-slate-300">2. ByteTrack</div>
-          <div className="mt-0.5 text-slate-400">Gán ID theo vết</div>
-        </div>
-        <div className="rounded border border-amber-500/30 bg-amber-500/10 p-1.5">
-          <div className="font-bold text-amber-300">3. Dilation 15×15</div>
-          <div className="mt-0.5 text-slate-400">Giãn nở gộp bầy xe</div>
-        </div>
-        <div className="rounded border border-emerald-500/30 bg-emerald-500/10 p-1.5">
-          <div className="font-bold text-emerald-300">4. Mask CAO φ</div>
-          <div className="mt-0.5 text-slate-400">A₁ = {area} m² (φ = {phi})</div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 export function Step1Math({ data }) {
   const occ1 = data?.occlusionP1;
   const occ2 = data?.occlusionP2;
@@ -377,47 +114,24 @@ export function Step1Math({ data }) {
   const loss1 = occ1?.lossPercentage ?? 0;
   const loss2 = occ2?.lossPercentage ?? 0;
   return (
-    <div className="space-y-3">
-      <div className="grid grid-cols-2 gap-2 font-mono text-[11px] leading-relaxed">
-        <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-2.5">
-          <div className="font-bold text-rose-300">Baseline (Camera Bbox)</div>
-          <div className="mt-1.5 text-slate-200">P1: {visP1}/{rawP1} xe (thấy được/tổng)</div>
-          <div className="mt-1 text-slate-200">P2: {visP2}/{rawP2} xe (thấy được/tổng)</div>
-          <div className="mt-2 rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
-            <AlertTriangle size={13} className="inline mr-1 text-amber-400" />
-            Hụt ~{loss1}% (P1) / ~{loss2}% (P2) do che khuất tương hỗ
-          </div>
-        </div>
-        <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5">
-          <div className="font-bold text-emerald-300">CAO (Độ đo diện tích)</div>
-          <div className="mt-1.5 text-slate-200">φ_in1 = {phiIn1} (A₁ = {p1Area} m²)</div>
-          <div className="mt-1 text-slate-200">φ_in2 = {phiIn2} (A₂ = {p2Area} m²)</div>
-          <div className="mt-2 rounded-md bg-emerald-500/15 px-2 py-1 font-bold text-emerald-300">
-            <Check size={13} className="inline mr-1 text-emerald-400" />
-            Miễn nhiễm che khuất — đo mặt đường
-          </div>
-        </div>
-      </div>
-      <DilationPipelineVisual visCount={visP1} rawCount={rawP1} area={p1Area} phi={phiIn1} />
-      <SimVsRealComparison />
-      <ParameterNote>S_zone = 150 m² (vùng quan sát camera 30m × 5m, Eq. 1 trong Paper)</ParameterNote>
-    </div>
-  );
-}
-
-function BackpressureCauseEffect() {
-  // Cause-effect comparison when backpressure is active
-  return (
     <div className="grid grid-cols-2 gap-2 font-mono text-[11px] leading-relaxed">
-      <div className="rounded-lg border border-rose-500/40 bg-rose-500/10 p-2.5">
-        <div className="font-bold text-rose-300">Hệ quả lên Nút 1 (Thượng lưu)</div>
-        <div className="mt-1 text-slate-300">{"Xanh bị bóp: 56s → 10s"}</div>
-        <div className="mt-1 text-slate-400">Ngăn xe dồn thêm vào điểm nghẽn</div>
+      <div className="rounded-xl border border-rose-500/40 bg-rose-500/10 p-2.5">
+        <div className="font-bold text-rose-300">Baseline (Camera Bbox)</div>
+        <div className="mt-1.5 text-slate-200">P1: {visP1}/{rawP1} xe (thấy được/tổng)</div>
+        <div className="mt-1 text-slate-200">P2: {visP2}/{rawP2} xe (thấy được/tổng)</div>
+        <div className="mt-2 rounded-md bg-rose-500/15 px-2 py-1 font-bold tabular-nums text-rose-300">
+          <AlertTriangle size={13} className="inline mr-1 text-amber-400" />
+          Hụt ~{loss1}% (P1) / ~{loss2}% (P2) do che khuất tương hỗ
+        </div>
       </div>
-      <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5">
-        <div className="font-bold text-emerald-300">Phản ứng của Nút 2 (Hạ lưu)</div>
-        <div className="mt-1 text-slate-300">{"Xanh tăng vọt: 56s → 102s"}</div>
-        <div className="mt-1 text-slate-400">Mở tối đa để xả kẹt cho hành lang</div>
+      <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/10 p-2.5">
+        <div className="font-bold text-emerald-300">CAO (Độ đo diện tích)</div>
+        <div className="mt-1.5 text-slate-200">φ_in1 = {phiIn1} (A₁ = {p1Area} m²)</div>
+        <div className="mt-1 text-slate-200">φ_in2 = {phiIn2} (A₂ = {p2Area} m²)</div>
+        <div className="mt-2 rounded-md bg-emerald-500/15 px-2 py-1 font-bold text-emerald-300">
+          <Check size={13} className="inline mr-1 text-emerald-400" />
+          Miễn nhiễm che khuất — đo mặt đường
+        </div>
       </div>
     </div>
   );
@@ -456,37 +170,29 @@ export function Step2Math({ data, step1 }) {
         </div>
       </div>
 
-      <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 font-mono text-xs">
-        <div className="text-slate-400">Song song Eq. 2 vs Eq. 3 — cùng khung Cb-MP, khác đầu vào cảm biến:</div>
-        <div className="mt-2 grid grid-cols-2 gap-2">
-          <div className="rounded-lg border border-indigo-500/30 bg-indigo-950/20 p-2.5">
-            <div className="text-[11px] font-bold text-indigo-300">Baseline (Eq. 2, đếm xe)</div>
-            <div className="mt-1 text-slate-300 text-[11px]">w₁_count = max(0, x_in − 0.70 × x_out)</div>
-            <div className="mt-1 text-sm font-bold text-indigo-200">
-              w₁ = max(0, {xIn1Num} − 0.70 × {xOutNum}) = {wCount}
-            </div>
-            <div className="mt-1 text-[11px] text-slate-400">Khấu trừ dội ngược: {bpCount}</div>
+      <div className="grid grid-cols-2 gap-2 font-mono text-xs">
+        <div className="rounded-lg border border-indigo-500/30 bg-indigo-950/20 p-2.5">
+          <div className="text-[11px] font-bold text-indigo-300">Baseline (Eq. 2, đếm xe)</div>
+          <div className="mt-1 text-slate-300 text-[11px]">w₁_count = max(0, x_in − 0.70 × x_out)</div>
+          <div className="mt-1 text-sm font-bold text-indigo-200">
+            w₁ = max(0, {xIn1Num} − 0.70 × {xOutNum}) = {wCount}
           </div>
-          <div className="rounded-lg border border-cyan-500/30 bg-slate-900 p-2.5">
-            <div className="text-[11px] font-bold text-emerald-300">CAO (Eq. 3, diện tích)</div>
-            <div className="mt-1 text-slate-300 text-[11px]">w₁_area = max(0, φ_in − 0.70 × φ_out)</div>
-            <div className="mt-1 text-sm font-bold text-emerald-300">
-              w₁ = max(0, {phiIn} − 0.70 × {phiOut}) = {wArea}
-            </div>
-            <div className="mt-1 text-[11px] text-slate-400">Khấu trừ dội ngược: {bpArea}</div>
-          </div>
+          <div className="mt-1 text-[11px] text-slate-400">Khấu trừ dội ngược: {bpCount}</div>
         </div>
-        <div className="mt-2 text-[11px] text-slate-400">Khung Cb-MP đồng dạng — cả hai đều khấu trừ dội ngược hạ lưu với R = 0.70.</div>
-        <ParameterNote>R_thẳng = 0.70 (70% xe vào hành lang nối, Eq. 3)</ParameterNote>
+        <div className="rounded-lg border border-cyan-500/30 bg-slate-900 p-2.5">
+          <div className="text-[11px] font-bold text-emerald-300">CAO (Eq. 3, diện tích)</div>
+          <div className="mt-1 text-slate-300 text-[11px]">w₁_area = max(0, φ_in − 0.70 × φ_out)</div>
+          <div className="mt-1 text-sm font-bold text-emerald-300">
+            w₁ = max(0, {phiIn} − 0.70 × {phiOut}) = {wArea}
+          </div>
+          <div className="mt-1 text-[11px] text-slate-400">Khấu trừ dội ngược: {bpArea}</div>
+        </div>
       </div>
 
       {isBackpressure ? (
-        <div className="space-y-2.5">
-          <div className="rounded-lg border border-rose-500/40 bg-rose-500/15 p-2.5 text-xs font-semibold text-rose-300">
-            <AlertTriangle size={13} className="inline mr-1 text-amber-400" />
-            Cơ chế dội ngược kích hoạt: Hành lang nối Nút 1-2 bị nghẽn (φ_out ≥ 0.70). Thuật toán tự động cắt giảm thời gian xanh cấp cho Nút 1 để tránh dồn xe vào điểm nghẽn!
-          </div>
-          <BackpressureCauseEffect />
+        <div className="rounded-lg border border-rose-500/40 bg-rose-500/15 p-2.5 text-xs font-semibold text-rose-300">
+          <AlertTriangle size={13} className="inline mr-1 text-amber-400" />
+          Cơ chế dội ngược kích hoạt: Hành lang nối Nút 1-2 bị nghẽn (φ_out ≥ 0.70). Thuật toán tự động cắt giảm thời gian xanh cấp cho Nút 1 để tránh dồn xe vào điểm nghẽn!
         </div>
       ) : (
         <div className="rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-2.5 text-xs text-emerald-300">
@@ -517,8 +223,6 @@ export function Step3Math({ data, step2 }) {
   const gC2 = gC2Num.toFixed(1);
   const total = g1Num + g2Num;
   const ratio1 = total > 0 ? Math.round((g1Num / total) * 100) : 50;
-  const totalC = gC1Num + gC2Num;
-  const ratioC1 = totalC > 0 ? Math.round((gC1Num / totalC) * 100) : 50;
 
   return (
     <div className="space-y-3">
@@ -536,38 +240,16 @@ export function Step3Math({ data, step2 }) {
             <div className="mt-1 text-sm font-bold text-slate-300">γ₂ = 2.5 × {w2} = {gamma2}</div>
           </div>
         </div>
-        <div className="mt-2 text-[11px] text-slate-400">
-          {wC1Num < wC2Num && wA1Num >= wA2Num
-            ? `Baseline thấy P2 trội từ đếm (${wC1} vs ${wC2}); CAO thấy đúng P1 trội từ diện tích (${w1} vs ${w2}).`
-            : wC1Num > wC2Num
-              ? `Cả hai phương pháp cùng nhận định Pha 1 có áp lực vượt trội (${wC1} vs ${wC2} xe; ${w1} vs ${w2} m²).`
-              : `Tỷ lệ áp lực cạnh tranh: Pha 1 (${w1}) so với Pha 2 (${w2}).`}
-        </div>
-        <ParameterNote>c_sat = 2.5 (hệ số dòng bão hòa, Eq. 4)</ParameterNote>
       </div>
 
       <div className="rounded-xl border border-[#1e293b] bg-slate-950/70 p-3 text-xs">
         <div className="flex justify-between items-center mb-1 text-slate-400 font-mono">
           <span>Tỷ lệ áp lực cạnh tranh (CAO):</span>
-          <span className="text-emerald-400 font-bold">{ratio1}% vs {100 - ratio1}%</span>
+          <span className="text-emerald-400 font-bold">Pha 1 {ratio1}% vs Pha 2 {100 - ratio1}%</span>
         </div>
         <div className="flex h-3 w-full overflow-hidden rounded-full bg-slate-800">
           <div className="bg-emerald-500 transition-all duration-300" style={{ width: `${ratio1}%` }} title={`Pha 1: ${ratio1}%`} />
           <div className="bg-slate-600 transition-all duration-300" style={{ width: `${100 - ratio1}%` }} title={`Pha 2: ${100 - ratio1}%`} />
-        </div>
-        <div className="mt-2 text-slate-400 leading-relaxed">
-          Pha 1 chiếm <strong className="text-emerald-400">{ratio1}%</strong> tổng áp lực toàn giao lộ ({gamma1} trên tổng {(total).toFixed(2)}), do đó sẽ được ưu tiên nhận phần lớn thời lượng đèn xanh khả dụng.
-        </div>
-        <div className="mt-2 text-slate-400 leading-relaxed">
-          {ratioC1 < 50 && ratio1 >= 50 ? (
-            <>
-              Đối chiếu Baseline (đếm): P1 chỉ <strong className="text-rose-300">{ratioC1}%</strong> ({gC1} trên tổng {(totalC).toFixed(1)}) nên thấy P2 trội — sai lệch gốc từ cảm biến Bước 1.
-            </>
-          ) : (
-            <>
-              Đối chiếu Baseline (đếm): Pha 1 chiếm <strong className="text-rose-300">{ratioC1}%</strong> tổng áp lực toàn giao lộ ({gC1} trên tổng {(totalC).toFixed(1)}).
-            </>
-          )}
         </div>
       </div>
     </div>
@@ -659,10 +341,6 @@ export function Step4Math({ data }) {
           </div>
         </div>
       </div>
-
-      <div className="rounded-lg border border-[#1e293b] bg-slate-950/50 p-2.5 font-mono text-[11px] leading-relaxed text-slate-400">
-        Bảng 1 (Nghiên cứu): CAO giảm trễ trung bình 6.01% (tải thấp) / 11.90% (tải vừa); thông lượng toàn mạng bảo toàn tương đương (±2%).
-      </div>
     </div>
   );
 }
@@ -673,24 +351,18 @@ export function Step5Math({ data }) {
   const phase = data?.activePhase ?? 1;
 
   return (
-    <div className="space-y-3">
-      <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 font-mono">
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-bold text-emerald-300">Kích Hoạt Pha {phase} Xanh ({green}s)</span>
-          <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
-        </div>
-        <div className="text-xs text-slate-300 leading-relaxed">
-          Đèn tín hiệu giao lộ chính thức mở xanh cho <strong className="text-emerald-400">Pha {phase}</strong> trong <strong className="text-emerald-400">{green} giây</strong>.
-        </div>
-        <div className="mt-3 p-3 rounded-lg bg-slate-950/70 border border-emerald-500/20 text-xs">
-          <span className="text-slate-400">Giải phóng hàng chờ: </span>
-          <strong className="text-emerald-400 text-sm font-bold">{queue} xe</strong>
-          <span className="text-slate-400"> trên nhánh tiếp cận thoát qua giao lộ nhịp nhàng.</span>
-        </div>
+    <div className="rounded-xl border border-emerald-500/40 bg-emerald-500/10 p-4 font-mono">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-sm font-bold text-emerald-300">Kích Hoạt Pha {phase} Xanh ({green}s)</span>
+        <span className="h-2.5 w-2.5 rounded-full bg-emerald-400" />
       </div>
-
-      <div className="rounded-lg border border-[#1e293b] bg-slate-950/50 p-2.5 text-xs text-slate-400 leading-relaxed">
-        Chu trình tính toán 5 bước kết thúc. Bấm <strong className="text-cyan-400">Bước tiếp theo &gt;|</strong> để nạp đợt xe mới hoặc chuyển sang <strong className="text-emerald-400">Thời gian thực 60fps</strong> để xem xe lưu thông tự động liên tục.
+      <div className="text-xs text-slate-300 leading-relaxed">
+        Đèn tín hiệu giao lộ chính thức mở xanh cho <strong className="text-emerald-400">Pha {phase}</strong> trong <strong className="text-emerald-400">{green} giây</strong>.
+      </div>
+      <div className="mt-3 p-3 rounded-lg bg-slate-950/70 border border-emerald-500/20 text-xs">
+        <span className="text-slate-400">Giải phóng hàng chờ: </span>
+        <strong className="text-emerald-400 text-sm font-bold">{queue} xe</strong>
+        <span className="text-slate-400"> trên nhánh tiếp cận thoát qua giao lộ nhịp nhàng.</span>
       </div>
     </div>
   );
@@ -786,19 +458,27 @@ export function UnifiedStepHeader({
   onSelectNode,
 }) {
   const stepTitle = STEP_TITLES[currentStep] || `Bước ${currentStep}`;
-  const autoTitle = isAutoStepping ? "Dừng tự động chuyển bước" : "Tự động chuyển bước sau 3s";
   return (
     <div className="mb-3 border-b border-[#1e293b] pb-2.5">
       <NodeSelectorBar selectedNode={selectedNode} onSelectNode={onSelectNode} />
       <div className="flex flex-wrap items-center gap-1.5">
-        <button type="button" onClick={onReset} className="rounded-md border border-[#1e293b] bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800" title="Quay về Bước 1 & Nạp lại xe xuất phát"><RotateCcw size={12} className="inline mr-1" />Đầu chu kỳ</button>
-        <button type="button" onClick={onPrevStep} disabled={currentStep <= 1} className="rounded-md border border-[#1e293b] bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40" title="Lùi về bước trước"><StepBack size={12} className="inline mr-1" />Lùi bước</button>
+        <button
+          type="button"
+          onClick={onPrevStep}
+          disabled={currentStep <= 1}
+          className="rounded-md border border-[#1e293b] bg-slate-950 px-2 py-1 text-xs text-slate-300 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-40"
+          title="Lùi về bước trước"
+        >
+          <StepBack size={12} className="inline mr-1" />
+          Lùi bước
+        </button>
         {STEPPER_STEPS.map((label, idx) => (
           <StepCrumb key={idx + 1} s={idx + 1} label={label} currentStep={currentStep} onSetStep={onSetStep} />
         ))}
         <StepperAction subPhase={subPhase} onNextStep={onNextStep} />
-        <button type="button" onClick={onToggleAutoStep} className={`rounded-md border px-2 py-1 text-xs font-medium transition-colors ${isAutoStepping ? "border-amber-400/50 bg-amber-500/20 text-amber-300 font-semibold" : "border-[#1e293b] bg-slate-950 text-slate-300 hover:bg-slate-800"}`} title={autoTitle}>{isAutoStepping ? (<><Pause size={12} className="inline mr-1" />Tạm dừng</>) : (<><Play size={12} className="inline mr-1" />Tự động (3s)</>)}</button>
-        <span className="font-mono text-[11px] text-slate-500">Bước {currentStep}/5: {stepTitle} · Đối chiếu Max-Pressure</span>
+      </div>
+      <div className="mt-2 font-mono text-[11px] text-slate-400">
+        Bước {currentStep}/5: {stepTitle}
       </div>
     </div>
   );
@@ -865,11 +545,6 @@ export default function LabAnalysisPanel({
   onAlgoChange,
   activeScenario,
   onSelectPreset,
-  selectedType,
-  onSelectType,
-  onBatchSpawn,
-  onClear,
-  simMode = "continuous",
   currentStep = 1,
   stepData = null,
   subPhase = "freeze",
@@ -882,63 +557,30 @@ export default function LabAnalysisPanel({
   selectedNode = 1,
   onSelectNode,
 }) {
-  const isStepper = simMode === "stepper";
-
   return (
     <div className="flex flex-col gap-3">
       <LabStatCards telemetry={telemetry} />
-      {isStepper ? (
-        <LiveMathBox
-          currentStep={currentStep}
-          stepData={stepData}
-          algo={algo}
-          subPhase={subPhase}
-          onSetStep={onSetStep}
-          onPrevStep={onPrevStep}
-          onNextStep={onNextStep}
-          isAutoStepping={isAutoStepping}
-          onToggleAutoStep={onToggleAutoStep}
-          onReset={onReset}
-          selectedNode={selectedNode}
-          onSelectNode={onSelectNode}
-        />
-      ) : null}
       <LabPresetBar
         algo={algo}
         onAlgoChange={onAlgoChange}
         activeScenario={activeScenario}
         onSelectPreset={onSelectPreset}
-        showAlgoToggle={!isStepper}
+        showAlgoToggle={false}
       />
-      {isStepper ? (
-        <details className="group rounded-xl border border-[#1e293b] bg-slate-900/40 p-2.5 text-xs text-slate-400">
-          <summary className="cursor-pointer select-none font-medium text-slate-400 transition-colors hover:text-slate-200">
-            <Plus size={13} className="inline mr-1" /> Thêm phương tiện tùy chọn
-          </summary>
-          <div className="mt-2.5">
-            <LabSpawnerDock
-              selectedType={selectedType}
-              onSelectType={onSelectType}
-              onBatchSpawn={onBatchSpawn}
-              onClear={onClear}
-            />
-          </div>
-        </details>
-      ) : (
-        <LabSpawnerDock
-          selectedType={selectedType}
-          onSelectType={onSelectType}
-          onBatchSpawn={onBatchSpawn}
-          onClear={onClear}
-        />
-      )}
-      {!isStepper ? (
-        <LabWhyBox
-          algo={algo}
-          telemetry={telemetry}
-          activeScenario={activeScenario}
-        />
-      ) : null}
+      <LiveMathBox
+        currentStep={currentStep}
+        stepData={stepData}
+        algo={algo}
+        subPhase={subPhase}
+        onSetStep={onSetStep}
+        onPrevStep={onPrevStep}
+        onNextStep={onNextStep}
+        isAutoStepping={isAutoStepping}
+        onToggleAutoStep={onToggleAutoStep}
+        onReset={onReset}
+        selectedNode={selectedNode}
+        onSelectNode={onSelectNode}
+      />
     </div>
   );
 }

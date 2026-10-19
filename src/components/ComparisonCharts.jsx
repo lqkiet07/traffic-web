@@ -72,11 +72,11 @@ const ComparisonCharts = memo(function ComparisonCharts({ kpi, scenario, globalS
         </span>
         <MetricTabs metric={metric} setMetric={setMetric} />
       </div>
-      <div className="h-56">
+      <div className="h-52">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={rows} margin={{ top: 5, right: 10, bottom: 0, left: -10 }}>
             <CartesianGrid stroke="#172033" strokeDasharray="2 4" />
-            <XAxis dataKey="cycle" stroke="#475569" fontSize={10} />
+            <XAxis dataKey="cycle" stroke="#475569" fontSize={10} ticks={[1, 15, 30, 45, data.cycles.length]} tickFormatter={(c) => "CK " + c} />
             <YAxis stroke="#475569" fontSize={10} width={40} />
             <Tooltip
               contentStyle={{ backgroundColor: "#0f172a", border: "1px solid #1e293b", fontSize: 12 }}

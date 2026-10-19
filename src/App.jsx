@@ -5,6 +5,7 @@ import CameraView from "./components/CameraView.jsx";
 import MapViewport from "./components/MapViewport.jsx";
 import StatCards from "./components/StatCards.jsx";
 import ComparisonCharts from "./components/ComparisonCharts.jsx";
+import NetworkSummaryCard from "./components/NetworkSummaryCard.jsx";
 import { useCyclePlayer } from "./hooks/useCyclePlayer.js";
 import { usePhaseOffset } from "./hooks/usePhaseOffset.js";
 import { getGamaSignal, latestCycleEntry, replayAvailable } from "./lib/data.js";
@@ -14,12 +15,7 @@ function AnalysisPanel({ player }) {
     <section className="flex flex-col gap-3 lg:col-span-4 lg:overflow-auto">
       <StatCards kpi={player.kpi} scenario={player.scenario} globalSimTime={player.globalSimTime} />
       <ComparisonCharts kpi={player.kpi} scenario={player.scenario} globalSimTime={player.globalSimTime} />
-      <div className="rounded-xl border border-[#1e293b] bg-slate-900/70 p-3 text-xs leading-relaxed text-slate-400">
-        <b className="text-slate-200">Hướng dẫn phân tích:</b> Bấm <b>Phát</b> để quan sát dòng xe Cần
-        Thơ di chuyển theo nhịp đèn CAO-CBMP · Kéo thanh trượt tới chu kỳ cao điểm (40–60) · Chọn
-        từng nút giao trên bản đồ để phân tích áp lực Max Pressure · Chuyển đổi kịch bản
-        để đối chứng hiệu quả giảm trễ.
-      </div>
+      <NetworkSummaryCard kpi={player.kpi} scenario={player.scenario} />
     </section>
   );
 }

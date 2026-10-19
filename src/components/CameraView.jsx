@@ -1,9 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play, Video } from "lucide-react";
 import { IpmZone } from "./IpmZone.jsx";
-import { PipelineStrip, PIPELINE_STAGES } from "./PipelineStrip.jsx";
-
-export { IpmZone, PipelineStrip, PIPELINE_STAGES };
+export { IpmZone };
 
 const FALLBACK_META = {
   video: {
@@ -116,38 +114,6 @@ function drawRoi(ctx, anchors, scaleX, scaleY) {
   ctx.restore();
 }
 
-function drawCalibPoints(ctx, points, scaleX, scaleY) {
-  if (!points || points.length === 0) return;
-  const pts = points.map(([x, y]) => [x * scaleX, y * scaleY]);
-  ctx.save();
-  if (pts.length > 1) {
-    ctx.beginPath();
-    ctx.moveTo(pts[0][0], pts[0][1]);
-    for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
-    if (pts.length === 4) ctx.closePath();
-    ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 2;
-    ctx.setLineDash([6, 4]);
-    ctx.stroke();
-    if (pts.length === 4) {
-      ctx.fillStyle = "rgba(56, 189, 248, 0.15)";
-      ctx.fill();
-    }
-    ctx.setLineDash([]);
-  }
-  pts.forEach(([px, py], i) => {
-    ctx.beginPath();
-    ctx.arc(px, py, 5, 0, Math.PI * 2);
-    ctx.fillStyle = "#facc15";
-    ctx.fill();
-    ctx.strokeStyle = "#38bdf8";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    drawAnchorBadge(ctx, px, py, `P${i + 1}`, i, "#facc15", "#38bdf8", "#facc15");
-  });
-  ctx.restore();
-}
-
 function drawVehicleBadge(ctx, text, x, y, color) {
   ctx.font = "bold 11px ui-monospace, SFMono-Regular, monospace";
   const tw = ctx.measureText(text).width;
@@ -237,8 +203,6 @@ function OverlayCanvas({
   showTrackId,
   canvasDims,
   videoDims,
-  isCalibrating,
-  calibPoints,
 }) {
   const canvasRef = useRef(null);
 
@@ -255,9 +219,6 @@ function OverlayCanvas({
     const scaleY = canvas.height / baseH;
 
     if (showRoi && anchors) drawRoi(ctx, anchors, scaleX, scaleY);
-    if (isCalibrating && calibPoints?.length > 0) {
-      drawCalibPoints(ctx, calibPoints, scaleX, scaleY);
-    }
     if (activeFrame?.vehicles) {
       drawVehicles(ctx, activeFrame.vehicles, showBbox, showTrackId, scaleX, scaleY);
     }
@@ -269,8 +230,6 @@ function OverlayCanvas({
     showTrackId,
     canvasDims,
     videoDims,
-    isCalibrating,
-    calibPoints,
   ]);
 
   return (
@@ -347,140 +306,15 @@ function TransportControls({
   );
 }
 
-function LayerCheckboxes({
-  showBbox,
-  setShowBbox,
-  showTrackId,
-  setShowTrackId,
-  showRoi,
-  setShowRoi,
-}) {
+function StreamHeader({ fps }) {
   return (
-    <div className="flex flex-wrap items-center gap-3 font-mono text-xs">
-      <label className="flex cursor-pointer items-center gap-1.5 select-none text-slate-300 transition hover:text-emerald-300">
-        <input
-          type="checkbox"
-          checked={showBbox}
-          onChange={(e) => setShowBbox(e.target.checked)}
-          className="h-3.5 w-3.5 rounded border-[#1e293b] bg-slate-900 accent-emerald-500"
-        />
-        <span>Bbox YOLO</span>
-      </label>
-      <label className="flex cursor-pointer items-center gap-1.5 select-none text-slate-300 transition hover:text-sky-300">
-        <input
-          type="checkbox"
-          checked={showTrackId}
-          onChange={(e) => setShowTrackId(e.target.checked)}
-          className="h-3.5 w-3.5 rounded border-[#1e293b] bg-slate-900 accent-sky-500"
-        />
-        <span>ByteTrack ID</span>
-      </label>
-      <label className="flex cursor-pointer items-center gap-1.5 select-none text-slate-300 transition hover:text-amber-300">
-        <input
-          type="checkbox"
-          checked={showRoi}
-          onChange={(e) => setShowRoi(e.target.checked)}
-          className="h-3.5 w-3.5 rounded border-[#1e293b] bg-slate-900 accent-amber-500"
-        />
-        <span>Điểm neo ROI (P1–P4)</span>
-      </label>
-    </div>
-  );
-}
-
-function LayerToggles({
-  showBbox,
-  setShowBbox,
-  showTrackId,
-  setShowTrackId,
-  showRoi,
-  setShowRoi,
-  isCalibrating,
-  setIsCalibrating,
-}) {
-  return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-t border-[#1e293b] pt-2">
-      <div className="flex flex-wrap items-center gap-3">
-        <LayerCheckboxes
-          showBbox={showBbox}
-          setShowBbox={setShowBbox}
-          showTrackId={showTrackId}
-          setShowTrackId={setShowTrackId}
-          showRoi={showRoi}
-          setShowRoi={setShowRoi}
-        />
-        <button
-          type="button"
-          onClick={() => setIsCalibrating((v) => !v)}
-          className={`flex items-center gap-1.5 rounded border px-2 py-0.5 font-mono text-xs transition ${
-            isCalibrating
-              ? "border-sky-500 bg-sky-950/60 text-sky-200"
-              : "border-slate-800 bg-slate-900/60 text-slate-400 hover:border-slate-700 hover:text-slate-200"
-          }`}
-        >
-          <span
-            className={`h-1.5 w-1.5 rounded-full ${
-              isCalibrating ? "bg-sky-400" : "bg-slate-600"
-            }`}
-          />
-          <span>Hiệu chuẩn 4 điểm neo</span>
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function CalibrationBar({ calibPoints, onReset, onApply }) {
-  const isComplete = calibPoints.length === 4;
-  return (
-    <div className="mb-2 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-sky-500/40 bg-sky-950/40 px-3 py-2 text-xs">
-      <div className="flex flex-col gap-1 font-mono">
-        <div className="flex items-center gap-2 text-sky-200">
-          <span className="h-2 w-2 rounded-full bg-sky-400" />
-          <span>
-            {`Đã chấm ${calibPoints.length}/4 điểm (P1: Trên-Trái → P2: Trên-Phải → P3: Dưới-Phải → P4: Dưới-Trái)`}
-          </span>
-        </div>
-        {isComplete && (
-          <div className="text-[11px] text-amber-300">
-            {`P1: [${calibPoints[0]}], P2: [${calibPoints[1]}], P3: [${calibPoints[2]}], P4: [${calibPoints[3]}]`}
-          </div>
-        )}
-      </div>
-      <div className="flex items-center gap-2 font-mono">
-        {isComplete && (
-          <button
-            type="button"
-            onClick={onApply}
-            className="rounded bg-amber-500 px-2.5 py-1 text-xs font-semibold text-slate-950 transition hover:bg-amber-400"
-          >
-            Áp dụng thử
-          </button>
-        )}
-        <button
-          type="button"
-          onClick={onReset}
-          className="rounded border border-sky-700 bg-sky-900/40 px-2.5 py-1 text-xs font-medium text-sky-200 transition hover:bg-sky-800/50"
-        >
-          Xóa chấm lại
-        </button>
-      </div>
-    </div>
-  );
-}
-
-function StreamHeader({ canvasDims, fps }) {
-  return (
-    <div className="mb-2 flex flex-wrap items-center gap-2">
+    <div className="mb-2 flex items-center justify-between">
       <span className="flex items-center gap-1.5 text-xs font-semibold text-slate-200">
         <Video size={14} className="text-emerald-400" />
-        Luồng camera phối cảnh
-      </span>
-      <span className="rounded bg-slate-800 px-1.5 py-0.5 font-mono text-[10px] font-bold text-slate-200">
-        CAM-CTU-01
+        Camera CCTV · Nút giao Quang Trung
       </span>
       <span className="font-mono text-[10px] tabular-nums text-slate-500">
-        {canvasDims.width}×{canvasDims.height} · {fps || 30} FPS
+        {fps || 30} FPS
       </span>
     </div>
   );
@@ -534,43 +368,18 @@ function ViewportVideo({
   );
 }
 
-function VideoViewport({
-  videoProps,
-  overlayProps,
-  isCalibrating,
-  calibPoints,
-  setCalibPoints,
-}) {
-  const handleCalibClick = (e) => {
-    if (calibPoints.length >= 4) return;
-    const rect = e.currentTarget.getBoundingClientRect();
-    const x = Math.max(0, Math.min(886, Math.round(((e.clientX - rect.left) / rect.width) * 886)));
-    const y = Math.max(0, Math.min(490, Math.round(((e.clientY - rect.top) / rect.height) * 490)));
-    setCalibPoints((prev) => (prev.length < 4 ? [...prev, [x, y]] : prev));
-  };
-
+function VideoViewport({ videoProps, overlayProps }) {
   return (
-    <div className="relative mx-auto aspect-video max-h-[340px] w-full overflow-hidden rounded-lg border border-[#1e293b] bg-slate-950">
+    <div className="relative mx-auto aspect-video max-h-[460px] w-full overflow-hidden rounded-lg border border-[#1e293b] bg-slate-950">
       <ViewportVideo {...videoProps} />
-      <OverlayCanvas
-        {...overlayProps}
-        isCalibrating={isCalibrating}
-        calibPoints={calibPoints}
-      />
-      {isCalibrating && (
-        <div
-          onClick={handleCalibClick}
-          className="absolute inset-0 z-10 cursor-crosshair"
-          title="Nhấp chuột để chọn điểm neo P1 -> P4"
-        />
-      )}
+      <OverlayCanvas {...overlayProps} />
     </div>
   );
 }
 
-function CameraStreamControls({ player, meta, layers, isCalibrating, setIsCalibrating }) {
+function CameraStreamControls({ player, meta }) {
   return (
-    <div className="mt-2 flex flex-col gap-1.5">
+    <div className="mt-2">
       <TransportControls
         isPlaying={player.isPlaying}
         onTogglePlay={player.onTogglePlay}
@@ -581,31 +390,17 @@ function CameraStreamControls({ player, meta, layers, isCalibrating, setIsCalibr
         playbackRate={player.playbackRate}
         onRateChange={player.onRateChange}
       />
-      <LayerToggles
-        {...layers}
-        isCalibrating={isCalibrating}
-        setIsCalibrating={setIsCalibrating}
-      />
     </div>
   );
 }
 
-function CameraStreamZone({
-  player,
-  layers,
-  meta,
-  isCalibrating,
-  setIsCalibrating,
-  calibPoints,
-  setCalibPoints,
-  onApplyCalib,
-}) {
+function CameraStreamZone({ player, meta }) {
   const overlayProps = {
     activeFrame: player.activeFrame,
     anchors: meta.metadata?.anchors,
-    showRoi: layers.showRoi,
-    showBbox: layers.showBbox,
-    showTrackId: layers.showTrackId,
+    showRoi: true,
+    showBbox: true,
+    showTrackId: true,
     canvasDims: meta.canvasDims,
     videoDims: meta.metadata?.video,
   };
@@ -622,32 +417,12 @@ function CameraStreamZone({
   };
 
   return (
-    <section className="flex flex-col justify-between rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 lg:col-span-7">
+    <section className="flex flex-col rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 lg:col-span-7">
       <div>
-        <StreamHeader canvasDims={meta.canvasDims} fps={meta.metadata?.video?.fps} />
-        {isCalibrating && (
-          <CalibrationBar
-            calibPoints={calibPoints}
-            onReset={() => setCalibPoints([])}
-            onApply={onApplyCalib}
-          />
-        )}
-        <VideoViewport
-          videoProps={videoProps}
-          overlayProps={overlayProps}
-          isCalibrating={isCalibrating}
-          calibPoints={calibPoints}
-          setCalibPoints={setCalibPoints}
-        />
-        <CameraStreamControls
-          player={player}
-          meta={meta}
-          layers={layers}
-          isCalibrating={isCalibrating}
-          setIsCalibrating={setIsCalibrating}
-        />
+        <StreamHeader fps={meta.metadata?.video?.fps} />
+        <VideoViewport videoProps={videoProps} overlayProps={overlayProps} />
+        <CameraStreamControls player={player} meta={meta} />
       </div>
-      <PipelineStrip isPlaying={player.isPlaying} embedded />
     </section>
   );
 }
@@ -725,46 +500,13 @@ function useCameraPlayer(metadata) {
   };
 }
 
-function useLayerToggles() {
-  const [showBbox, setShowBbox] = useState(true);
-  const [showTrackId, setShowTrackId] = useState(true);
-  const [showRoi, setShowRoi] = useState(true);
-  return { showBbox, setShowBbox, showTrackId, setShowTrackId, showRoi, setShowRoi };
-}
-
 export default function CameraView() {
   const meta = useCameraData();
   const player = useCameraPlayer(meta.metadata);
-  const layers = useLayerToggles();
-  const [isCalibrating, setIsCalibrating] = useState(false);
-  const [calibPoints, setCalibPoints] = useState([]);
-
-  const handleApplyCalib = useCallback(() => {
-    if (calibPoints.length !== 4) return;
-    meta.setMetadata((prev) => ({
-      ...prev,
-      anchors: {
-        p1: calibPoints[0],
-        p2: calibPoints[1],
-        p3: calibPoints[2],
-        p4: calibPoints[3],
-      },
-    }));
-    layers.setShowRoi(true);
-  }, [calibPoints, meta, layers]);
 
   return (
-    <div className="grid grid-cols-1 gap-3 lg:grid-cols-12">
-      <CameraStreamZone
-        player={player}
-        layers={layers}
-        meta={meta}
-        isCalibrating={isCalibrating}
-        setIsCalibrating={setIsCalibrating}
-        calibPoints={calibPoints}
-        setCalibPoints={setCalibPoints}
-        onApplyCalib={handleApplyCalib}
-      />
+    <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-12">
+      <CameraStreamZone player={player} meta={meta} />
       <IpmZone activeFrame={player.activeFrame} metadata={meta.metadata} currentTime={player.currentTime} />
     </div>
   );

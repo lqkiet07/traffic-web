@@ -1,8 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { ArrowRight } from "lucide-react";
-import CorridorCanvas from "./CorridorCanvas.jsx";
 import Corridor3DCanvas from "./Corridor3DCanvas.jsx";
-import LabTransportBar from "./LabTransportBar.jsx";
 import LabAnalysisPanel from "./LabAnalysisPanel.jsx";
 import {
   VEHICLE_SPECS,
@@ -89,12 +86,6 @@ function createLabActions(simRef, activeScenario, { setTelemetry, setActiveScena
     },
   };
 }
-
-const VEHICLE_LABELS = {
-  moto: "Xe máy 1.5m²",
-  car: "Ô tô 7.5m²",
-  truck: "Xe tải 18m²",
-};
 
 function clampStep(step) {
   // Keep stepper index inside 1..5 range
@@ -185,7 +176,7 @@ function createSimModeToggler({ simRef, activeScenario, simMode, setSimMode, set
 }
 
 function useStepper(simRef, setTelemetry, setIsPlaying, activeScenario) {
-  const [simMode, setSimMode] = useState("continuous");
+  const [simMode, setSimMode] = useState("stepper");
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedNode, setSelectedNodeState] = useState(1);
   const [isAutoStepping, setIsAutoStepping] = useState(false);
@@ -239,7 +230,7 @@ function useLabSim() {
   const simRef = useRef(null);
   if (!simRef.current) simRef.current = createCorridorSim({ algo: "cao", autoSpawn: true });
 
-  const [isPlaying, setIsPlaying] = useState(true);
+  const [isPlaying, setIsPlaying] = useState(false);
   const [simSpeed, setSimSpeed] = useState(1);
   const [algo, setAlgo] = useState("cao");
   const [selectedType, setSelectedType] = useState("moto");
@@ -248,6 +239,7 @@ function useLabSim() {
 
   useEffect(() => {
     applyPresetVehicles(simRef.current, "paradox");
+    advanceSimStep(simRef.current, 1);
     setTelemetry(getCorridorTelemetry(simRef.current));
   }, []);
 
@@ -288,11 +280,7 @@ function CameraPresetBar({ cameraPreset, onPreset, camBtn }) {
   // Preset list keeps bar data-driven for short render logic
   const presets = [
     { key: "overview", label: "Toàn cảnh" },
-    { key: "junction1", label: "Nút 1" },
-    { key: "node2", label: "Nút 2" },
-    { key: "corridor", label: "Hành lang" },
-    { key: "chase", label: "Bám xe" },
-    { key: "free", label: "Xoay 360" },
+    { key: "junction1", label: "Cận cảnh Nút 1" },
   ];
   return (
     <div className="flex flex-wrap items-center gap-1">
@@ -305,42 +293,9 @@ function CameraPresetBar({ cameraPreset, onPreset, camBtn }) {
   );
 }
 
-function MouseHintChip({ cameraPreset }) {
-  // Floating glass badge over viewport — pointer-events-none to avoid blocking orbit
+function LabCanvasView({ lab, cameraPreset, onCameraPresetChange }) {
   return (
-    <div className="absolute bottom-2 left-2 right-2 pointer-events-none flex items-center justify-between text-[11px] text-slate-400 px-3 py-1 bg-slate-950/80 backdrop-blur-sm rounded-lg border border-[#1e293b]">
-      <span>Chuột trái: Xoay 360° · Chuột phải: Lia góc nhìn · Cuộn: Zoom vào con trỏ · Nhấp đúp: Lấy nét</span>
-      <span className="font-mono text-cyan-300">Camera: {cameraPreset}</span>
-    </div>
-  );
-}
-
-function LabCanvasView({ lab, view3D, cameraPreset, onCameraPresetChange }) {
-  // Split canvas switch to keep parent function short
-  if (view3D) {
-    return (
-      <>
-        <Corridor3DCanvas
-          simRef={lab.simRef}
-          isPlaying={lab.isPlaying}
-          simSpeed={lab.simSpeed}
-          selectedType={lab.selectedType}
-          selectedNode={lab.selectedNode}
-          onSpawn={lab.handleCanvasSpawn}
-          onTelemetry={lab.setTelemetry}
-          simMode={lab.simMode}
-          currentStep={lab.currentStep}
-          subPhase={lab.subPhase}
-          stepData={lab.stepData}
-          cameraPreset={cameraPreset}
-          onCameraPreset={onCameraPresetChange}
-        />
-        <MouseHintChip cameraPreset={cameraPreset} />
-      </>
-    );
-  }
-  return (
-    <CorridorCanvas
+    <Corridor3DCanvas
       simRef={lab.simRef}
       isPlaying={lab.isPlaying}
       simSpeed={lab.simSpeed}
@@ -352,132 +307,44 @@ function LabCanvasView({ lab, view3D, cameraPreset, onCameraPresetChange }) {
       currentStep={lab.currentStep}
       subPhase={lab.subPhase}
       stepData={lab.stepData}
+      cameraPreset={cameraPreset}
+      onCameraPreset={onCameraPresetChange}
     />
   );
 }
 
-function CorridorCoordinationBar({ telemetry, selectedNode, onSelectNode }) {
-  // Corridor pressure drives jam tags and backpressure readout
-  const phi = Number(telemetry?.phiCorridor ?? 0);
-  const jam = phi >= 0.7;
-  const pct = `${Math.round(phi * 100)}%`;
-  const n1 = telemetry?.node1Green?.g1 ?? 56;
-  const n2 = telemetry?.node2Green?.g1 ?? 56;
-  const deductionPct = Math.round(phi * 70); // R * phi_out = 0.70 * phi
-  const chip = (active) =>
-    active
-      ? "flex items-center gap-2 px-2 py-1 rounded-md border border-emerald-500/40 bg-emerald-500/10 text-xs"
-      : "flex items-center gap-2 px-2 py-1 rounded-md border border-[#1e293b] bg-slate-900/60 text-xs";
-  return (
-    <div className="w-full flex flex-wrap items-center gap-2 px-3 py-1.5 border-b border-[#1e293b] bg-slate-950/60 text-xs text-slate-300">
-      <button type="button" className={chip(selectedNode === 1)} onClick={() => onSelectNode?.(1)}>
-        <span className="font-medium">Nút 1</span>
-        <span className="font-mono text-emerald-300">{n1}s</span>
-        {jam ? <span className="text-amber-300">Điều tiết giảm</span> : null}
-      </button>
-      <ArrowRight size={13} className="text-slate-600 shrink-0" />
-      <div className="flex items-center gap-2 px-2 py-1 rounded-md border border-[#1e293b] bg-slate-900/60">
-        <span className="font-medium">Hành lang nối</span>
-        <span className="font-mono text-sky-300">{pct}</span>
-        {jam ? (
-          <span
-            className="font-mono text-rose-300"
-            title={`Khấu trừ ${deductionPct}% áp lực cấp cho Nút 1 (R = 0.70)`}
-          >
-            -{deductionPct}% áp lực dội
-          </span>
-        ) : null}
-      </div>
-      <ArrowRight size={13} className="text-slate-600 shrink-0" />
-      <button type="button" className={chip(selectedNode === 2)} onClick={() => onSelectNode?.(2)}>
-        <span className="font-medium">Nút 2</span>
-        <span className="font-mono text-emerald-300">{n2}s</span>
-        {jam ? <span className="text-sky-300">Ưu tiên xả</span> : null}
-      </button>
-    </div>
-  );
-}
-
-function LabCanvasBox({ lab, vLabel }) {
-  const [view3D, setView3D] = useState(true);
+function LabCanvasBox({ lab }) {
   const [cameraPreset, setCameraPreset] = useState("overview");
-  const hintText = lab.simMode === "stepper"
-    ? `Chế độ từng bước: Quan sát thuật toán CAO-CBMP phân tích mặt đường • Đang ở Bước [${lab.currentStep}/5]`
-    : `Click trực tiếp lên nhánh đường để thả xe (${vLabel})`;
-  const viewBtn = (active) =>
-    active
-      ? "px-2 py-0.5 rounded-md bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 font-medium"
-      : "px-2 py-0.5 rounded-md bg-transparent text-slate-400 border border-[#1e293b] hover:text-slate-200";
   const camBtn = (active) =>
     active
       ? "px-2 py-0.5 rounded-md bg-sky-500/20 text-sky-300 border border-sky-500/40 font-medium"
       : "px-2 py-0.5 rounded-md bg-transparent text-slate-400 border border-[#1e293b] hover:text-slate-200";
   return (
     <div className="relative flex-1 min-h-[440px] rounded-xl border border-[#1e293b] bg-[#090d16] flex flex-col overflow-hidden">
-      <div className="w-full flex flex-wrap items-center justify-between gap-2 px-3 py-2 border-b border-[#1e293b] bg-slate-900/60 text-xs">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="flex items-center gap-1">
-            <button type="button" className={viewBtn(!view3D)} onClick={() => setView3D(false)}>
-              2D
-            </button>
-            <button type="button" className={viewBtn(view3D)} onClick={() => setView3D(true)}>
-              3D
-            </button>
-          </div>
-          {view3D && (
-            <CameraPresetBar cameraPreset={cameraPreset} onPreset={setCameraPreset} camBtn={camBtn} />
-          )}
+      <div className="w-full flex items-center justify-between gap-2 px-3 py-2 border-b border-[#1e293b] bg-slate-900/60 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-semibold text-slate-300">Góc nhìn 3D:</span>
+          <CameraPresetBar cameraPreset={cameraPreset} onPreset={setCameraPreset} camBtn={camBtn} />
         </div>
-        <span className="text-emerald-400 font-mono text-[11px]">{hintText}</span>
+        <div className="flex items-center gap-2 text-xs">
+          <span className="text-slate-400">Hành lang Nút 1-2:</span>
+          <span className="font-mono font-bold text-sky-400">{Math.round((lab.telemetry?.phiCorridor ?? 0) * 100)}%</span>
+          {Number(lab.telemetry?.phiCorridor ?? 0) >= 0.7 ? (
+            <span className="rounded bg-rose-500/20 px-1.5 py-0.5 text-[10px] font-bold text-rose-300">Nghẽn dội ngược</span>
+          ) : null}
+        </div>
       </div>
-      <CorridorCoordinationBar telemetry={lab.telemetry} selectedNode={lab.selectedNode} onSelectNode={lab.setSelectedNode} />
       <div className="relative flex-1 w-full h-full min-h-[340px] overflow-hidden bg-[#090d16]">
-        <LabCanvasView lab={lab} view3D={view3D} cameraPreset={cameraPreset} onCameraPresetChange={setCameraPreset} />
+        <LabCanvasView lab={lab} cameraPreset={cameraPreset} onCameraPresetChange={setCameraPreset} />
       </div>
     </div>
   );
-}
-
-function handleBarStep(lab, step) {
-  // Step-1 button restores spawn positions before analysis
-  const resetFn = lab.handleStepperReset || lab.handleReset;
-  if (step === 1 && lab.simMode === "stepper" && resetFn) resetFn();
-  else lab.setStep(step);
 }
 
 function resolveBarReset(lab) {
   // Transport reset follows active mode: stepper restarts steps, continuous resumes loop
   if (lab.simMode === "stepper") return (lab.handleStepperReset || lab.handleReset)?.();
   return (lab.handleContinuousReset || lab.handleReset)?.();
-}
-
-function LabControlBar({ lab }) {
-  return (
-    <LabTransportBar
-      isPlaying={lab.isPlaying}
-      onTogglePlay={() => lab.setIsPlaying((p) => !p)}
-      simSpeed={lab.simSpeed}
-      onSetSpeed={lab.setSimSpeed}
-      onReset={() => resolveBarReset(lab)}
-      onStepBack={lab.handleStepBack}
-      onStepForward={lab.handleStepForward}
-      simTime={lab.simRef.current?.time ?? 0}
-      vehicleCount={lab.telemetry.totalVehicles}
-      onSeek={lab.handleSeek}
-      onSeekStart={lab.handleSeekStart}
-      onSeekEnd={lab.handleSeekEnd}
-      simMode={lab.simMode}
-      currentStep={lab.currentStep}
-      subPhase={lab.subPhase}
-      stepData={lab.stepData}
-      onToggleMode={lab.toggleSimMode}
-      onSetStep={(step) => handleBarStep(lab, step)}
-      onPrevStep={lab.prevStep}
-      onNextStep={lab.nextStep}
-      isAutoStepping={lab.isAutoStepping}
-      onToggleAutoStep={lab.toggleAutoStep}
-    />
-  );
 }
 
 function LabSidePanel({ lab }) {
@@ -512,13 +379,11 @@ function LabSidePanel({ lab }) {
 
 export default function AlgorithmLab() {
   const lab = useLabSim();
-  const vLabel = VEHICLE_LABELS[lab.selectedType] || VEHICLE_LABELS.moto;
 
   return (
     <>
-      <section className="flex min-h-[480px] flex-col gap-3 lg:col-span-8 lg:min-h-0">
-        <LabCanvasBox lab={lab} vLabel={vLabel} />
-        <LabControlBar lab={lab} />
+      <section className="flex min-h-[480px] flex-col lg:col-span-8 lg:min-h-0">
+        <LabCanvasBox lab={lab} />
       </section>
       <LabSidePanel lab={lab} />
     </>
