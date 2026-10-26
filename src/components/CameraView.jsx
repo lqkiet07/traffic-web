@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Pause, Play, Video } from "lucide-react";
-import { IpmZone } from "./IpmZone.jsx";
-export { IpmZone };
 
 const FALLBACK_META = {
   video: {
@@ -417,7 +415,7 @@ function CameraStreamZone({ player, meta }) {
   };
 
   return (
-    <section className="flex flex-col rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 lg:col-span-7">
+    <section className="flex flex-col rounded-xl border border-[#1e293b] bg-[#0f172a] p-3 lg:col-span-12">
       <div>
         <StreamHeader fps={meta.metadata?.video?.fps} />
         <VideoViewport videoProps={videoProps} overlayProps={overlayProps} />
@@ -507,7 +505,6 @@ export default function CameraView() {
   return (
     <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-12">
       <CameraStreamZone player={player} meta={meta} />
-      <IpmZone activeFrame={player.activeFrame} metadata={meta.metadata} currentTime={player.currentTime} />
     </div>
   );
 }

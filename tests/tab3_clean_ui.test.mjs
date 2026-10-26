@@ -16,12 +16,14 @@ const checks = [
       "max-h-[340px]",
       "<PipelineStrip",
       "col-span-6",
+      "IpmZone",
+      "BEV Homography",
     ],
     required: [
       "Nút giao Quang Trung",
       "h-full",
       "max-h-[460px]",
-      "col-span-7",
+      "col-span-12",
       "items-start",
     ],
   },
@@ -29,24 +31,6 @@ const checks = [
     file: "src/components/PipelineStrip.jsx",
     forbidden: [
       "Đang phát",
-    ],
-  },
-  {
-    file: "src/components/IpmZone.jsx",
-    forbidden: [
-      "IpmComparisonCards",
-      "max-h-[190px]",
-      "LiveSignalAllocation",
-      "Pha 2 (Nhánh cắt ngang)",
-      "Baseline cắt hụt",
-      "col-span-6",
-      "aspect-video",
-    ],
-    required: [
-      "h-full",
-      "max-h-[380px]",
-      "col-span-5",
-      "aspect-[4/3]",
     ],
   },
 ];
